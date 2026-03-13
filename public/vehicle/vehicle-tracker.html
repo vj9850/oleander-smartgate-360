@@ -14,69 +14,124 @@
     })();
   </script>
   <style>
-    @keyframes pulse {
-      0%,100% { opacity:1; transform:scale(1); }
-      50%      { opacity:0.5; transform:scale(1.5); }
+    .tracker-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
+      align-items: start;
     }
-    @keyframes pulseRing {
-      0%   { r:8; opacity:0.8; }
-      100% { r:18; opacity:0; }
+    .vehicles-panel {
+      max-height: calc(100vh - 280px);
+      min-height: 300px;
+      overflow-y: auto;
     }
     .vehicle-card {
       border: 1px solid var(--border);
       border-radius: 8px;
       margin: 8px;
-      transition: background 0.15s, border-color 0.15s;
       cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
-    .vehicle-card:hover { background: #f9fdfb; }
+    .vehicle-card:hover  { background: #f0fdf4; }
     .vehicle-card.selected {
       background: var(--primary-light);
       border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(45,122,79,0.18);
     }
-    .tracker-grid {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 20px;
-      align-items: start;
+    #gmap {
+      width: 100%;
+      height: 560px;
+      border-radius: 0 0 8px 8px;
     }
-    .filter-bar {
+    .map-no-key {
+      height: 560px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      border-radius: 0 0 8px 8px;
+      text-align: center;
+      padding: 32px;
+    }
+    .filter-btns {
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
-      padding: 8px 12px;
+      padding: 10px 12px;
       border-bottom: 1px solid var(--border);
     }
-    .vehicles-panel {
-      max-height: 620px;
-      overflow-y: auto;
+    .route-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: #fef3c7;
+      color: #92400e;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
     }
-    .map-dot-pulse {
-      animation: pulse 2s infinite;
+    @keyframes livePulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:0.35; transform:scale(1.7); }
     }
-    .tracker-popup-summary,
-    .tracker-shift-grid {
-      display: grid;
-      gap: 4px;
-      font-size: 12px;
+    .live-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: livePulse 1.5s infinite;
+      vertical-align: middle;
+      margin-right: 6px;
     }
-    .tracker-popup-summary {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 10px;
+    /* ── Vehicle map markers ─────────────────────── */
+    .vm-outer {
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .tracker-shift-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .vm-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      transition: transform 1.6s linear;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
     }
-    @media (max-width: 900px) {
-      .tracker-grid { grid-template-columns: 1fr; }
-      .vehicles-panel { max-height: 320px; }
+    .vm-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%) scale(0.7);
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      animation: vmRing 1.8s ease-out infinite;
+      pointer-events: none;
     }
-    @media (max-width: 640px) {
-      .tracker-popup-summary,
-      .tracker-shift-grid {
-        grid-template-columns: 1fr;
-      }
+    @keyframes vmRing {
+      0%   { transform: translate(-50%,-50%) scale(0.75); opacity: 0.9; }
+      100% { transform: translate(-50%,-50%) scale(2.1);  opacity: 0; }
+    }
+    .vm-sel-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 130%; height: 130%;
+      border-radius: 50%;
+      border: 2.5px dashed white;
+      pointer-events: none;
+      animation: vmSelSpin 6s linear infinite;
+    }
+    @keyframes vmSelSpin {
+      from { transform: translate(-50%,-50%) rotate(0deg); }
+      to   { transform: translate(-50%,-50%) rotate(360deg); }
+    }
+    @media (max-width: 960px) {
+      .tracker-layout { grid-template-columns: 1fr; }
+      .vehicles-panel { max-height: 280px; }
+      #gmap { height: 380px; }
     }
   </style>
 </head>
@@ -84,13 +139,9 @@
 <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 <div class="app-wrapper">
 
-  <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar"></aside>
 
-  <!-- MAIN CONTENT -->
   <div class="main-content">
-
-    <!-- TOPBAR -->
     <header class="topbar">
       <div class="topbar-left">
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
@@ -113,37 +164,37 @@
       </div>
     </header>
 
-    <!-- PAGE CONTENT -->
     <div class="page-content">
 
-      <!-- Page Header -->
       <div class="page-header">
         <div class="page-header-left">
-          <div class="page-title">Fleet Tracker</div>
-          <div class="page-subtitle">Real-time vehicle locations and status across Oleander Farms</div>
+          <div class="page-title">
+            <span class="live-dot" style="background:#2d7a4f;"></span>Live Fleet Tracker
+          </div>
+          <div class="page-subtitle">Real-time positions — on-property, en-route from Karjat Station &amp; Mumbai Airport</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
-          <span id="refresh-indicator" style="font-size:12px;color:var(--text-muted);">Auto-refresh: 10s</span>
-          <button class="btn btn-ghost btn-sm" onclick="refreshTracker()">
+          <span id="clock-badge" style="font-size:12px;color:var(--text-muted);"></span>
+          <button class="btn btn-ghost btn-sm" onclick="manualRefresh()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             Refresh
           </button>
         </div>
       </div>
 
-      <!-- Stats -->
+      <!-- Stats row -->
       <div class="stats-grid" id="tracker-stats"></div>
 
-      <!-- Main tracker layout -->
-      <div class="tracker-grid">
+      <!-- Main layout -->
+      <div class="tracker-layout">
 
-        <!-- Vehicle List Panel -->
+        <!-- Left: Vehicle list panel -->
         <div class="section-card" style="padding:0;">
-          <div class="section-header" style="padding:14px 16px;border-bottom:1px solid var(--border);">
-            <h2 style="font-size:15px;">Fleet Vehicles</h2>
+          <div style="padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <h2 style="font-size:15px;margin:0;">Fleet Vehicles</h2>
+            <span id="vehicle-count" style="font-size:11px;color:var(--text-muted);"></span>
           </div>
-          <!-- Filter Buttons -->
-          <div class="filter-bar" id="tracker-filter-btns">
+          <div class="filter-btns" id="filter-btns">
             <button class="btn btn-sm btn-primary" data-filter="all">All</button>
             <button class="btn btn-sm btn-ghost" data-filter="In Use">In Use</button>
             <button class="btn btn-sm btn-ghost" data-filter="Available">Available</button>
@@ -152,49 +203,159 @@
           <div class="vehicles-panel" id="vehicle-cards"></div>
         </div>
 
-        <!-- Map Panel -->
-        <div class="section-card" style="padding:0;">
-          <div class="section-header" style="padding:14px 16px;border-bottom:1px solid var(--border);">
-            <h2 style="font-size:15px;">Property Map – Oleander Farms</h2>
-            <span id="map-last-update" style="font-size:12px;color:var(--text-muted);">Live</span>
+        <!-- Right: Google Map -->
+        <div class="section-card" style="padding:0;overflow:hidden;">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <span style="font-size:15px;font-weight:700;">Google Maps – Live View</span>
+              <span style="font-size:11px;color:var(--text-muted);margin-left:10px;">Oleander Farms, Karjat ↔ Mumbai corridor</span>
+            </div>
+            <span id="map-time" style="font-size:11px;color:var(--text-muted);white-space:nowrap;"></span>
           </div>
-          <div id="property-map" style="position:relative;width:100%;background:#e8f5ee;border-radius:0 0 8px 8px;overflow:hidden;min-height:480px;"></div>
-          <!-- Vehicle detail popup -->
-          <div id="map-popup" style="display:none;margin:0;padding:16px;background:var(--primary-light);border-top:1px solid var(--border);border-radius:0 0 8px 8px;"></div>
+          <div id="gmap"></div>
+          <!-- Legend -->
+          <div style="padding:9px 16px;display:flex;gap:14px;flex-wrap:wrap;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);">
+            <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2d7a4f;vertical-align:middle;margin-right:4px;"></span>In Use (on-property)</span>
+            <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#e67e22;vertical-align:middle;margin-right:4px;"></span>En Route</span>
+            <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#64748b;vertical-align:middle;margin-right:4px;"></span>Available</span>
+            <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#ef4444;vertical-align:middle;margin-right:4px;"></span>Maintenance</span>
+          </div>
         </div>
 
       </div>
-    </div><!-- /page-content -->
-  </div><!-- /main-content -->
-</div><!-- /app-wrapper -->
+    </div>
+  </div>
+</div>
 
 <script src="../js/app.js"></script>
 <script>
 'use strict';
 
+/* ══════════════════════════════════════════════════════
+   CONFIG  –  paste your Google Maps API key here
+   Get one free at: https://console.cloud.google.com/
+   ══════════════════════════════════════════════════════ */
+const GMAPS_API_KEY = 'AIzaSyBWxJ3u_LqPZfyOGGytIt3ys_3cyR5vxzU';
+
+/* ── Car top-view icon (freepik) ── */
+const CAR_ICON_URL = 'https://cdn-icons-png.freepik.com/256/9855/9855667.png?semt=ais_white_label';
+
+/* ── State ── */
+let gmap        = null;
+let infoWindow  = null;
 let allVehicles = [];
 let allShifts   = [];
 let selectedId  = null;
 let currentFilter = 'all';
-let refreshTimer  = null;
+let clockTimer  = null;
+let moveTimer   = null;
 
-const LOCATION_COORDS = {
-  'Main Parking':    {x:50, y:78},
-  'South Parking':   {x:74, y:83},
-  'Villas Area':     {x:80, y:22},
-  'Rooms & Villas':  {x:80, y:22},
-  'Event Venue':     {x:22, y:46},
-  'Wedding Venue':   {x:22, y:46},
-  'Restaurant':      {x:46, y:50},
-  'Saltt Restaurant':{x:46, y:50},
-  'Main Gate':       {x:48, y:93},
-  'Spa & Wellness':  {x:26, y:26},
-  'Nursery':         {x:12, y:30},
-  'Pool Bar':        {x:56, y:40},
-  'Karjat Station':  {x:10, y:92},
-  'Staff Quarters':  {x:30, y:75}
+/* vehicleId → google.maps.Marker / google.maps.Polyline */
+const markers    = {};
+const routeLines = {};
+
+/* vehicleId → { segIdx, segT } – animation progress */
+const progress = {};
+
+/* vehicleId → compass heading (0=north, 90=east …) */
+const headings = {};
+
+/* vehicleId → previous {lat,lng} for bearing calculation */
+const prevPos  = {};
+
+/* ── Real GPS coordinates ─────────────────────────────────────────
+   Oleander Farms Luxury Resort, Karjat, Maharashtra
+   Verified location: 18.9148367 N, 73.2966273 E
+   (source: https://maps.app.goo.gl/JKjGmFAf3cHMGeEy7)
+   Property ~180 acres spanning roughly 18.909–18.920 N, 73.292–73.301 E
+   ─────────────────────────────────────────────────────────────── */
+const GPS = {
+  /* ── On-property ── */
+  'Main Gate':        { lat: 18.9115, lng: 73.2966 },  /* south entrance             */
+  'Main Parking':     { lat: 18.9128, lng: 73.2972 },
+  'South Parking':    { lat: 18.9108, lng: 73.2980 },
+  'Villas Area':      { lat: 18.9180, lng: 73.2990 },  /* north-east wing            */
+  'Rooms & Villas':   { lat: 18.9180, lng: 73.2990 },
+  'Event Venue':      { lat: 18.9165, lng: 73.2940 },  /* north-west lawn            */
+  'Wedding Venue':    { lat: 18.9165, lng: 73.2940 },
+  'Restaurant':       { lat: 18.9148, lng: 73.2968 },  /* central – Saltt Restaurant */
+  'Saltt Restaurant': { lat: 18.9148, lng: 73.2968 },
+  'Pool Bar':         { lat: 18.9158, lng: 73.2958 },
+  'Spa & Wellness':   { lat: 18.9168, lng: 73.2948 },
+  'Nursery':          { lat: 18.9178, lng: 73.2932 },
+  'Staff Quarters':   { lat: 18.9135, lng: 73.2955 },
+  /* ── Off-property ── */
+  'Karjat Station':   { lat: 18.9149, lng: 73.3209 },  /* ~2.5 km east of resort     */
+  'Mumbai Airport':   { lat: 19.0896, lng: 72.8656 },  /* CSIA Terminal 2            */
 };
 
+/* ── En-route vehicle definitions ─────────────────────
+   VH002: Mumbai Airport → Oleander Farms  (airport pickup)
+   VH007: Karjat Station → Oleander Farms  (station pickup)
+   ─────────────────────────────────────────────────────── */
+const EN_ROUTE = {
+  VH002: {
+    label: 'Mumbai Airport → Oleander Farms',
+    color: '#e67e22',
+    strokeOpacity: 0.65,
+    speed: 0.009,
+    waypoints: [
+      { lat: 19.0896, lng: 72.8656 },  /* CSIA Terminal 2            */
+      { lat: 19.0600, lng: 72.9180 },  /* Eastern Express Hwy        */
+      { lat: 19.0200, lng: 72.9900 },  /* Thane                      */
+      { lat: 18.9920, lng: 73.0700 },  /* Kalyan                     */
+      { lat: 18.9700, lng: 73.1500 },  /* Badlapur                   */
+      { lat: 18.8995, lng: 73.2720 },  /* Neral Junction             */
+      { lat: 18.9080, lng: 73.2840 },  /* Karjat approach road       */
+      { lat: 18.9130, lng: 73.2920 },  /* Resort access road         */
+      { lat: 18.9148, lng: 73.2966 },  /* Oleander Farms Main Gate   */
+    ]
+  },
+  VH007: {
+    label: 'Karjat Station → Oleander Farms',
+    color: '#e67e22',
+    strokeOpacity: 0.65,
+    speed: 0.016,
+    waypoints: [
+      { lat: 18.9149, lng: 73.3209 },  /* Karjat Railway Station     */
+      { lat: 18.9149, lng: 73.3100 },  /* Karjat town road west      */
+      { lat: 18.9148, lng: 73.3010 },  /* Village road               */
+      { lat: 18.9148, lng: 73.2966 },  /* Oleander Farms Main Gate   */
+    ]
+  }
+};
+
+/* ── On-property loop routes for In-Use vehicles ─────── */
+const PROP_LOOPS = {
+  VH001: {
+    /* Scorpio: Villas Area → Restaurant → Main Parking → back */
+    speed: 0.014,
+    waypoints: [
+      { lat: 18.9180, lng: 73.2990 },  /* Villas Area        */
+      { lat: 18.9165, lng: 73.2978 },
+      { lat: 18.9148, lng: 73.2968 },  /* Restaurant         */
+      { lat: 18.9128, lng: 73.2972 },  /* Main Parking       */
+      { lat: 18.9148, lng: 73.2980 },
+      { lat: 18.9180, lng: 73.2990 },  /* Villas Area        */
+    ]
+  },
+  VH004: {
+    /* Tempo Traveller: Event Venue → Pool Bar → Staff Quarters → back */
+    speed: 0.011,
+    waypoints: [
+      { lat: 18.9165, lng: 73.2940 },  /* Event Venue        */
+      { lat: 18.9158, lng: 73.2952 },
+      { lat: 18.9148, lng: 73.2968 },  /* Restaurant         */
+      { lat: 18.9135, lng: 73.2955 },  /* Staff Quarters     */
+      { lat: 18.9148, lng: 73.2945 },
+      { lat: 18.9165, lng: 73.2940 },  /* Event Venue        */
+    ]
+  }
+};
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════ */
 (async function init() {
   renderAppSidebar('vehicle-tracker');
   requireAuth('../index.html');
@@ -208,19 +369,564 @@ const LOCATION_COORDS = {
   allVehicles = getData(KEYS.vehicles);
   allShifts   = getData(KEYS.shifts);
 
+  /* Initialise animation progress + initial headings */
+  [...Object.keys(EN_ROUTE), ...Object.keys(PROP_LOOPS)].forEach(id => {
+    const v = allVehicles.find(x => x.id === id);
+    if (v && v.status === 'In Use') {
+      const route  = EN_ROUTE[id] || PROP_LOOPS[id];
+      const midSeg = Math.floor(route.waypoints.length / 2);
+      progress[id] = { segIdx: midSeg, segT: Math.random() * 0.5 };
+      /* Set initial heading from segment direction */
+      const pts = route.waypoints;
+      const seg = Math.min(midSeg, pts.length - 2);
+      headings[id] = calcBearing(pts[seg], pts[seg + 1]);
+    }
+  });
+
   renderStats();
   renderCards();
-  renderMap();
   initFilters();
-  startAutoRefresh();
+  loadGoogleMaps();
+
+  /* Live clock */
+  clockTimer = setInterval(() => {
+    document.getElementById('clock-badge').textContent = new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  }, 1000);
 })();
 
-/* ── Stats ── */
+/* ═══════════════════════════════════════════════════════
+   GOOGLE MAPS LOADER
+   ═══════════════════════════════════════════════════════ */
+function loadGoogleMaps() {
+  if (!GMAPS_API_KEY || GMAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY') {
+    document.getElementById('gmap').outerHTML = `
+      <div class="map-no-key">
+        <div style="font-size:48px;margin-bottom:12px;">🗺️</div>
+        <div style="font-weight:800;font-size:17px;color:#1e293b;margin-bottom:8px;">Google Maps API Key Required</div>
+        <div style="font-size:13px;color:#64748b;max-width:320px;line-height:1.6;margin-bottom:16px;">
+          Open <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;">vehicle-tracker.html</code>
+          and replace <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;">YOUR_GOOGLE_MAPS_API_KEY</code>
+          with your key at the top of the script block.
+        </div>
+        <a href="https://console.cloud.google.com/google/maps-apis/credentials" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
+          Get Free API Key →
+        </a>
+      </div>`;
+    return;
+  }
+
+  window.initGoogleMap = initGoogleMap;
+  const s = document.createElement('script');
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${GMAPS_API_KEY}&callback=initGoogleMap&libraries=marker&loading=async`;
+  s.async = true;
+  s.onerror = () => {
+    document.getElementById('gmap').innerHTML =
+      '<div style="padding:40px;text-align:center;color:#e74c3c;font-size:14px;">Failed to load Google Maps. Check your API key and internet connection.</div>';
+  };
+  document.head.appendChild(s);
+}
+
+/* ═══════════════════════════════════════════════════════
+   GOOGLE MAP INIT
+   ═══════════════════════════════════════════════════════ */
+function initGoogleMap() {
+  gmap = new google.maps.Map(document.getElementById('gmap'), {
+    mapId:     'DEMO_MAP_ID',                          /* required for AdvancedMarkerElement */
+    center:    { lat: 18.9148367, lng: 73.2966273 },  /* Oleander Farms exact */
+    zoom:      15,
+    mapTypeId: 'roadmap',
+    styles: [
+      { featureType:'poi.business',    stylers:[{ visibility:'off' }] },
+      { featureType:'transit.station', stylers:[{ visibility:'simplified' }] },
+      { featureType:'road.local',      elementType:'labels', stylers:[{ visibility:'simplified' }] },
+    ],
+    streetViewControl: false,
+    mapTypeControl:    true,
+    fullscreenControl: true,
+    zoomControl:       true,
+  });
+
+  infoWindow = new google.maps.InfoWindow({ maxWidth: 300 });
+
+  /* Close info window when clicking map background */
+  gmap.addListener('click', () => {
+    infoWindow.close();
+    if (selectedId) {
+      selectedId = null;
+      renderCards();
+      refreshMarkerIcons();
+    }
+  });
+
+  placeMarkers();
+  drawRoutePolylines();
+  drawFarmBoundary();
+  startMovement();
+
+  /* Fit bounds to show all vehicles */
+  fitAllVehicles();
+}
+
+/* ── Farm boundary polygon ── */
+function drawFarmBoundary() {
+  /* 180-acre boundary around 18.9148367, 73.2966273 */
+  new google.maps.Polygon({
+    paths: [
+      { lat: 18.9200, lng: 73.2920 },  /* NW corner */
+      { lat: 18.9200, lng: 73.3010 },  /* NE corner */
+      { lat: 18.9090, lng: 73.3010 },  /* SE corner */
+      { lat: 18.9090, lng: 73.2920 },  /* SW corner */
+    ],
+    strokeColor:   '#2d7a4f',
+    strokeOpacity: 0.7,
+    strokeWeight:  2,
+    fillColor:     '#bbf7d0',
+    fillOpacity:   0.18,
+    map: gmap,
+    zIndex: 1,
+  });
+
+  /* Farm label (AdvancedMarkerElement with HTML content) */
+  const labelEl = document.createElement('div');
+  labelEl.style.cssText = 'background:#1a3d2b;color:white;font-size:10.5px;font-weight:700;font-family:system-ui,sans-serif;padding:4px 14px;border-radius:13px;opacity:0.9;white-space:nowrap;pointer-events:none;margin-bottom:4px;';
+  labelEl.textContent = '🌿 Oleander Farms, Karjat';
+  new google.maps.marker.AdvancedMarkerElement({
+    map:      gmap,
+    position: { lat: 18.9148367, lng: 73.2966273 },
+    content:  labelEl,
+    zIndex:   2,
+  });
+}
+
+/* ── Route polylines for en-route vehicles ── */
+function drawRoutePolylines() {
+  Object.entries(EN_ROUTE).forEach(([vId, route]) => {
+    const v = allVehicles.find(x => x.id === vId);
+    if (!v || v.status !== 'In Use') return;
+
+    const line = new google.maps.Polyline({
+      path: route.waypoints,
+      geodesic: true,
+      strokeColor:   route.color,
+      strokeOpacity: route.strokeOpacity,
+      strokeWeight:  3,
+      icons: [{
+        icon: {
+          path:        google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+          scale:       3,
+          fillColor:   route.color,
+          fillOpacity: 1,
+          strokeWeight: 0,
+        },
+        offset: '100%',
+        repeat: '12%',
+      }],
+      map: gmap,
+      zIndex: 3,
+    });
+    routeLines[vId] = line;
+  });
+}
+
+/* ── Place all vehicle markers (AdvancedMarkerElement) ── */
+function placeMarkers() {
+  allVehicles.forEach(v => {
+    const pos = getVehiclePos(v);
+    if (!pos) return;
+
+    const el     = buildMarkerEl(v, false);
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+      map:      gmap,
+      position: pos,
+      title:    v.name,
+      content:  el,
+      zIndex:   v.status === 'In Use' ? 10 : 5,
+    });
+
+    marker.addListener('click', () => selectVehicle(v.id));
+    markers[v.id] = marker;
+  });
+}
+
+/* ── Compass bearing between two GPS points (0=N, 90=E …) ── */
+function calcBearing(from, to) {
+  const φ1 = from.lat * Math.PI / 180;
+  const φ2 = to.lat   * Math.PI / 180;
+  const Δλ = (to.lng - from.lng) * Math.PI / 180;
+  const y   = Math.sin(Δλ) * Math.cos(φ2);
+  const x   = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+/* ── CSS filter per vehicle status – tints the freepik icon ──────
+   Formula: brightness(0) makes every pixel black, then the chain
+   recolours it to the target hue/saturation/lightness.
+   ──────────────────────────────────────────────────────────────── */
+function getStatusFilter(v) {
+  const isEnRoute = !!(EN_ROUTE[v.id] && v.status === 'In Use');
+  if (v.status === 'Maintenance') {
+    /* Greyed out */
+    return 'grayscale(100%) brightness(0.6) contrast(0.8)';
+  }
+  if (v.status === 'Available') {
+    /* Slate-blue tint */
+    return 'brightness(0) saturate(100%) invert(47%) sepia(12%) saturate(580%) hue-rotate(182deg) brightness(88%)';
+  }
+  /* In Use */
+  return isEnRoute
+    /* Amber / orange – en route */
+    ? 'brightness(0) saturate(100%) invert(55%) sepia(90%) saturate(650%) hue-rotate(12deg) brightness(108%)'
+    /* Green – on-property */
+    : 'brightness(0) saturate(100%) invert(32%) sepia(60%) saturate(520%) hue-rotate(108deg) brightness(90%)';
+}
+
+/* ── Build AdvancedMarkerElement DOM node ── */
+function buildMarkerEl(v, isSelected) {
+  const isEnRoute   = !!(EN_ROUTE[v.id] && v.status === 'In Use');
+  const statusColor = v.status === 'In Use'
+    ? (isEnRoute ? '#d97706' : '#2d7a4f')
+    : v.status === 'Available' ? '#64748b' : '#ef4444';
+
+  const hdg = headings[v.id] !== undefined ? headings[v.id] : 0;
+
+  /* Size by category – SUV largest, Car medium, Van tallest */
+  const sizes = { SUV: 48, Van: 54, Car: 42 };
+  const sz    = Math.round((sizes[v.category] || 46) * (isSelected ? 1.3 : 1.0));
+
+  /* Outer wrapper (fixed size, doesn't rotate) */
+  const outer = document.createElement('div');
+  outer.className = 'vm-outer';
+  outer.style.cssText = `width:${sz}px;height:${sz}px;`;
+
+  /* Pulsing ring for In-Use vehicles */
+  if (v.status === 'In Use') {
+    const ring = document.createElement('div');
+    ring.className = 'vm-ring';
+    ring.style.borderColor = statusColor;
+    outer.appendChild(ring);
+  }
+
+  /* Rotating car image */
+  const img = document.createElement('img');
+  img.className = 'vm-img';
+  img.src       = CAR_ICON_URL;
+  img.alt       = v.name;
+  img.style.transform = `rotate(${Math.round(hdg)}deg)`;
+  img.style.filter    = getStatusFilter(v);
+  outer.appendChild(img);
+
+  /* Dashed selection ring */
+  if (isSelected) {
+    const sel = document.createElement('div');
+    sel.className = 'vm-sel-ring';
+    outer.appendChild(sel);
+  }
+
+  /* Store reference to the img for fast rotation updates */
+  outer._imgEl = img;
+
+  return outer;
+}
+
+/* ── DEAD CODE placeholder – replaced by buildMarkerEl above ── */
+function carSvgBody(cat, body, roof, glass) {
+  const W = '#1c1917';   /* tyre black      */
+  const WH = '#44403c';  /* tyre highlight  */
+
+  if (cat === 'SUV') {
+    /* Wide, boxy body – Scorpio / Innova / Creta / Seltos / Thar */
+    return `
+      <rect x="5" y="5" width="30" height="60" rx="5" fill="${body}"/>
+      <path d="M8,5 Q20,3 32,5 L32,13 Q20,11 8,13 Z" fill="rgba(255,255,255,0.13)"/>
+      <path d="M8,13 L32,13 L29,22 L11,22 Z" fill="${glass}" stroke="rgba(255,255,255,0.4)" stroke-width="0.5"/>
+      <line x1="8" y1="22" x2="11" y2="22" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      <line x1="32" y1="22" x2="29" y2="22" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      <rect x="10" y="23" width="20" height="24" rx="1" fill="${roof}" opacity="0.75"/>
+      <line x1="20" y1="24" x2="20" y2="46" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3,4"/>
+      <path d="M11,48 L29,48 L32,57 L8,57 Z" fill="${glass}" stroke="rgba(255,255,255,0.4)" stroke-width="0.5"/>
+      <line x1="8" y1="57" x2="11" y2="48" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      <line x1="32" y1="57" x2="29" y2="48" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      <path d="M8,57 Q20,60 32,57 L32,65 Q20,67 8,65 Z" fill="rgba(255,255,255,0.07)"/>
+      <rect x="3" y="16" width="3" height="7" rx="1.5" fill="${body}" stroke="rgba(255,255,255,0.25)" stroke-width="0.5"/>
+      <rect x="34" y="16" width="3" height="7" rx="1.5" fill="${body}" stroke="rgba(255,255,255,0.25)" stroke-width="0.5"/>
+      <rect x="5" y="59" width="7" height="3.5" rx="1" fill="rgba(255,80,60,0.55)"/>
+      <rect x="28" y="59" width="7" height="3.5" rx="1" fill="rgba(255,80,60,0.55)"/>
+      <rect x="5" y="7" width="6" height="3.5" rx="1" fill="rgba(255,240,170,0.65)"/>
+      <rect x="29" y="7" width="6" height="3.5" rx="1" fill="rgba(255,240,170,0.65)"/>
+      <rect x="0" y="11" width="6" height="15" rx="2.5" fill="${W}"/>
+      <rect x="1" y="12.5" width="4" height="12" rx="1.5" fill="${WH}"/>
+      <rect x="34" y="11" width="6" height="15" rx="2.5" fill="${W}"/>
+      <rect x="35" y="12.5" width="4" height="12" rx="1.5" fill="${WH}"/>
+      <rect x="0" y="44" width="6" height="15" rx="2.5" fill="${W}"/>
+      <rect x="1" y="45.5" width="4" height="12" rx="1.5" fill="${WH}"/>
+      <rect x="34" y="44" width="6" height="15" rx="2.5" fill="${W}"/>
+      <rect x="35" y="45.5" width="4" height="12" rx="1.5" fill="${WH}"/>
+      <polygon points="20,1 26,8 14,8" fill="white" opacity="0.92"/>`;
+  }
+
+  if (cat === 'Van') {
+    /* Long, flat-nosed box – Force Tempo Traveller */
+    return `
+      <rect x="4" y="3" width="32" height="64" rx="3" fill="${body}"/>
+      <path d="M4,3 Q20,2 36,3 L36,6 Q20,5 4,6 Z" fill="rgba(255,255,255,0.14)"/>
+      <path d="M5,5 L35,5 L35,16 L5,16 Z" fill="${glass}" stroke="rgba(255,255,255,0.4)" stroke-width="0.5"/>
+      <line x1="4" y1="18" x2="36" y2="18" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+      <rect x="6" y="19" width="28" height="34" rx="1" fill="${roof}" opacity="0.65"/>
+      <line x1="20" y1="19" x2="20" y2="53" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+      <line x1="6" y1="36" x2="34" y2="36" stroke="rgba(255,255,255,0.13)" stroke-width="0.8" stroke-dasharray="3,4"/>
+      <path d="M6,54 L34,54 L34,62 L6,62 Z" fill="${glass}" opacity="0.55"/>
+      <rect x="4" y="3" width="7" height="4" rx="1" fill="rgba(255,240,170,0.7)"/>
+      <rect x="29" y="3" width="7" height="4" rx="1" fill="rgba(255,240,170,0.7)"/>
+      <rect x="4" y="62" width="8" height="4" rx="1" fill="rgba(255,80,60,0.6)"/>
+      <rect x="28" y="62" width="8" height="4" rx="1" fill="rgba(255,80,60,0.6)"/>
+      <rect x="0" y="9" width="5" height="18" rx="2.5" fill="${W}"/>
+      <rect x="0.5" y="10.5" width="4" height="15" rx="1.5" fill="${WH}"/>
+      <rect x="35" y="9" width="5" height="18" rx="2.5" fill="${W}"/>
+      <rect x="35.5" y="10.5" width="4" height="15" rx="1.5" fill="${WH}"/>
+      <rect x="0" y="43" width="5" height="18" rx="2.5" fill="${W}"/>
+      <rect x="0.5" y="44.5" width="4" height="15" rx="1.5" fill="${WH}"/>
+      <rect x="35" y="43" width="5" height="18" rx="2.5" fill="${W}"/>
+      <rect x="35.5" y="44.5" width="4" height="15" rx="1.5" fill="${WH}"/>
+      <polygon points="20,0 27,6 13,6" fill="white" opacity="0.92"/>`;
+  }
+
+  /* Car / Sedan – Nexon EV, Ertiga (narrower, tapered nose & tail) */
+  return `
+    <path d="M10,9 Q20,6 30,9 L33,22 L33,52 L30,61 Q20,64 10,61 L7,52 L7,22 Z" fill="${body}"/>
+    <path d="M11,9 Q20,7 29,9 L30,16 Q20,14 10,16 Z" fill="rgba(255,255,255,0.13)"/>
+    <path d="M11,16 L29,16 L27,25 L13,25 Z" fill="${glass}" stroke="rgba(255,255,255,0.4)" stroke-width="0.5"/>
+    <line x1="11" y1="16" x2="13" y2="25" stroke="rgba(255,255,255,0.45)" stroke-width="1"/>
+    <line x1="29" y1="16" x2="27" y2="25" stroke="rgba(255,255,255,0.45)" stroke-width="1"/>
+    <rect x="12" y="26" width="16" height="20" rx="2" fill="${roof}" opacity="0.78"/>
+    <path d="M13,47 L27,47 L29,55 L11,55 Z" fill="${glass}" stroke="rgba(255,255,255,0.4)" stroke-width="0.5"/>
+    <line x1="13" y1="47" x2="11" y2="55" stroke="rgba(255,255,255,0.45)" stroke-width="1"/>
+    <line x1="27" y1="47" x2="29" y2="55" stroke="rgba(255,255,255,0.45)" stroke-width="1"/>
+    <path d="M11,55 Q20,59 29,55 L30,61 Q20,64 10,61 Z" fill="rgba(255,255,255,0.08)"/>
+    <rect x="6" y="18" width="3" height="6" rx="1.5" fill="${body}" stroke="rgba(255,255,255,0.25)" stroke-width="0.5"/>
+    <rect x="31" y="18" width="3" height="6" rx="1.5" fill="${body}" stroke="rgba(255,255,255,0.25)" stroke-width="0.5"/>
+    <rect x="7" y="59" width="6" height="3" rx="1" fill="rgba(255,80,60,0.55)"/>
+    <rect x="27" y="59" width="6" height="3" rx="1" fill="rgba(255,80,60,0.55)"/>
+    <rect x="7" y="8" width="5" height="3" rx="1" fill="rgba(255,240,170,0.65)"/>
+    <rect x="28" y="8" width="5" height="3" rx="1" fill="rgba(255,240,170,0.65)"/>
+    <rect x="2" y="14" width="6" height="13" rx="2" fill="${W}"/>
+    <rect x="3" y="15.5" width="4" height="10" rx="1.5" fill="${WH}"/>
+    <rect x="32" y="14" width="6" height="13" rx="2" fill="${W}"/>
+    <rect x="33" y="15.5" width="4" height="10" rx="1.5" fill="${WH}"/>
+    <rect x="2" y="43" width="6" height="13" rx="2" fill="${W}"/>
+    <rect x="3" y="44.5" width="4" height="10" rx="1.5" fill="${WH}"/>
+    <rect x="32" y="43" width="6" height="13" rx="2" fill="${W}"/>
+    <rect x="33" y="44.5" width="4" height="10" rx="1.5" fill="${WH}"/>
+    <polygon points="20,3 26,10 14,10" fill="white" opacity="0.92"/>`;
+}
+
+/* buildIcon is no longer used – markers are DOM elements via buildMarkerEl */
+
+function svgToDataUri(svg) {
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
+
+/* ── Fit map to show all vehicle positions ── */
+function fitAllVehicles() {
+  if (!gmap || !allVehicles.length) return;
+  const bounds = new google.maps.LatLngBounds();
+  /* Include all vehicle positions (animated or static) */
+  allVehicles.forEach(v => {
+    const pos = getVehiclePos(v);
+    if (pos) bounds.extend(new google.maps.LatLng(pos.lat, pos.lng));
+  });
+  gmap.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+}
+
+/* ── Get a vehicle's current position (animated or static) ── */
+function getVehiclePos(v) {
+  const prog  = progress[v.id];
+  const route = EN_ROUTE[v.id] || PROP_LOOPS[v.id];
+
+  if (prog && route && v.status === 'In Use') {
+    const pts  = route.waypoints;
+    const seg  = Math.min(prog.segIdx, pts.length - 2);
+    const t    = Math.max(0, Math.min(1, prog.segT));
+    const a    = pts[seg], b = pts[seg + 1];
+    return { lat: a.lat + (b.lat - a.lat) * t, lng: a.lng + (b.lng - a.lng) * t };
+  }
+
+  const loc = v.lastLocation || 'Main Parking';
+  return GPS[loc] || GPS['Main Parking'];
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOVEMENT SIMULATION  (ticks every 2 seconds)
+   ═══════════════════════════════════════════════════════ */
+function startMovement() {
+  if (moveTimer) clearInterval(moveTimer);
+  moveTimer = setInterval(tickMovement, 2000);
+}
+
+function tickMovement() {
+  if (!gmap) return;
+
+  allVehicles.forEach(v => {
+    if (v.status !== 'In Use') return;
+    const route = EN_ROUTE[v.id] || PROP_LOOPS[v.id];
+    if (!route) return;
+
+    if (!progress[v.id]) progress[v.id] = { segIdx: 0, segT: 0 };
+    const prog   = progress[v.id];
+    const pts    = route.waypoints;
+    const oldPos = getVehiclePos(v);
+
+    /* Advance along segment with slight randomness for realism */
+    prog.segT += route.speed + (Math.random() * 0.003 - 0.0015);
+
+    if (prog.segT >= 1) {
+      prog.segT   = 0;
+      prog.segIdx += 1;
+
+      if (prog.segIdx >= pts.length - 1) {
+        if (EN_ROUTE[v.id]) {
+          /* Arrived – freeze at destination */
+          prog.segIdx = pts.length - 2;
+          prog.segT   = 1;
+        } else {
+          /* Loop back to start for on-property vehicles */
+          prog.segIdx = 0;
+        }
+      }
+    }
+
+    const newPos = getVehiclePos(v);
+    const marker = markers[v.id];
+    if (!marker) return;
+
+    /* Move marker (AdvancedMarkerElement uses .position property) */
+    marker.position = newPos;
+
+    /* Calculate heading and rotate the img element directly via CSS */
+    const Δlat = newPos.lat - oldPos.lat;
+    const Δlng = newPos.lng - oldPos.lng;
+    if (Math.abs(Δlat) + Math.abs(Δlng) > 0.000004) {
+      headings[v.id] = calcBearing(oldPos, newPos);
+      const imgEl = marker.content && marker.content._imgEl;
+      if (imgEl) imgEl.style.transform = `rotate(${Math.round(headings[v.id])}deg)`;
+    }
+  });
+
+  /* Update map timestamp */
+  document.getElementById('map-time').textContent =
+    'Live · ' + new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+/* ═══════════════════════════════════════════════════════
+   SELECT VEHICLE
+   ═══════════════════════════════════════════════════════ */
+function selectVehicle(id) {
+  const prev = selectedId;
+  selectedId = (selectedId === id) ? null : id;
+
+  renderCards();
+  refreshMarkerIcons();
+
+  if (!gmap) return;
+
+  if (!selectedId) { infoWindow.close(); return; }
+
+  const v      = allVehicles.find(x => x.id === selectedId);
+  const marker = markers[selectedId];
+  if (!v || !marker) return;
+
+  /* Pan + slight zoom in */
+  gmap.panTo(marker.position);
+  if (gmap.getZoom() < 15) gmap.setZoom(15);
+
+  showInfoWindow(v, marker);
+}
+
+function refreshMarkerIcons() {
+  if (!gmap) return;
+  allVehicles.forEach(v => {
+    const marker = markers[v.id];
+    if (!marker) return;
+    marker.content = buildMarkerEl(v, v.id === selectedId);
+    marker.zIndex  = v.id === selectedId ? 20 : v.status === 'In Use' ? 10 : 5;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   INFO WINDOW  (Google Maps native popup)
+   ═══════════════════════════════════════════════════════ */
+function showInfoWindow(v, marker) {
+  if (!infoWindow || !marker) return;
+
+  const isEnRoute  = !!(EN_ROUTE[v.id] && v.status === 'In Use');
+  const statusColor = v.status === 'In Use'
+    ? (isEnRoute ? '#e67e22' : '#2d7a4f')
+    : v.status === 'Available' ? '#64748b' : '#ef4444';
+  const fuelColor  = (v.fuelLevel || 0) < 25 ? '#ef4444' : (v.fuelLevel || 0) < 50 ? '#e67e22' : '#2d7a4f';
+  const routeDef   = EN_ROUTE[v.id];
+
+  const activeShift = allShifts.find(s => s.vehicleId === v.id && s.status === 'Active');
+  let shiftHtml = '';
+  if (activeShift) {
+    const elapsed = Math.round((Date.now() - new Date(activeShift.shiftStart)) / 60000);
+    shiftHtml = `<div style="margin-top:6px;font-size:11px;color:#64748b;padding:6px 8px;background:#f8fafc;border-radius:6px;">
+      Shift ${activeShift.id} · Driver on duty ${Math.floor(elapsed/60)}h ${elapsed%60}m · Odo start: ${activeShift.startOdometer?.toLocaleString('en-IN') || '—'} km
+    </div>`;
+  }
+
+  infoWindow.setContent(`
+    <div style="font-family:system-ui,sans-serif;padding:4px;min-width:240px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div style="font-weight:800;font-size:15px;color:#1e293b;">${v.name}</div>
+          <div style="font-size:10px;color:#64748b;font-family:monospace;margin-top:1px;">${v.vehicleNumber} · ${v.category} · ${v.year}</div>
+        </div>
+        <span style="padding:3px 10px;border-radius:20px;background:${statusColor}20;color:${statusColor};font-size:11px;font-weight:700;white-space:nowrap;margin-left:8px;">${isEnRoute ? 'En Route' : v.status}</span>
+      </div>
+
+      ${routeDef ? `<div style="margin-bottom:8px;padding:6px 10px;background:#fef3c7;border-radius:6px;font-size:11px;font-weight:700;color:#92400e;">🛣️ ${routeDef.label}</div>` : ''}
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;margin-bottom:8px;">
+        <div><div style="color:#94a3b8;font-size:10px;margin-bottom:1px;">Driver</div><div style="font-weight:600;">${v.driverName || '—'}</div></div>
+        <div><div style="color:#94a3b8;font-size:10px;margin-bottom:1px;">Phone</div><div style="font-weight:600;">${v.driverPhone || '—'}</div></div>
+        <div><div style="color:#94a3b8;font-size:10px;margin-bottom:1px;">Location</div><div style="font-weight:600;">${isEnRoute ? 'En route' : (v.lastLocation || '—')}</div></div>
+        <div><div style="color:#94a3b8;font-size:10px;margin-bottom:1px;">Odometer</div><div style="font-weight:600;">${v.odometer?.toLocaleString('en-IN') || '—'} km</div></div>
+      </div>
+
+      ${v.assignedGuest ? `<div style="font-size:12px;margin-bottom:8px;padding:5px 8px;background:#f0fdf4;border-radius:5px;"><span style="color:#64748b;">Guest: </span><strong>${v.assignedGuest}</strong>${v.destination ? ` <span style="color:#64748b;">→</span> ${v.destination}` : ''}</div>` : ''}
+
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:3px;">
+          <span>${v.fuelType === 'Electric' ? '⚡ Battery' : '⛽ Fuel'} · ${v.fuelType}</span>
+          <span style="color:${fuelColor};font-weight:700;">${v.fuelLevel || 0}%</span>
+        </div>
+        <div style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+          <div style="height:5px;width:${v.fuelLevel || 0}%;background:${fuelColor};border-radius:3px;"></div>
+        </div>
+      </div>
+
+      ${shiftHtml}
+
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <a href="driver-shift.html?vehicle=${v.id}" style="flex:1;text-align:center;padding:7px 0;border-radius:7px;background:#2d7a4f;color:white;text-decoration:none;font-size:11px;font-weight:700;">Start Shift</a>
+        <a href="vehicle-expenses.html?vehicle=${v.id}" style="flex:1;text-align:center;padding:7px 0;border-radius:7px;background:#f1f5f9;color:#475569;text-decoration:none;font-size:11px;font-weight:700;">Add Expense</a>
+      </div>
+    </div>`);
+
+  infoWindow.open({ anchor: marker, map: gmap });
+}
+
+/* ═══════════════════════════════════════════════════════
+   STATS ROW
+   ═══════════════════════════════════════════════════════ */
 function renderStats() {
-  const total    = allVehicles.length;
-  const inUse    = allVehicles.filter(v => v.status === 'In Use').length;
-  const avail    = allVehicles.filter(v => v.status === 'Available').length;
-  const maint    = allVehicles.filter(v => v.status === 'Maintenance').length;
+  const total   = allVehicles.length;
+  const inUse   = allVehicles.filter(v => v.status === 'In Use').length;
+  const avail   = allVehicles.filter(v => v.status === 'Available').length;
+  const maint   = allVehicles.filter(v => v.status === 'Maintenance').length;
+  const enRoute = Object.keys(EN_ROUTE).filter(id => {
+    const v = allVehicles.find(x => x.id === id);
+    return v && v.status === 'In Use';
+  }).length;
 
   document.getElementById('tracker-stats').innerHTML = `
     <div class="stat-card">
@@ -236,15 +942,65 @@ function renderStats() {
       <div class="stat-body"><div class="stat-value">${avail}</div><div class="stat-label">Available</div></div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
-      <div class="stat-body"><div class="stat-value">${maint}</div><div class="stat-label">Maintenance</div></div>
-    </div>
-  `;
+      <div class="stat-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${enRoute}</div><div class="stat-label">En Route</div></div>
+    </div>`;
 }
 
-/* ── Filter Buttons ── */
+/* ═══════════════════════════════════════════════════════
+   VEHICLE CARDS (left panel)
+   ═══════════════════════════════════════════════════════ */
+function renderCards() {
+  let list = allVehicles;
+  if (currentFilter !== 'all') list = list.filter(v => v.status === currentFilter);
+  document.getElementById('vehicle-count').textContent = list.length + ' vehicle' + (list.length !== 1 ? 's' : '');
+
+  if (!list.length) {
+    document.getElementById('vehicle-cards').innerHTML =
+      '<div style="padding:28px;text-align:center;color:var(--text-muted);font-size:13px;">No vehicles match filter.</div>';
+    return;
+  }
+
+  document.getElementById('vehicle-cards').innerHTML = list.map(v => {
+    const isEnRoute   = !!(EN_ROUTE[v.id] && v.status === 'In Use');
+    const dotColor    = v.status === 'In Use' ? (isEnRoute ? '#e67e22' : '#2d7a4f') : v.status === 'Available' ? '#94a3b8' : '#ef4444';
+    const fuelColor   = (v.fuelLevel || 0) < 25 ? '#ef4444' : (v.fuelLevel || 0) < 50 ? '#e67e22' : '#2d7a4f';
+    const pulseCss    = v.status === 'In Use' ? 'animation:livePulse 1.5s infinite;' : '';
+    const isSelected  = v.id === selectedId;
+    const locationLbl = isEnRoute ? (EN_ROUTE[v.id].label.split(' → ')[1] || 'En Route') : (v.lastLocation || '—');
+
+    return `
+    <div class="vehicle-card${isSelected ? ' selected' : ''}" onclick="selectVehicle('${v.id}')">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);">
+        <div style="width:9px;height:9px;border-radius:50%;background:${dotColor};flex-shrink:0;${pulseCss}"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.name}</div>
+          <div style="font-size:10px;color:var(--text-muted);font-family:monospace;">${v.vehicleNumber}</div>
+        </div>
+        ${isEnRoute ? '<span class="route-badge">En Route</span>' : `<span style="font-size:10px;font-weight:700;color:${dotColor};white-space:nowrap;">${v.status}</span>`}
+      </div>
+      <div style="padding:6px 14px 4px;display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);">
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">👤 ${v.driverName || 'Unassigned'}</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:6px;">📍 ${locationLbl}</span>
+      </div>
+      <div style="padding:4px 14px 10px;">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:2px;">
+          <span>${v.fuelType === 'Electric' ? '⚡' : '⛽'} ${v.fuelType}</span>
+          <span style="color:${fuelColor};font-weight:700;">${v.fuelLevel || 0}%</span>
+        </div>
+        <div style="height:3px;background:var(--border);border-radius:2px;">
+          <div style="height:3px;width:${v.fuelLevel || 0}%;background:${fuelColor};border-radius:3px;"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   FILTERS
+   ═══════════════════════════════════════════════════════ */
 function initFilters() {
-  document.getElementById('tracker-filter-btns').addEventListener('click', function(e) {
+  document.getElementById('filter-btns').addEventListener('click', function(e) {
     const btn = e.target.closest('[data-filter]');
     if (!btn) return;
     currentFilter = btn.dataset.filter;
@@ -252,247 +1008,23 @@ function initFilters() {
       b.className = b.dataset.filter === currentFilter ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost';
     });
     renderCards();
-    renderMap();
   });
 }
 
-/* ── Vehicle Cards ── */
-function renderCards() {
-  const container = document.getElementById('vehicle-cards');
-  let list = allVehicles;
-  if (currentFilter !== 'all') list = list.filter(v => v.status === currentFilter);
-
-  if (!list.length) {
-    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;">No vehicles match filter.</div>';
-    return;
-  }
-
-  container.innerHTML = list.map(v => {
-    const statusColor = v.status === 'In Use' ? '#2d7a4f' : v.status === 'Available' ? '#94a3b8' : '#e67e22';
-    const fuelColor   = (v.fuelLevel || 0) < 25 ? '#e74c3c' : (v.fuelLevel || 0) < 50 ? '#e67e22' : '#2d7a4f';
-    const catClass    = v.category === 'SUV' ? 'type-guest' : v.category === 'Car' ? 'type-staff' : v.category === 'Van' ? 'type-vendor' : '';
-    const isSelected  = v.id === selectedId;
-    const pulseCss    = v.status === 'In Use' ? 'animation:pulse 2s infinite;' : '';
-
-    return `
-    <div class="vehicle-card${isSelected ? ' selected' : ''}" data-id="${v.id}" onclick="selectVehicle('${v.id}')">
-      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);">
-        <div style="width:10px;height:10px;border-radius:50%;background:${statusColor};flex-shrink:0;${pulseCss}"></div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.name}</div>
-          <div style="font-size:11px;color:var(--text-muted);font-family:monospace;">${v.vehicleNumber}</div>
-        </div>
-        <span class="type-badge ${catClass}" style="font-size:10px;white-space:nowrap;">${v.category || v.type}</span>
-      </div>
-      <div style="padding:8px 16px;display:flex;gap:16px;font-size:12px;color:var(--text-secondary);">
-        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">&#128100; ${v.driverName || 'Unassigned'}</span>
-        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">&#128205; ${v.lastLocation || '—'}</span>
-      </div>
-      <div style="padding:0 16px 12px;">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:3px;">
-          <span>${v.fuelType === 'Electric' ? '&#9889; Battery' : '&#9981; Fuel'}</span>
-          <span>${v.fuelLevel || 0}%</span>
-        </div>
-        <div style="height:4px;background:var(--border);border-radius:2px;">
-          <div style="height:4px;width:${v.fuelLevel || 0}%;background:${fuelColor};border-radius:2px;"></div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-/* ── Property Map SVG ── */
-function renderMap() {
-  const container = document.getElementById('property-map');
-  const W = 700, H = 500;
-
-  const zones = [
-    { label:'Main Gate',       x:38, y:88,  w:24, h:10, fill:'#1a3d2b', textFill:'#fff' },
-    { label:'Main Parking',    x:36, y:70,  w:30, h:12, fill:'#cbd5e1', textFill:'#1e293b' },
-    { label:'South Parking',   x:64, y:74,  w:22, h:12, fill:'#cbd5e1', textFill:'#1e293b' },
-    { label:'Villas & Rooms',  x:70, y:8,   w:26, h:22, fill:'#fef3c7', textFill:'#92400e' },
-    { label:'Event Venue',     x:8,  y:36,  w:26, h:20, fill:'#ede9fe', textFill:'#5b21b6' },
-    { label:'Restaurant',      x:34, y:42,  w:24, h:14, fill:'#fee2e2', textFill:'#991b1b' },
-    { label:'Pool Bar',        x:46, y:30,  w:20, h:12, fill:'#bfdbfe', textFill:'#1e40af' },
-    { label:'Spa & Wellness',  x:16, y:18,  w:22, h:14, fill:'#d1fae5', textFill:'#065f46' },
-    { label:'Nursery',         x:4,  y:22,  w:16, h:14, fill:'#dcfce7', textFill:'#14532d' },
-    { label:'Staff Quarters',  x:18, y:66,  w:22, h:12, fill:'#f0fdf4', textFill:'#166534' },
-  ];
-
-  const roads = [
-    // Main road: gate to center
-    `M ${pct(48,W)} ${pct(93,H)} L ${pct(48,W)} ${pct(70,H)}`,
-    // Horizontal spine
-    `M ${pct(20,W)} ${pct(70,H)} L ${pct(80,W)} ${pct(70,H)}`,
-    // Left road to event venue
-    `M ${pct(20,W)} ${pct(70,H)} L ${pct(20,W)} ${pct(46,H)}`,
-    // Right road to villas
-    `M ${pct(80,W)} ${pct(70,H)} L ${pct(80,W)} ${pct(20,H)}`,
-    // Upper road
-    `M ${pct(20,W)} ${pct(40,H)} L ${pct(70,W)} ${pct(20,H)}`,
-    // Center road
-    `M ${pct(48,W)} ${pct(70,H)} L ${pct(48,W)} ${pct(42,H)} L ${pct(56,W)} ${pct(36,H)}`,
-  ];
-
-  // Build zone rects
-  const zonesSvg = zones.map(z => {
-    const rx = pct(z.x, W), ry = pct(z.y, H), rw = pct(z.w, W), rh = pct(z.h, H);
-    const cx = rx + rw/2, cy = ry + rh/2;
-    const fontSize = Math.max(8, Math.min(11, rw / z.label.length * 1.4));
-    return `
-      <rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${z.fill}" stroke="#94a3b8" stroke-width="1" rx="4"/>
-      <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" font-size="${fontSize}" font-family="system-ui,sans-serif" fill="${z.textFill}" font-weight="600">${z.label}</text>`;
-  }).join('');
-
-  // Build road paths
-  const roadsSvg = roads.map(d => `<path d="${d}" stroke="#94a3b8" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.6"/>`).join('');
-  const roadLinesSvg = roads.map(d => `<path d="${d}" stroke="#e2e8f0" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="8,6" opacity="0.8"/>`).join('');
-
-  // Build vehicle dots
-  let filtered = allVehicles;
-  if (currentFilter !== 'all') filtered = filtered.filter(v => v.status === currentFilter);
-
-  const vehicleDots = filtered.map(v => {
-    const loc = v.lastLocation || 'Main Parking';
-    const coords = LOCATION_COORDS[loc] || LOCATION_COORDS['Main Parking'];
-    const cx = pct(coords.x, W);
-    const cy = pct(coords.y, H);
-    const color  = v.status === 'In Use' ? '#2d7a4f' : v.status === 'Available' ? '#64748b' : '#e67e22';
-    const isSelected = v.id === selectedId;
-    const initials = v.name.split(' ').map(w=>w[0]).join('').slice(0,2);
-
-    let pulse = '';
-    if (v.status === 'In Use') {
-      pulse = `<circle cx="${cx}" cy="${cy}" r="10" fill="${color}" opacity="0.3">
-        <animate attributeName="r" from="10" to="22" dur="2s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" from="0.4" to="0" dur="2s" repeatCount="indefinite"/>
-      </circle>`;
-    }
-
-    return `
-      <g class="map-vehicle" onclick="selectVehicle('${v.id}')" style="cursor:pointer;" title="${v.name}">
-        ${pulse}
-        <circle cx="${cx}" cy="${cy}" r="${isSelected ? 14 : 11}" fill="${color}" stroke="${isSelected ? '#fff' : 'rgba(255,255,255,0.7)'}" stroke-width="${isSelected ? 3 : 1.5}"/>
-        <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" font-size="8" font-family="system-ui,sans-serif" fill="white" font-weight="700">${initials}</text>
-      </g>`;
-  }).join('');
-
-  container.innerHTML = `
-    <svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" style="min-height:480px;display:block;">
-      <!-- Background -->
-      <rect width="${W}" height="${H}" fill="#c8e6c9"/>
-      <!-- Farm boundary -->
-      <rect x="4" y="4" width="${W-8}" height="${H-8}" fill="#d4edda" stroke="#a5d6a7" stroke-width="2" rx="8"/>
-      <!-- Property title -->
-      <text x="${W/2}" y="18" text-anchor="middle" font-size="13" font-family="system-ui,sans-serif" fill="#1a3d2b" font-weight="700" opacity="0.6">Oleander Farms — 180 Acres, Karjat</text>
-      <!-- Roads -->
-      ${roadsSvg}
-      ${roadLinesSvg}
-      <!-- Zones -->
-      ${zonesSvg}
-      <!-- Vehicle dots -->
-      ${vehicleDots}
-    </svg>`;
-
-  // Update timestamp
-  document.getElementById('map-last-update').textContent = 'Updated: ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}
-
-function pct(val, max) { return Math.round((val / 100) * max); }
-
-/* ── Select Vehicle ── */
-function selectVehicle(id) {
-  selectedId = (selectedId === id) ? null : id;
-  renderCards();
-  renderMap();
-  showPopup();
-}
-
-function showPopup() {
-  const popup = document.getElementById('map-popup');
-  if (!selectedId) {
-    popup.style.display = 'none';
-    return;
-  }
-
-  const v = allVehicles.find(x => x.id === selectedId);
-  if (!v) { popup.style.display = 'none'; return; }
-
-  const activeShift = allShifts.find(s => s.vehicleId === v.id && s.status === 'Active');
-  const statusColor = v.status === 'In Use' ? '#2d7a4f' : v.status === 'Available' ? '#64748b' : '#e67e22';
-  const fuelColor   = (v.fuelLevel || 0) < 25 ? '#e74c3c' : (v.fuelLevel || 0) < 50 ? '#e67e22' : '#2d7a4f';
-
-  let shiftHtml = '';
-  if (activeShift) {
-    const start   = new Date(activeShift.shiftStart);
-    const elapsed = Math.round((Date.now() - start) / 60000);
-    const hrs     = Math.floor(elapsed / 60), mins = elapsed % 60;
-    shiftHtml = `
-      <div style="margin-top:10px;padding:10px;background:white;border-radius:6px;border:1px solid var(--border);">
-        <div style="font-weight:700;font-size:12px;color:var(--primary);margin-bottom:6px;">Active Shift: ${activeShift.id}</div>
-        <div class="tracker-shift-grid">
-          <span style="color:var(--text-muted);">Started:</span><span>${formatDateTime(activeShift.shiftStart)}</span>
-          <span style="color:var(--text-muted);">Duration:</span><span>${hrs}h ${mins}m</span>
-          <span style="color:var(--text-muted);">Start km:</span><span>${activeShift.startOdometer?.toLocaleString('en-IN') || '—'}</span>
-        </div>
-      </div>`;
-  }
-
-  popup.style.display = 'block';
-  popup.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div>
-        <div style="font-weight:800;font-size:15px;">${v.name}</div>
-        <div style="font-size:12px;color:var(--text-muted);font-family:monospace;">${v.vehicleNumber} &bull; ${v.category || v.type} &bull; ${v.year || ''}</div>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${statusColor};"></span>
-        <span style="font-size:12px;font-weight:600;color:${statusColor};">${v.status}</span>
-        <button onclick="selectedId=null;showPopup();renderCards();renderMap();" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-muted);padding:0 4px;">&times;</button>
-      </div>
-    </div>
-    <div class="tracker-popup-summary">
-      <div><div style="color:var(--text-muted);margin-bottom:2px;">Driver</div><div style="font-weight:600;">${v.driverName || 'Unassigned'}</div></div>
-      <div><div style="color:var(--text-muted);margin-bottom:2px;">Phone</div><div style="font-weight:600;">${v.driverPhone || '—'}</div></div>
-      <div><div style="color:var(--text-muted);margin-bottom:2px;">Seats</div><div style="font-weight:600;">${v.seatingCapacity || '—'}</div></div>
-      <div><div style="color:var(--text-muted);margin-bottom:2px;">Location</div><div style="font-weight:600;">${v.lastLocation || '—'}</div></div>
-      <div><div style="color:var(--text-muted);margin-bottom:2px;">Odometer</div><div style="font-weight:600;">${v.odometer ? v.odometer.toLocaleString('en-IN') + ' km' : '—'}</div></div>
-      <div><div style="color:var(--text-muted);margin-bottom:2px;">Fuel Type</div><div style="font-weight:600;">${v.fuelType}</div></div>
-    </div>
-    <div style="margin-bottom:10px;">
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;">
-        <span>${v.fuelType === 'Electric' ? 'Battery' : 'Fuel Level'}</span>
-        <span style="color:${fuelColor};font-weight:700;">${v.fuelLevel || 0}%</span>
-      </div>
-      <div style="height:6px;background:var(--border);border-radius:3px;">
-        <div style="height:6px;width:${v.fuelLevel || 0}%;background:${fuelColor};border-radius:3px;transition:width 0.4s;"></div>
-      </div>
-    </div>
-    ${v.assignedGuest ? `<div style="font-size:12px;margin-bottom:8px;"><span style="color:var(--text-muted);">Guest: </span><strong>${v.assignedGuest}</strong>${v.destination ? ` &rarr; ${v.destination}` : ''}</div>` : ''}
-    ${shiftHtml}
-    <div style="display:flex;gap:8px;margin-top:12px;">
-      <a href="driver-shift.html?vehicle=${v.id}" class="btn btn-sm btn-primary" style="flex:1;text-align:center;">Start Shift</a>
-      <a href="vehicle-expenses.html?vehicle=${v.id}" class="btn btn-sm btn-ghost" style="flex:1;text-align:center;">Add Expense</a>
-    </div>`;
-}
-
-/* ── Auto Refresh ── */
-function startAutoRefresh() {
-  if (refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(refreshTracker, 10000);
-}
-
-function refreshTracker() {
+/* ═══════════════════════════════════════════════════════
+   MANUAL REFRESH
+   ═══════════════════════════════════════════════════════ */
+function manualRefresh() {
   allVehicles = getData(KEYS.vehicles);
   allShifts   = getData(KEYS.shifts);
   renderStats();
   renderCards();
-  renderMap();
-  if (selectedId) showPopup();
 }
 
+/* ── Cleanup ── */
 window.addEventListener('beforeunload', () => {
-  if (refreshTimer) clearInterval(refreshTimer);
+  if (clockTimer) clearInterval(clockTimer);
+  if (moveTimer)  clearInterval(moveTimer);
 });
 </script>
 </body>
