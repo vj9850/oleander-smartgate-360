@@ -54,9 +54,29 @@
     .map-dot-pulse {
       animation: pulse 2s infinite;
     }
+    .tracker-popup-summary,
+    .tracker-shift-grid {
+      display: grid;
+      gap: 4px;
+      font-size: 12px;
+    }
+    .tracker-popup-summary {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .tracker-shift-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
     @media (max-width: 900px) {
       .tracker-grid { grid-template-columns: 1fr; }
       .vehicles-panel { max-height: 320px; }
+    }
+    @media (max-width: 640px) {
+      .tracker-popup-summary,
+      .tracker-shift-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -410,7 +430,7 @@ function showPopup() {
     shiftHtml = `
       <div style="margin-top:10px;padding:10px;background:white;border-radius:6px;border:1px solid var(--border);">
         <div style="font-weight:700;font-size:12px;color:var(--primary);margin-bottom:6px;">Active Shift: ${activeShift.id}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;">
+        <div class="tracker-shift-grid">
           <span style="color:var(--text-muted);">Started:</span><span>${formatDateTime(activeShift.shiftStart)}</span>
           <span style="color:var(--text-muted);">Duration:</span><span>${hrs}h ${mins}m</span>
           <span style="color:var(--text-muted);">Start km:</span><span>${activeShift.startOdometer?.toLocaleString('en-IN') || '—'}</span>
@@ -431,7 +451,7 @@ function showPopup() {
         <button onclick="selectedId=null;showPopup();renderCards();renderMap();" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-muted);padding:0 4px;">&times;</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:12px;margin-bottom:10px;">
+    <div class="tracker-popup-summary">
       <div><div style="color:var(--text-muted);margin-bottom:2px;">Driver</div><div style="font-weight:600;">${v.driverName || 'Unassigned'}</div></div>
       <div><div style="color:var(--text-muted);margin-bottom:2px;">Phone</div><div style="font-weight:600;">${v.driverPhone || '—'}</div></div>
       <div><div style="color:var(--text-muted);margin-bottom:2px;">Seats</div><div style="font-weight:600;">${v.seatingCapacity || '—'}</div></div>

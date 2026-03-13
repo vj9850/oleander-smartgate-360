@@ -218,6 +218,24 @@
    TABLET  (641px – 1024px)
    ============================================================ */
 @media (max-width: 1024px) {
+  .topbar {
+    height: auto;
+    min-height: var(--topbar-height);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .topbar-left,
+  .topbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .topbar-right {
+    gap: 10px;
+  }
+
   /* Sidebar off-screen */
   .sidebar {
     transform: translateX(-100%);
@@ -257,12 +275,33 @@
    MOBILE  (≤ 640px)
    ============================================================ */
 @media (max-width: 640px) {
+  body {
+    overflow-x: hidden;
+  }
+
   /* Sidebar width */
   .sidebar { width: min(82vw, 280px); }
 
   /* Page padding */
   .page-content { padding: 14px !important; }
-  .topbar { padding: 0 14px !important; height: 52px !important; }
+  .topbar {
+    padding: 10px 14px !important;
+    min-height: 52px !important;
+    height: auto !important;
+    align-items: stretch !important;
+  }
+  .topbar-left,
+  .topbar-right {
+    width: 100%;
+    min-width: 0;
+  }
+  .topbar-left > div:first-of-type,
+  .topbar-user {
+    min-width: 0;
+  }
+  .topbar-right {
+    justify-content: flex-end;
+  }
 
   /* Stats */
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -297,6 +336,7 @@
 
   /* Table horizontal scroll */
   .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: max-content; }
 
   /* Filter bars — always stack */
   .table-controls,
@@ -332,6 +372,12 @@
 
   /* Page header */
   .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .page-header > .btn,
+  .page-header > button,
+  .page-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
   .page-title  { font-size: 17px; }
   .page-subtitle { font-size: 12px; }
 
@@ -344,6 +390,9 @@
   /* Section cards */
   .section-header { padding: 11px 14px; }
   .section-header h2 { font-size: 13px; }
+  .section-actions {
+    width: 100%;
+  }
 
   /* Modals */
   .modal {
@@ -358,6 +407,20 @@
   /* Form */
   .form-grid { grid-template-columns: 1fr !important; }
   .form-group.half-width { grid-column: 1 !important; }
+  .form-card-header,
+  .form-body,
+  .form-footer {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .form-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .form-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
 
   /* Quick actions */
   .quick-actions .btn { flex: 0 1 calc(50% - 5px); min-width: 0; font-size: 12px; padding: 8px 10px; }
@@ -377,6 +440,91 @@
 
   /* Dash two-col */
   .dash-two-col { grid-template-columns: 1fr; }
+
+  /* Visitor dashboard */
+  #dash-cols {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  /* Visitor pass / details */
+  .pass-fields,
+  .info-grid,
+  .gate-pass-body {
+    grid-template-columns: 1fr;
+  }
+  .pass-visitor-info,
+  .pass-qr-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .pass-photo-box {
+    width: 100%;
+    max-width: 140px;
+    height: auto;
+    aspect-ratio: 11 / 14;
+  }
+
+  /* Photo / webcam areas */
+  .photo-tabs {
+    width: 100%;
+  }
+  .photo-tab {
+    flex: 1;
+    justify-content: center;
+  }
+  .upload-wrap,
+  .webcam-controls,
+  .modal-actions {
+    width: 100%;
+  }
+  .upload-wrap,
+  .webcam-controls,
+  .modal-actions,
+  .pass-qr-section {
+    gap: 10px;
+  }
+  .webcam-video-box {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+  #photo-upload-area {
+    min-width: 0 !important;
+    width: 100%;
+  }
+  .btn-webcam,
+  .modal-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Vehicle tracker */
+  .tracker-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .filter-bar {
+    flex-direction: column;
+  }
+  .filter-bar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .vehicles-panel {
+    max-height: none !important;
+  }
+  #property-map {
+    min-height: 320px !important;
+  }
+
+  /* Driver shifts */
+  .shift-panels {
+    grid-template-columns: 1fr !important;
+  }
+  .photo-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* ============================================================
@@ -389,6 +537,8 @@
   .ops-grid     { grid-template-columns: 1fr; }
   .quick-actions .btn { flex: 1 1 100%; }
   .vl-stats, .veh-stats, .inv-stats { grid-template-columns: 1fr !important; }
+  .page-content { padding: 12px !important; }
+  .topbar { padding-left: 12px !important; padding-right: 12px !important; }
 }
 
 /* ============================================================
