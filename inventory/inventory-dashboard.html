@@ -221,7 +221,7 @@ function renderStats(inv, pur, iss, con) {
     <div class="stat-card"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div><div class="stat-body"><div class="stat-value">${lowCount}</div><div class="stat-label">Low Stock</div></div></div>
     <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div><div class="stat-body"><div class="stat-value">${todayGRN}</div><div class="stat-label">GRNs Today</div></div></div>
     <div class="stat-card"><div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div><div class="stat-body"><div class="stat-value">${todayIss}</div><div class="stat-label">Issues Today</div></div></div>
-    <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-body"><div class="stat-value">₹${(monthPurAmt/1000).toFixed(1)}k</div><div class="stat-label">Month Purchases</div></div></div>
+    <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-body"><div class="stat-value">${formatCurrencyCompact(monthPurAmt)}</div><div class="stat-label">Month Purchases</div></div></div>
     <div class="stat-card"><div class="stat-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><div class="stat-body"><div class="stat-value">${todayCon}</div><div class="stat-label">Consumed Today</div></div></div>
   `;
 }
@@ -262,7 +262,7 @@ function renderRecentGRN(purchases) {
     <tr>
       <td><strong style="color:var(--primary)">${p.id}</strong><br><small style="color:#94a3b8">${formatDate(p.date)}</small></td>
       <td>${p.vendor}</td>
-      <td><strong>₹${(p.totalAmount||0).toLocaleString('en-IN')}</strong></td>
+      <td><strong>${formatCurrency(p.totalAmount)}</strong></td>
       <td>${statusPill(p.status)}</td>
     </tr>`).join('');
 }

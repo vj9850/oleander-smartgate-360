@@ -33,6 +33,33 @@ const FUEL_TYPES = ['Petrol', 'Diesel', 'CNG', 'Electric'];
 const INV_CATEGORIES = ['Housekeeping', 'Room Service', 'Spa', 'Restaurant', 'Maintenance'];
 const INV_UNITS = ['pcs', 'box', 'bottle', 'kg', 'litre'];
 
+// ─── GLOBAL CURRENCY ─────────────────────────
+// Change CURRENCY.code / CURRENCY.locale here to switch currency app-wide.
+
+const CURRENCY = { code: 'INR', locale: 'en-IN', symbol: '₹' };
+
+const _currFmt = new Intl.NumberFormat(CURRENCY.locale, {
+  style:                 'currency',
+  currency:              CURRENCY.code,
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
+/** Format a number as INR — e.g. formatCurrency(123456) → "₹1,23,456" */
+function formatCurrency(amount) {
+  return _currFmt.format(amount || 0);
+}
+
+/** Compact currency for stat cards — uses Indian units (L / Cr).
+ *  e.g. formatCurrencyCompact(125000) → "₹1.3L"          */
+function formatCurrencyCompact(amount) {
+  const n = amount || 0;
+  if (n >= 10000000) return `${CURRENCY.symbol}${(n / 10000000).toFixed(1)}Cr`;
+  if (n >= 100000)   return `${CURRENCY.symbol}${(n / 100000).toFixed(1)}L`;
+  if (n >= 1000)     return `${CURRENCY.symbol}${(n / 1000).toFixed(1)}k`;
+  return formatCurrency(n);
+}
+
 // ─── DATA LAYER (localStorage + JSON seed) ───
 
 const KEYS = {

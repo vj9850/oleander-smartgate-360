@@ -233,8 +233,8 @@ function renderStats() {
     <div class="stat-card"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="stat-body"><div class="stat-value">${allPurchases.length}</div><div class="stat-label">Total GRNs</div></div></div>
     <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stat-body"><div class="stat-value">${monthGRN.length}</div><div class="stat-label">This Month</div></div></div>
     <div class="stat-card"><div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-body"><div class="stat-value">${pending}</div><div class="stat-label">Pending</div></div></div>
-    <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-body"><div class="stat-value">₹${(monthAmt/1000).toFixed(1)}k</div><div class="stat-label">Month Value</div></div></div>
-    <div class="stat-card"><div class="stat-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="stat-body"><div class="stat-value">₹${(todayAmt/1000).toFixed(1)}k</div><div class="stat-label">Today's Value</div></div></div>
+    <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-body"><div class="stat-value">${formatCurrencyCompact(monthAmt)}</div><div class="stat-label">Month Value</div></div></div>
+    <div class="stat-card"><div class="stat-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="stat-body"><div class="stat-value">${formatCurrencyCompact(todayAmt)}</div><div class="stat-label">Today's Value</div></div></div>
   `;
 }
 
@@ -254,7 +254,7 @@ function renderTable(data) {
       <td><strong>${p.vendor}</strong></td>
       <td style="color:#64748b">${p.invoiceNo}</td>
       <td>${p.items.length} item${p.items.length !== 1 ? 's' : ''}</td>
-      <td><strong>₹${(p.totalAmount||0).toLocaleString('en-IN')}</strong></td>
+      <td><strong>${formatCurrency(p.totalAmount)}</strong></td>
       <td>${p.receivedBy || '—'}</td>
       <td>${statusPill(p.status)}</td>
       <td>
@@ -308,7 +308,7 @@ function updateRowTotal(input) {
   const row = input.closest('tr');
   const qty = parseFloat(row.cells[1].querySelector('input').value) || 0;
   const price = parseFloat(row.cells[2].querySelector('input').value) || 0;
-  row.querySelector('.row-total').textContent = '₹' + (qty * price).toLocaleString('en-IN');
+  row.querySelector('.row-total').textContent = formatCurrency(qty * price);
   recalcTotal();
 }
 
@@ -319,7 +319,7 @@ function recalcTotal() {
     const price = parseFloat(row.cells[2].querySelector('input')?.value) || 0;
     total += qty * price;
   });
-  document.getElementById('grn-total-display').textContent = 'Total: ₹' + total.toLocaleString('en-IN');
+  document.getElementById('grn-total-display').textContent = 'Total: ' + formatCurrency(total);
 }
 
 function saveGRN() {
@@ -405,10 +405,10 @@ function viewGRN(id) {
       <td>${i+1}</td>
       <td><strong>${it.itemName}</strong></td>
       <td>${it.qty} ${it.unit}</td>
-      <td>₹${(it.unitPrice||0).toLocaleString('en-IN')}</td>
-      <td><strong>₹${(it.total||0).toLocaleString('en-IN')}</strong></td>
+      <td>${formatCurrency(it.unitPrice)}</td>
+      <td><strong>${formatCurrency(it.total)}</strong></td>
     </tr>`).join('');
-  document.getElementById('view-grn-total').textContent = 'Total: ₹' + (p.totalAmount||0).toLocaleString('en-IN');
+  document.getElementById('view-grn-total').textContent = 'Total: ' + formatCurrency(p.totalAmount);
   document.getElementById('view-grn-notes').textContent = p.notes ? 'Notes: ' + p.notes : '';
   openModal('view-grn-modal');
 }
