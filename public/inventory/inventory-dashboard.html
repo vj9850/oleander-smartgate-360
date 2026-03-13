@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Dashboard – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>(function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();</script>
+  <style>
+    .inv-hero { background:linear-gradient(135deg,#1a3d2b 0%,#2d7a4f 100%); border-radius:16px; padding:28px 32px; color:#fff; display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; gap:16px; }
+    .inv-hero-text h2 { font-size:22px; font-weight:700; margin-bottom:6px; }
+    .inv-hero-text p  { font-size:14px; opacity:.8; }
+    .inv-hero-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .inv-hero-actions a { background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.3); padding:9px 16px; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none; white-space:nowrap; transition:.2s; }
+    .inv-hero-actions a:hover { background:rgba(255,255,255,.25); }
+    .low-stock-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-bottom:24px; }
+    .low-item-card { background:#fff; border:1px solid #fee2e2; border-left:4px solid #ef4444; border-radius:10px; padding:14px 16px; }
+    .low-item-card .li-name { font-size:14px; font-weight:700; color:#1e293b; margin-bottom:4px; }
+    .low-item-card .li-meta { font-size:12px; color:#64748b; margin-bottom:8px; }
+    .low-item-card .li-bar  { height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden; }
+    .low-item-card .li-bar-fill { height:100%; border-radius:3px; background:#ef4444; }
+    .low-item-card .li-qty { display:flex; justify-content:space-between; font-size:12px; margin-top:4px; }
+    .low-item-card .li-qty span:last-child { color:#ef4444; font-weight:600; }
+    .activity-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+    @media(max-width:768px){ .activity-row { grid-template-columns:1fr; } .inv-hero { flex-direction:column; align-items:flex-start; } }
+    .dept-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:24px; }
+    .dept-card { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; text-align:center; }
+    .dept-card .dc-num { font-size:28px; font-weight:800; color:#1a3d2b; }
+    .dept-card .dc-lbl { font-size:12px; color:#64748b; margin-top:2px; }
+    .dept-card .dc-dept { font-size:13px; font-weight:600; color:#1e293b; margin-top:6px; }
+  </style>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Inventory / <span>Dashboard</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- HERO -->
+      <div class="inv-hero">
+        <div class="inv-hero-text">
+          <h2>Inventory Control Centre</h2>
+          <p>Real-time overview of stock, purchases, issues and consumption across all departments</p>
+        </div>
+        <div class="inv-hero-actions">
+          <a href="purchase-inward.html">+ Purchase Inward</a>
+          <a href="stock-issue.html">Issue Stock</a>
+          <a href="consumption-log.html">Log Consumption</a>
+          <a href="stock-report.html">Reports</a>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:24px;" id="inv-stats"></div>
+
+      <!-- LOW STOCK ALERTS -->
+      <div id="low-section">
+        <div class="section-card" style="margin-bottom:24px;">
+          <div class="section-header">
+            <h2 style="color:#ef4444;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Low Stock Alerts
+            </h2>
+            <span id="low-count" style="font-size:13px;color:#ef4444;font-weight:600;"></span>
+          </div>
+          <div class="low-stock-grid" id="low-grid"></div>
+        </div>
+      </div>
+
+      <!-- RECENT ACTIVITY -->
+      <div class="activity-row">
+        <!-- Recent Purchases -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Recent Purchases (GRN)</h2>
+            <a href="purchase-inward.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600;">View All →</a>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>GRN ID</th>
+                  <th>Vendor</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recent-grn-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recent Issues -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Recent Stock Issues</h2>
+            <a href="stock-issue.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600;">View All →</a>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Issue ID</th>
+                  <th>Department</th>
+                  <th>Items</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="recent-issue-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEPARTMENT DISTRIBUTION -->
+      <div class="section-card" style="margin-bottom:24px;">
+        <div class="section-header">
+          <h2>Department-wise Issue Summary (This Month)</h2>
+          <a href="stock-report.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600;">Full Report →</a>
+        </div>
+        <div class="dept-grid" id="dept-grid"></div>
+      </div>
+
+      <!-- RECENT CONSUMPTION -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Recent Consumption Log</h2>
+          <a href="consumption-log.html" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600;">View All →</a>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Department</th>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody id="recent-con-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+const KEYS_INV = {
+  purchases:   'sg360_purchases',
+  issues:      'sg360_inv_issues',
+  consumption: 'sg360_inv_consumption'
+};
+const today = new Date().toISOString().slice(0, 10);
+const thisMonth = today.slice(0, 7);
+
+(async function init() {
+  renderAppSidebar('inventory-dashboard');
+  requireAuth('../index.html');
+  initAuthUI('../index.html');
+  initMobileMenu();
+  renderTopbarDate();
+
+  await Promise.all([
+    seedIfEmpty(KEYS.inventory,       '../inventory/inventory-data.json'),
+    seedIfEmpty(KEYS_INV.purchases,   '../inventory/purchase-data.json'),
+    seedIfEmpty(KEYS_INV.issues,      '../inventory/issue-data.json'),
+    seedIfEmpty(KEYS_INV.consumption, '../inventory/consumption-data.json')
+  ]);
+
+  const inventory   = getData(KEYS.inventory);
+  const purchases   = getData(KEYS_INV.purchases);
+  const issues      = getData(KEYS_INV.issues);
+  const consumption = getData(KEYS_INV.consumption);
+
+  renderStats(inventory, purchases, issues, consumption);
+  renderLowStock(inventory);
+  renderRecentGRN(purchases);
+  renderRecentIssues(issues);
+  renderDeptSummary(issues);
+  renderRecentConsumption(consumption);
+})();
+
+function renderStats(inv, pur, iss, con) {
+  const lowCount     = inv.filter(i => i.quantity < i.minStock).length;
+  const todayGRN     = pur.filter(p => p.date === today).length;
+  const todayIss     = iss.filter(i => i.date === today).length;
+  const todayCon     = con.filter(c => c.date === today).length;
+  const monthPurAmt  = pur.filter(p => p.date.startsWith(thisMonth)).reduce((s, p) => s + (p.totalAmount || 0), 0);
+
+  document.getElementById('inv-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="stat-body"><div class="stat-value">${inv.length}</div><div class="stat-label">Total Items</div></div></div>
+    <div class="stat-card"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div><div class="stat-body"><div class="stat-value">${lowCount}</div><div class="stat-label">Low Stock</div></div></div>
+    <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div><div class="stat-body"><div class="stat-value">${todayGRN}</div><div class="stat-label">GRNs Today</div></div></div>
+    <div class="stat-card"><div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div><div class="stat-body"><div class="stat-value">${todayIss}</div><div class="stat-label">Issues Today</div></div></div>
+    <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-body"><div class="stat-value">₹${(monthPurAmt/1000).toFixed(1)}k</div><div class="stat-label">Month Purchases</div></div></div>
+    <div class="stat-card"><div class="stat-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><div class="stat-body"><div class="stat-value">${todayCon}</div><div class="stat-label">Consumed Today</div></div></div>
+  `;
+}
+
+function renderLowStock(inventory) {
+  const low = inventory.filter(i => i.quantity < i.minStock);
+  document.getElementById('low-count').textContent = low.length + ' items need reorder';
+  const grid = document.getElementById('low-grid');
+  if (low.length === 0) {
+    grid.innerHTML = '<p style="color:#64748b;font-size:14px;padding:8px 0;">All items are sufficiently stocked.</p>';
+    return;
+  }
+  grid.innerHTML = low.map(item => {
+    const pct = Math.round((item.quantity / item.minStock) * 100);
+    return `
+      <div class="low-item-card">
+        <div class="li-name">${item.name}</div>
+        <div class="li-meta">${item.category} · ${item.unit}</div>
+        <div class="li-bar"><div class="li-bar-fill" style="width:${pct}%"></div></div>
+        <div class="li-qty">
+          <span>${item.quantity} / ${item.minStock} min</span>
+          <span>${pct}% stocked</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function statusPill(s) {
+  const c = s === 'Received' ? '#16a34a' : s === 'Pending' ? '#d97706' : '#64748b';
+  return `<span style="font-size:11px;font-weight:600;color:${c};background:${c}18;padding:2px 8px;border-radius:20px;">${s}</span>`;
+}
+
+function renderRecentGRN(purchases) {
+  const body = document.getElementById('recent-grn-body');
+  const recent = [...purchases].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 5);
+  if (!recent.length) { body.innerHTML = '<tr><td colspan="4" class="table-empty">No purchases yet.</td></tr>'; return; }
+  body.innerHTML = recent.map(p => `
+    <tr>
+      <td><strong style="color:var(--primary)">${p.id}</strong><br><small style="color:#94a3b8">${formatDate(p.date)}</small></td>
+      <td>${p.vendor}</td>
+      <td><strong>₹${(p.totalAmount||0).toLocaleString('en-IN')}</strong></td>
+      <td>${statusPill(p.status)}</td>
+    </tr>`).join('');
+}
+
+function renderRecentIssues(issues) {
+  const body = document.getElementById('recent-issue-body');
+  const recent = [...issues].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 5);
+  if (!recent.length) { body.innerHTML = '<tr><td colspan="4" class="table-empty">No issues yet.</td></tr>'; return; }
+  body.innerHTML = recent.map(i => `
+    <tr>
+      <td><strong style="color:var(--primary)">${i.id}</strong></td>
+      <td>${i.department}</td>
+      <td>${i.items.length} item${i.items.length !== 1 ? 's' : ''}</td>
+      <td style="color:#64748b">${formatDate(i.date)}</td>
+    </tr>`).join('');
+}
+
+function renderDeptSummary(issues) {
+  const monthIssues = issues.filter(i => i.date.startsWith(thisMonth));
+  const deptMap = {};
+  monthIssues.forEach(iss => {
+    if (!deptMap[iss.department]) deptMap[iss.department] = { count: 0, items: 0 };
+    deptMap[iss.department].count++;
+    deptMap[iss.department].items += iss.items.reduce((s,x) => s + x.qty, 0);
+  });
+
+  const deptColors = {
+    'Housekeeping': '#2d7a4f', 'Restaurant': '#b45309', 'Spa & Wellness': '#7c3aed',
+    'Maintenance': '#dc2626', 'Room Service': '#0284c7'
+  };
+
+  const grid = document.getElementById('dept-grid');
+  const depts = Object.keys(deptMap);
+  if (!depts.length) {
+    grid.innerHTML = '<p style="color:#64748b;font-size:14px;">No issues this month.</p>';
+    return;
+  }
+  grid.innerHTML = depts.map(d => `
+    <div class="dept-card" style="border-top:3px solid ${deptColors[d]||'#64748b'}">
+      <div class="dc-num" style="color:${deptColors[d]||'#1a3d2b'}">${deptMap[d].items}</div>
+      <div class="dc-lbl">units issued</div>
+      <div class="dc-dept">${d}</div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:4px;">${deptMap[d].count} issue slip${deptMap[d].count !== 1?'s':''}</div>
+    </div>`).join('');
+}
+
+function renderRecentConsumption(consumption) {
+  const body = document.getElementById('recent-con-body');
+  const recent = [...consumption].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 6);
+  if (!recent.length) { body.innerHTML = '<tr><td colspan="5" class="table-empty">No consumption logged yet.</td></tr>'; return; }
+  body.innerHTML = recent.map(c => `
+    <tr>
+      <td style="color:#64748b">${formatDate(c.date)}</td>
+      <td>${c.department}</td>
+      <td><strong>${c.itemName}</strong></td>
+      <td><strong>${c.qty} ${c.unit}</strong></td>
+      <td style="color:#64748b">${c.purpose}</td>
+    </tr>`).join('');
+}
+</script>
+</body>
+</html>

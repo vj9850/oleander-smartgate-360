@@ -254,6 +254,11 @@ let moveTimer   = null;
 const markers    = {};
 const routeLines = {};
 
+/* vehicleId → true once real road path is loaded from Directions API.
+   EN_ROUTE vehicles are frozen in place until this is set so they
+   never animate on straight-line off-road waypoints.            */
+const routeReady = {};
+
 /* vehicleId → { segIdx, segT } – animation progress */
 const progress = {};
 
@@ -383,6 +388,11 @@ const PROP_LOOPS = {
     }
   });
 
+  /* EN_ROUTE vehicles are frozen until fetchRealRoutes() loads the
+     actual road-following path — prevents off-road animation on
+     the straight-line placeholder waypoints.                       */
+  Object.keys(EN_ROUTE).forEach(id => { routeReady[id] = false; });
+
   renderStats();
   renderCards();
   initFilters();
@@ -459,9 +469,9 @@ function initGoogleMap() {
   });
 
   placeMarkers();
-  drawRoutePolylines();
   drawFarmBoundary();
-  startMovement();
+  startMovement();          /* starts with static waypoints; real routes load async */
+  fetchRealRoutes();        /* fetches Directions API → updates waypoints + redraws polylines */
 
   /* Fit bounds to show all vehicles */
   fitAllVehicles();
@@ -498,34 +508,114 @@ function drawFarmBoundary() {
   });
 }
 
-/* ── Route polylines for en-route vehicles ── */
-function drawRoutePolylines() {
-  Object.entries(EN_ROUTE).forEach(([vId, route]) => {
-    const v = allVehicles.find(x => x.id === vId);
-    if (!v || v.status !== 'In Use') return;
+/* ── Fetch real road-following routes via Directions API ──────────────
+   For each en-route vehicle we request a DRIVING route from the Google
+   Directions Service. On success the decoded step-path replaces the
+   static waypoints so both the polyline AND the animation follow real
+   roads. Falls back gracefully to the static waypoints if the API
+   call fails (e.g. no billing on the key).
+   ─────────────────────────────────────────────────────────────────── */
+async function fetchRealRoutes() {
+  const dirService = new google.maps.DirectionsService();
 
-    const line = new google.maps.Polyline({
-      path: route.waypoints,
-      geodesic: true,
-      strokeColor:   route.color,
-      strokeOpacity: route.strokeOpacity,
-      strokeWeight:  3,
-      icons: [{
-        icon: {
-          path:        google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale:       3,
-          fillColor:   route.color,
-          fillOpacity: 1,
-          strokeWeight: 0,
-        },
-        offset: '100%',
-        repeat: '12%',
-      }],
-      map: gmap,
-      zIndex: 3,
-    });
-    routeLines[vId] = line;
-  });
+  for (const [vId, routeDef] of Object.entries(EN_ROUTE)) {
+    const v = allVehicles.find(x => x.id === vId);
+    if (!v || v.status !== 'In Use') continue;
+
+    const pts  = routeDef.waypoints;
+    const orig = pts[0];
+    const dest = pts[pts.length - 1];
+
+    try {
+      const result = await new Promise((resolve, reject) => {
+        dirService.route({
+          origin:      orig,
+          destination: dest,
+          travelMode:  google.maps.TravelMode.DRIVING,
+        }, (res, status) => {
+          if (status === 'OK') resolve(res);
+          else reject(new Error(status));
+        });
+      });
+
+      /* Flatten ALL step-level path points → dense, road-following array */
+      const realPath = [];
+      result.routes[0].legs[0].steps.forEach(step => {
+        step.path.forEach(pt => realPath.push({ lat: pt.lat(), lng: pt.lng() }));
+      });
+
+      if (realPath.length < 2) throw new Error('empty path');
+
+      /* ① Scale speed so virtual travel time stays the same regardless of
+            how many dense points the Directions API returns vs our static list */
+      const origSegs = pts.length - 1;
+      const newSegs  = realPath.length - 1;
+      routeDef.speed = routeDef.speed * (newSegs / origSegs);
+
+      /* ② Replace static waypoints with real road path */
+      routeDef.waypoints = realPath;
+
+      /* ② Reset animation to mid-route on the new path */
+      const midSeg = Math.floor(realPath.length / 2);
+      progress[vId] = { segIdx: midSeg, segT: 0 };
+      headings[vId] = calcBearing(
+        realPath[midSeg],
+        realPath[Math.min(midSeg + 1, realPath.length - 1)]
+      );
+
+      /* ③ Remove old fallback polyline (if any) and draw the real one */
+      if (routeLines[vId]) { routeLines[vId].setMap(null); routeLines[vId] = null; }
+
+      const line = new google.maps.Polyline({
+        path:          realPath,
+        geodesic:      false,
+        strokeColor:   routeDef.color,
+        strokeOpacity: routeDef.strokeOpacity,
+        strokeWeight:  3.5,
+        icons: [{
+          icon: {
+            path:         google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            scale:        3.5,
+            fillColor:    routeDef.color,
+            fillOpacity:  1,
+            strokeWeight: 0,
+          },
+          offset: '100%',
+          repeat: '5%',      /* denser arrows → looks like road direction */
+        }],
+        map:    gmap,
+        zIndex: 3,
+      });
+      routeLines[vId] = line;
+
+      /* ④ Unlock animation — vehicle will now follow the real road path */
+      routeReady[vId] = true;
+
+    } catch (err) {
+      /* Directions API unavailable / no billing → draw straight-line fallback */
+      console.warn(`[Tracker] Directions API failed for ${vId} (${err.message}) — using straight-line fallback`);
+      if (!routeLines[vId]) {
+        const line = new google.maps.Polyline({
+          path:          pts,
+          geodesic:      true,
+          strokeColor:   routeDef.color,
+          strokeOpacity: routeDef.strokeOpacity,
+          strokeWeight:  3,
+          icons: [{
+            icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 3, fillColor: routeDef.color, fillOpacity: 1, strokeWeight: 0 },
+            offset: '100%',
+            repeat: '12%',
+          }],
+          map:    gmap,
+          zIndex: 3,
+        });
+        routeLines[vId] = line;
+      }
+      /* Even on fallback, unlock animation so it at least moves along
+         the straight-line approximation rather than staying frozen.  */
+      routeReady[vId] = true;
+    }
+  }
 }
 
 /* ── Place all vehicle markers (AdvancedMarkerElement) ── */
@@ -596,7 +686,11 @@ function buildMarkerEl(v, isSelected) {
   /* Outer wrapper (fixed size, doesn't rotate) */
   const outer = document.createElement('div');
   outer.className = 'vm-outer';
-  outer.style.cssText = `width:${sz}px;height:${sz}px;`;
+  /* translateY(50%) shifts the wrapper DOWN by half its height so the
+     visual CENTER of the icon aligns with the GPS lat/lng point.
+     AdvancedMarkerElement anchors at bottom-center by default; without
+     this correction the car sits ~sz/2 px above the road at any zoom. */
+  outer.style.cssText = `width:${sz}px;height:${sz}px;transform:translateY(50%);`;
 
   /* Pulsing ring for In-Use vehicles */
   if (v.status === 'In Use') {
@@ -743,6 +837,15 @@ function getVehiclePos(v) {
   const route = EN_ROUTE[v.id] || PROP_LOOPS[v.id];
 
   if (prog && route && v.status === 'In Use') {
+    /* EN_ROUTE vehicles: if real road path not yet loaded,
+       pin the marker at the first waypoint (their real GPS origin —
+       e.g. Mumbai Airport or Karjat Station) so they appear on the
+       correct location and never drift off-road.                  */
+    if (EN_ROUTE[v.id] && !routeReady[v.id]) {
+      const pts = route.waypoints;
+      return pts[0];
+    }
+
     const pts  = route.waypoints;
     const seg  = Math.min(prog.segIdx, pts.length - 2);
     const t    = Math.max(0, Math.min(1, prog.segT));
@@ -770,16 +873,20 @@ function tickMovement() {
     const route = EN_ROUTE[v.id] || PROP_LOOPS[v.id];
     if (!route) return;
 
+    /* Freeze en-route vehicles until Directions API has loaded their
+       real road path — prevents any off-road movement.             */
+    if (EN_ROUTE[v.id] && !routeReady[v.id]) return;
+
     if (!progress[v.id]) progress[v.id] = { segIdx: 0, segT: 0 };
     const prog   = progress[v.id];
     const pts    = route.waypoints;
     const oldPos = getVehiclePos(v);
 
-    /* Advance along segment with slight randomness for realism */
+    /* Advance along segment — while loop handles speed > 1 (dense real-road paths) */
     prog.segT += route.speed + (Math.random() * 0.003 - 0.0015);
 
-    if (prog.segT >= 1) {
-      prog.segT   = 0;
+    while (prog.segT >= 1) {
+      prog.segT  -= 1;
       prog.segIdx += 1;
 
       if (prog.segIdx >= pts.length - 1) {
@@ -787,6 +894,7 @@ function tickMovement() {
           /* Arrived – freeze at destination */
           prog.segIdx = pts.length - 2;
           prog.segT   = 1;
+          break;
         } else {
           /* Loop back to start for on-property vehicles */
           prog.segIdx = 0;

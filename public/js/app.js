@@ -36,11 +36,14 @@ const INV_UNITS = ['pcs', 'box', 'bottle', 'kg', 'litre'];
 // ─── DATA LAYER (localStorage + JSON seed) ───
 
 const KEYS = {
-  visitors: 'sg360_visitors',
-  vehicles: 'sg360_vehicles',
-  inventory: 'sg360_inventory',
-  shifts:    'sg360_shifts',
-  expenses:  'sg360_vehicle_expenses'
+  visitors:    'sg360_visitors',
+  vehicles:    'sg360_vehicles',
+  inventory:   'sg360_inventory',
+  shifts:      'sg360_shifts',
+  expenses:    'sg360_vehicle_expenses',
+  purchases:   'sg360_purchases',
+  invIssues:   'sg360_inv_issues',
+  invConsumption: 'sg360_inv_consumption'
 };
 
 async function seedIfEmpty(key, jsonPath) {
@@ -318,7 +321,7 @@ function renderAppSidebar(active) {
   // Which groups auto-open?
   const VISITOR_SET   = new Set(['visitor-overview','visitor-list','visitor-form','visitor-details','visitor-pass']);
   const VEHICLE_SET   = new Set(['vehicle-list','vehicle-tracker','driver-shift','vehicle-expenses','vehicle-form']);
-  const INVENTORY_SET = new Set(['inventory-list','inventory-form']);
+  const INVENTORY_SET = new Set(['inventory-dashboard','inventory-list','inventory-form','purchase-inward','stock-issue','consumption-log','stock-report']);
   const MASTERS_SET   = new Set(['masterdash','staff','vendor','vehicle','driver','location','invcat','invitems','visitortype','role','gate','event','dept']);
 
   const visOpen = VISITOR_SET.has(active);
@@ -388,8 +391,13 @@ function renderAppSidebar(active) {
       ${group('inventory', 'Inventory Management',
         '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>',
         [
-          ['inventory-list', `${p}inventory/inventory-list.html`, 'Inventory List'],
-          ['inventory-form', `${p}inventory/inventory-form.html`, 'Add Item']
+          ['inventory-dashboard', `${p}inventory/inventory-dashboard.html`, 'Dashboard'],
+          ['inventory-list',      `${p}inventory/inventory-list.html`,      'Stock List'],
+          ['purchase-inward',     `${p}inventory/purchase-inward.html`,     'Purchase Inward'],
+          ['stock-issue',         `${p}inventory/stock-issue.html`,         'Stock Issue'],
+          ['consumption-log',     `${p}inventory/consumption-log.html`,     'Consumption Log'],
+          ['stock-report',        `${p}inventory/stock-report.html`,        'Reports'],
+          ['inventory-form',      `${p}inventory/inventory-form.html`,      'Add Item']
         ], invOpen)}
 
       <div class="nav-section-label">Masters</div>
