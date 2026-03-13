@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gate Pass – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();
+  </script>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Visitor Module / <span>Gate Pass</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Action Buttons -->
+      <div class="print-hide" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+        <a id="back-to-details" href="visitor-list.html" class="back-link" style="margin-bottom:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to Details
+        </a>
+        <div style="flex:1;"></div>
+        <button class="btn btn-ghost" onclick="doScanMock()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3v3M18 21h3M14 3v5h3M14 14h3v3M17 20v1h3M14 17v4"/></svg>
+          Scan Pass (Mock)
+        </button>
+        <button class="btn btn-primary" onclick="window.print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print Pass
+        </button>
+      </div>
+
+      <!-- Pass Container -->
+      <div class="pass-container" id="pass-container">
+
+        <!-- PASS HEADER -->
+        <div class="pass-header">
+          <div class="pass-header-left">
+            <div class="pass-label">Gate Pass</div>
+            <div class="pass-id" id="pass-id-display">—</div>
+          </div>
+          <img src="../assets/icons/logo.webp" alt="Oleander Farms" />
+        </div>
+
+        <!-- PASS BODY -->
+        <div class="pass-body">
+          <!-- Visitor Info row: meta left, photo right -->
+          <div class="pass-visitor-info">
+            <div class="pass-visitor-meta">
+              <div class="pass-visitor-name" id="pass-name">—</div>
+              <div class="pass-visitor-type" id="pass-type-status"></div>
+            </div>
+            <div class="pass-photo-box" id="pass-photo-box">
+              <div class="pass-photo-none">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>No Photo</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fields Grid -->
+          <div class="pass-fields" id="pass-fields"></div>
+        </div>
+
+        <!-- QR Section -->
+        <div class="pass-qr-section">
+          <div id="qr-code"></div>
+          <div class="qr-info">
+            <div class="scan-label">Scan to Verify</div>
+            <div class="qr-pass-id" id="qr-passid">—</div>
+            <div class="qr-time" id="qr-time">—</div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="pass-footer">
+          Oleander Farms &nbsp;·&nbsp; Karjat &nbsp;·&nbsp; SmartGate 360
+        </div>
+
+      </div>
+      <!-- /pass-container -->
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/visitor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+(async function () {
+  initVPage('visitor-pass');
+  await seedIfEmpty(KEYS.visitors, '../visitor/visitor-data.json');
+  VM.refreshOverstay();
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) { window.location.replace('visitor-list.html'); return; }
+
+  const v = VM.getById(id);
+  if (!v) { window.location.replace('visitor-list.html'); return; }
+
+  // Back link
+  document.getElementById('back-to-details').href = `visitor-details.html?id=${id}`;
+
+  // Pass ID
+  document.getElementById('pass-id-display').textContent = v.passId;
+
+  // Photo – ID card style (large)
+  const photoBox = document.getElementById('pass-photo-box');
+  if (v.photo) {
+    photoBox.innerHTML = `<img src="${v.photo}" alt="${v.name}" />`;
+  }
+  // else keep the "No Photo" placeholder
+
+  // Name
+  document.getElementById('pass-name').textContent = v.name;
+
+  // Type + status badges
+  document.getElementById('pass-type-status').innerHTML = visBadge(v.visitorType) + ' ' + visStatus(v.status);
+
+  // Pass fields
+  const fields = [
+    ['Mobile', v.mobile],
+    ['Host', v.host],
+    ['Location', v.location],
+    ['Gate', v.gate],
+    ['Vehicle No', v.vehicleNumber || '—'],
+    ['Purpose', v.purpose.length > 28 ? v.purpose.slice(0, 26) + '…' : v.purpose],
+    ['Entry Time', formatDateTime(v.entryTime)],
+    ['Exit Time', v.exitTime ? formatDateTime(v.exitTime) : 'Still Inside']
+  ];
+  document.getElementById('pass-fields').innerHTML = fields.map(([l, val]) => `
+    <div class="pass-field">
+      <div class="pf-label">${l}</div>
+      <div class="pf-value">${val}</div>
+    </div>`).join('');
+
+  // QR Info
+  document.getElementById('qr-passid').textContent = v.passId;
+  document.getElementById('qr-time').textContent = formatDateTime(v.entryTime);
+
+  // QR Code generation
+  new QRCode(document.getElementById('qr-code'), {
+    text: JSON.stringify({
+      id: v.id,
+      passId: v.passId,
+      name: v.name,
+      entryTime: v.entryTime,
+      gate: v.gate
+    }),
+    width: 100,
+    height: 100,
+    colorDark: '#1a3d2b',
+    colorLight: '#e8f5ee',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+})();
+
+function doScanMock() {
+  showToast('Pass scanned successfully. Identity verified.', 'success');
+}
+</script>
+</body>
+</html>

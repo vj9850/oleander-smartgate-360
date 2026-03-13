@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "name": "Arjun Sharma",
+    "email": "admin@smartgate360.com",
+    "username": "admin",
+    "password": "123456",
+    "role": "Super Admin",
+    "redirect": "dashboard.html"
+  },
+  {
+    "id": 2,
+    "name": "Priya Nair",
+    "email": "manager@smartgate360.com",
+    "username": "manager",
+    "password": "123456",
+    "role": "Admin",
+    "redirect": "dashboard.html"
+  },
+  {
+    "id": 3,
+    "name": "Ravi Patil",
+    "email": "security@smartgate360.com",
+    "username": "security",
+    "password": "123456",
+    "role": "Security Guard",
+    "redirect": "visitor/visitor-list.html"
+  },
+  {
+    "id": 4,
+    "name": "Suresh Kumar",
+    "email": "gate@smartgate360.com",
+    "username": "gate",
+    "password": "123456",
+    "role": "Gate Operator",
+    "redirect": "visitor/visitor-form.html"
+  },
+  {
+    "id": 5,
+    "name": "Deepak Joshi",
+    "email": "vehicle@smartgate360.com",
+    "username": "vehicle",
+    "password": "123456",
+    "role": "Vehicle Manager",
+    "redirect": "vehicle/vehicle-list.html"
+  },
+  {
+    "id": 6,
+    "name": "Meena Desai",
+    "email": "inventory@smartgate360.com",
+    "username": "inventory",
+    "password": "123456",
+    "role": "Inventory Manager",
+    "redirect": "inventory/inventory-list.html"
+  },
+  {
+    "id": 7,
+    "name": "Kavita Rao",
+    "email": "housekeeping@smartgate360.com",
+    "username": "housekeeping",
+    "password": "123456",
+    "role": "Housekeeping Manager",
+    "redirect": "inventory/inventory-list.html"
+  },
+  {
+    "id": 8,
+    "name": "Ankit Mehta",
+    "email": "events@smartgate360.com",
+    "username": "events",
+    "password": "123456",
+    "role": "Event Manager",
+    "redirect": "visitor/visitor-list.html"
+  },
+  {
+    "id": 9,
+    "name": "Sneha Kulkarni",
+    "email": "reception@smartgate360.com",
+    "username": "reception",
+    "password": "123456",
+    "role": "Receptionist",
+    "redirect": "visitor/visitor-form.html"
+  },
+  {
+    "id": 10,
+    "name": "Vijay Thakur",
+    "email": "maintenance@smartgate360.com",
+    "username": "maintenance",
+    "password": "123456",
+    "role": "Maintenance Staff",
+    "redirect": "inventory/inventory-list.html"
+  }
+]

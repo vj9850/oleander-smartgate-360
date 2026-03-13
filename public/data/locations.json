@@ -1,0 +1,19 @@
+[
+  {"id":"LOC-A1B2C","locationId":"LOC-001","name":"Rooms & Villas","category":"Accommodation","description":"Premium rooms and private villas with resort amenities","status":"Active"},
+  {"id":"LOC-B2C3D","locationId":"LOC-002","name":"Saltt Restaurant","category":"Food & Beverage","description":"Multi-cuisine fine dining restaurant at the resort","status":"Active"},
+  {"id":"LOC-C3D4E","locationId":"LOC-003","name":"Coffee House","category":"Food & Beverage","description":"Casual café serving specialty coffees, teas and snacks","status":"Active"},
+  {"id":"LOC-D4E5F","locationId":"LOC-004","name":"Waves Pool Bar","category":"Food & Beverage","description":"Poolside bar with refreshing beverages and light bites","status":"Active"},
+  {"id":"LOC-E5F6G","locationId":"LOC-005","name":"Vintage Wines","category":"Food & Beverage","description":"Curated wine cellar and tasting lounge","status":"Active"},
+  {"id":"LOC-F6G7H","locationId":"LOC-006","name":"CocoCart","category":"Retail","description":"Beach-style snack and coconut refreshment cart","status":"Active"},
+  {"id":"LOC-G7H8I","locationId":"LOC-007","name":"Kensho Greenery Nursery","category":"Retail","description":"On-property nursery selling plants, herbs and organic produce","status":"Active"},
+  {"id":"LOC-H8I9J","locationId":"LOC-008","name":"Organic Hub","category":"Retail","description":"Farm-fresh organic products and wellness store","status":"Active"},
+  {"id":"LOC-I9J0K","locationId":"LOC-009","name":"Akashi Clothing","category":"Retail","description":"Resort wear and lifestyle clothing boutique","status":"Active"},
+  {"id":"LOC-J0K1L","locationId":"LOC-010","name":"Spa & Wellness","category":"Wellness","description":"Holistic spa with Ayurveda, yoga and wellness therapies","status":"Active"},
+  {"id":"LOC-K1L2M","locationId":"LOC-011","name":"Padel & Pickleball Court","category":"Sports & Recreation","description":"International standard padel and pickleball courts","status":"Active"},
+  {"id":"LOC-L2M3N","locationId":"LOC-012","name":"Wine Tasting Area","category":"Experiences","description":"Curated wine tasting experience and pairing sessions","status":"Active"},
+  {"id":"LOC-M3N4O","locationId":"LOC-013","name":"Tea Ceremony Space","category":"Experiences","description":"Japanese-inspired tea ceremony and mindfulness space","status":"Active"},
+  {"id":"LOC-N4O5P","locationId":"LOC-014","name":"Corporate Events Hall","category":"Events","description":"Fully equipped conference and corporate event hall","status":"Active"},
+  {"id":"LOC-O5P6Q","locationId":"LOC-015","name":"Wedding Venue","category":"Events","description":"Lush outdoor and indoor wedding ceremony venue","status":"Active"},
+  {"id":"LOC-P6Q7R","locationId":"LOC-016","name":"Parking","category":"Facility","description":"Main parking lot with 80 vehicle capacity","status":"Active"},
+  {"id":"LOC-Q7R8S","locationId":"LOC-017","name":"Reception","category":"Facility","description":"Main reception and guest check-in area","status":"Active"}
+]

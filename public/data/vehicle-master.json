@@ -1,0 +1,10 @@
+[
+  {"id":"VM-A1B2C","vehicleId":"VHC-001","name":"Toyota Innova Crysta","vehicleNumber":"MH04-AB-1234","vehicleType":"Owned","fuelType":"Diesel","driverName":"Suresh Kamble","driverContact":"9876541001","seatingCapacity":7,"status":"Available"},
+  {"id":"VM-B2C3D","vehicleId":"VHC-002","name":"Force Traveller","vehicleNumber":"MH04-CD-5678","vehicleType":"Owned","fuelType":"Diesel","driverName":"Balaji Rao","driverContact":"9876541002","seatingCapacity":12,"status":"In Use"},
+  {"id":"VM-C3D4E","vehicleId":"VHC-003","name":"Tata Safari","vehicleNumber":"MH04-EF-9012","vehicleType":"Owned","fuelType":"Diesel","driverName":"Prakash Shinde","driverContact":"9876541003","seatingCapacity":6,"status":"Available"},
+  {"id":"VM-D4E5F","vehicleId":"VHC-004","name":"Mahindra Scorpio","vehicleNumber":"MH04-GH-3456","vehicleType":"Owned","fuelType":"Diesel","driverName":"Ramesh More","driverContact":"9876541004","seatingCapacity":7,"status":"Maintenance"},
+  {"id":"VM-E5F6G","vehicleId":"VHC-005","name":"Tempo Traveller 20-Seater","vehicleNumber":"MH04-IJ-7890","vehicleType":"Rental","fuelType":"Diesel","driverName":"Amar Singh","driverContact":"9876541005","seatingCapacity":20,"status":"Available"},
+  {"id":"VM-F6G7H","vehicleId":"VHC-006","name":"Maruti Ertiga","vehicleNumber":"MH04-KL-2345","vehicleType":"Owned","fuelType":"Petrol","driverName":"Nilesh Pawar","driverContact":"9876541006","seatingCapacity":7,"status":"In Use"},
+  {"id":"VM-G7H8I","vehicleId":"VHC-007","name":"Electric Buggy Ezgo","vehicleNumber":"OLF-EV-001","vehicleType":"Owned","fuelType":"Electric","driverName":"Vinod Kale","driverContact":"9876541007","seatingCapacity":6,"status":"Available"},
+  {"id":"VM-H8I9J","vehicleId":"VHC-008","name":"Tata Ace Mini Truck","vehicleNumber":"MH04-MN-6789","vehicleType":"Owned","fuelType":"CNG","driverName":"Sambhaji Jadhav","driverContact":"9876541008","seatingCapacity":2,"status":"Available"}
+]

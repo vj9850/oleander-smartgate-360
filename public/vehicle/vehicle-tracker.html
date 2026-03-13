@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fleet Tracker – SmartGate 360</title>
+  <link rel="icon" type="image/webp" href="../assets/icons/logo.webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){
+      const s = sessionStorage.getItem('sg360_session');
+      if (!s) window.location.replace('../index.html');
+    })();
+  </script>
+  <style>
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:0.5; transform:scale(1.5); }
+    }
+    @keyframes pulseRing {
+      0%   { r:8; opacity:0.8; }
+      100% { r:18; opacity:0; }
+    }
+    .vehicle-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 8px;
+      transition: background 0.15s, border-color 0.15s;
+      cursor: pointer;
+    }
+    .vehicle-card:hover { background: #f9fdfb; }
+    .vehicle-card.selected {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+    .tracker-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .vehicles-panel {
+      max-height: 620px;
+      overflow-y: auto;
+    }
+    .map-dot-pulse {
+      animation: pulse 2s infinite;
+    }
+    @media (max-width: 900px) {
+      .tracker-grid { grid-template-columns: 1fr; }
+      .vehicles-panel { max-height: 320px; }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Operations / Vehicle Management / <span>Fleet Tracker</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Fleet Tracker</div>
+          <div class="page-subtitle">Real-time vehicle locations and status across Oleander Farms</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="refresh-indicator" style="font-size:12px;color:var(--text-muted);">Auto-refresh: 10s</span>
+          <button class="btn btn-ghost btn-sm" onclick="refreshTracker()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="tracker-stats"></div>
+
+      <!-- Main tracker layout -->
+      <div class="tracker-grid">
+
+        <!-- Vehicle List Panel -->
+        <div class="section-card" style="padding:0;">
+          <div class="section-header" style="padding:14px 16px;border-bottom:1px solid var(--border);">
+            <h2 style="font-size:15px;">Fleet Vehicles</h2>
+          </div>
+          <!-- Filter Buttons -->
+          <div class="filter-bar" id="tracker-filter-btns">
+            <button class="btn btn-sm btn-primary" data-filter="all">All</button>
+            <button class="btn btn-sm btn-ghost" data-filter="In Use">In Use</button>
+            <button class="btn btn-sm btn-ghost" data-filter="Available">Available</button>
+            <button class="btn btn-sm btn-ghost" data-filter="Maintenance">Maint.</button>
+          </div>
+          <div class="vehicles-panel" id="vehicle-cards"></div>
+        </div>
+
+        <!-- Map Panel -->
+        <div class="section-card" style="padding:0;">
+          <div class="section-header" style="padding:14px 16px;border-bottom:1px solid var(--border);">
+            <h2 style="font-size:15px;">Property Map – Oleander Farms</h2>
+            <span id="map-last-update" style="font-size:12px;color:var(--text-muted);">Live</span>
+          </div>
+          <div id="property-map" style="position:relative;width:100%;background:#e8f5ee;border-radius:0 0 8px 8px;overflow:hidden;min-height:480px;"></div>
+          <!-- Vehicle detail popup -->
+          <div id="map-popup" style="display:none;margin:0;padding:16px;background:var(--primary-light);border-top:1px solid var(--border);border-radius:0 0 8px 8px;"></div>
+        </div>
+
+      </div>
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<script src="../js/app.js"></script>
+<script>
+'use strict';
+
+let allVehicles = [];
+let allShifts   = [];
+let selectedId  = null;
+let currentFilter = 'all';
+let refreshTimer  = null;
+
+const LOCATION_COORDS = {
+  'Main Parking':    {x:50, y:78},
+  'South Parking':   {x:74, y:83},
+  'Villas Area':     {x:80, y:22},
+  'Rooms & Villas':  {x:80, y:22},
+  'Event Venue':     {x:22, y:46},
+  'Wedding Venue':   {x:22, y:46},
+  'Restaurant':      {x:46, y:50},
+  'Saltt Restaurant':{x:46, y:50},
+  'Main Gate':       {x:48, y:93},
+  'Spa & Wellness':  {x:26, y:26},
+  'Nursery':         {x:12, y:30},
+  'Pool Bar':        {x:56, y:40},
+  'Karjat Station':  {x:10, y:92},
+  'Staff Quarters':  {x:30, y:75}
+};
+
+(async function init() {
+  renderAppSidebar('vehicle-tracker');
+  requireAuth('../index.html');
+  initAuthUI('../index.html');
+  initMobileMenu();
+  renderTopbarDate();
+
+  await seedIfEmpty(KEYS.vehicles, '../vehicle/vehicle-data.json');
+  await seedIfEmpty(KEYS.shifts,   '../vehicle/shift-data.json');
+
+  allVehicles = getData(KEYS.vehicles);
+  allShifts   = getData(KEYS.shifts);
+
+  renderStats();
+  renderCards();
+  renderMap();
+  initFilters();
+  startAutoRefresh();
+})();
+
+/* ── Stats ── */
+function renderStats() {
+  const total    = allVehicles.length;
+  const inUse    = allVehicles.filter(v => v.status === 'In Use').length;
+  const avail    = allVehicles.filter(v => v.status === 'Available').length;
+  const maint    = allVehicles.filter(v => v.status === 'Maintenance').length;
+
+  document.getElementById('tracker-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${total}</div><div class="stat-label">Total Fleet</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${inUse}</div><div class="stat-label">In Use</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${avail}</div><div class="stat-label">Available</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${maint}</div><div class="stat-label">Maintenance</div></div>
+    </div>
+  `;
+}
+
+/* ── Filter Buttons ── */
+function initFilters() {
+  document.getElementById('tracker-filter-btns').addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-filter]');
+    if (!btn) return;
+    currentFilter = btn.dataset.filter;
+    this.querySelectorAll('[data-filter]').forEach(b => {
+      b.className = b.dataset.filter === currentFilter ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost';
+    });
+    renderCards();
+    renderMap();
+  });
+}
+
+/* ── Vehicle Cards ── */
+function renderCards() {
+  const container = document.getElementById('vehicle-cards');
+  let list = allVehicles;
+  if (currentFilter !== 'all') list = list.filter(v => v.status === currentFilter);
+
+  if (!list.length) {
+    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;">No vehicles match filter.</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(v => {
+    const statusColor = v.status === 'In Use' ? '#2d7a4f' : v.status === 'Available' ? '#94a3b8' : '#e67e22';
+    const fuelColor   = (v.fuelLevel || 0) < 25 ? '#e74c3c' : (v.fuelLevel || 0) < 50 ? '#e67e22' : '#2d7a4f';
+    const catClass    = v.category === 'SUV' ? 'type-guest' : v.category === 'Car' ? 'type-staff' : v.category === 'Van' ? 'type-vendor' : '';
+    const isSelected  = v.id === selectedId;
+    const pulseCss    = v.status === 'In Use' ? 'animation:pulse 2s infinite;' : '';
+
+    return `
+    <div class="vehicle-card${isSelected ? ' selected' : ''}" data-id="${v.id}" onclick="selectVehicle('${v.id}')">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);">
+        <div style="width:10px;height:10px;border-radius:50%;background:${statusColor};flex-shrink:0;${pulseCss}"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);font-family:monospace;">${v.vehicleNumber}</div>
+        </div>
+        <span class="type-badge ${catClass}" style="font-size:10px;white-space:nowrap;">${v.category || v.type}</span>
+      </div>
+      <div style="padding:8px 16px;display:flex;gap:16px;font-size:12px;color:var(--text-secondary);">
+        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">&#128100; ${v.driverName || 'Unassigned'}</span>
+        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">&#128205; ${v.lastLocation || '—'}</span>
+      </div>
+      <div style="padding:0 16px 12px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:3px;">
+          <span>${v.fuelType === 'Electric' ? '&#9889; Battery' : '&#9981; Fuel'}</span>
+          <span>${v.fuelLevel || 0}%</span>
+        </div>
+        <div style="height:4px;background:var(--border);border-radius:2px;">
+          <div style="height:4px;width:${v.fuelLevel || 0}%;background:${fuelColor};border-radius:2px;"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Property Map SVG ── */
+function renderMap() {
+  const container = document.getElementById('property-map');
+  const W = 700, H = 500;
+
+  const zones = [
+    { label:'Main Gate',       x:38, y:88,  w:24, h:10, fill:'#1a3d2b', textFill:'#fff' },
+    { label:'Main Parking',    x:36, y:70,  w:30, h:12, fill:'#cbd5e1', textFill:'#1e293b' },
+    { label:'South Parking',   x:64, y:74,  w:22, h:12, fill:'#cbd5e1', textFill:'#1e293b' },
+    { label:'Villas & Rooms',  x:70, y:8,   w:26, h:22, fill:'#fef3c7', textFill:'#92400e' },
+    { label:'Event Venue',     x:8,  y:36,  w:26, h:20, fill:'#ede9fe', textFill:'#5b21b6' },
+    { label:'Restaurant',      x:34, y:42,  w:24, h:14, fill:'#fee2e2', textFill:'#991b1b' },
+    { label:'Pool Bar',        x:46, y:30,  w:20, h:12, fill:'#bfdbfe', textFill:'#1e40af' },
+    { label:'Spa & Wellness',  x:16, y:18,  w:22, h:14, fill:'#d1fae5', textFill:'#065f46' },
+    { label:'Nursery',         x:4,  y:22,  w:16, h:14, fill:'#dcfce7', textFill:'#14532d' },
+    { label:'Staff Quarters',  x:18, y:66,  w:22, h:12, fill:'#f0fdf4', textFill:'#166534' },
+  ];
+
+  const roads = [
+    // Main road: gate to center
+    `M ${pct(48,W)} ${pct(93,H)} L ${pct(48,W)} ${pct(70,H)}`,
+    // Horizontal spine
+    `M ${pct(20,W)} ${pct(70,H)} L ${pct(80,W)} ${pct(70,H)}`,
+    // Left road to event venue
+    `M ${pct(20,W)} ${pct(70,H)} L ${pct(20,W)} ${pct(46,H)}`,
+    // Right road to villas
+    `M ${pct(80,W)} ${pct(70,H)} L ${pct(80,W)} ${pct(20,H)}`,
+    // Upper road
+    `M ${pct(20,W)} ${pct(40,H)} L ${pct(70,W)} ${pct(20,H)}`,
+    // Center road
+    `M ${pct(48,W)} ${pct(70,H)} L ${pct(48,W)} ${pct(42,H)} L ${pct(56,W)} ${pct(36,H)}`,
+  ];
+
+  // Build zone rects
+  const zonesSvg = zones.map(z => {
+    const rx = pct(z.x, W), ry = pct(z.y, H), rw = pct(z.w, W), rh = pct(z.h, H);
+    const cx = rx + rw/2, cy = ry + rh/2;
+    const fontSize = Math.max(8, Math.min(11, rw / z.label.length * 1.4));
+    return `
+      <rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${z.fill}" stroke="#94a3b8" stroke-width="1" rx="4"/>
+      <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" font-size="${fontSize}" font-family="system-ui,sans-serif" fill="${z.textFill}" font-weight="600">${z.label}</text>`;
+  }).join('');
+
+  // Build road paths
+  const roadsSvg = roads.map(d => `<path d="${d}" stroke="#94a3b8" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.6"/>`).join('');
+  const roadLinesSvg = roads.map(d => `<path d="${d}" stroke="#e2e8f0" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="8,6" opacity="0.8"/>`).join('');
+
+  // Build vehicle dots
+  let filtered = allVehicles;
+  if (currentFilter !== 'all') filtered = filtered.filter(v => v.status === currentFilter);
+
+  const vehicleDots = filtered.map(v => {
+    const loc = v.lastLocation || 'Main Parking';
+    const coords = LOCATION_COORDS[loc] || LOCATION_COORDS['Main Parking'];
+    const cx = pct(coords.x, W);
+    const cy = pct(coords.y, H);
+    const color  = v.status === 'In Use' ? '#2d7a4f' : v.status === 'Available' ? '#64748b' : '#e67e22';
+    const isSelected = v.id === selectedId;
+    const initials = v.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+
+    let pulse = '';
+    if (v.status === 'In Use') {
+      pulse = `<circle cx="${cx}" cy="${cy}" r="10" fill="${color}" opacity="0.3">
+        <animate attributeName="r" from="10" to="22" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" from="0.4" to="0" dur="2s" repeatCount="indefinite"/>
+      </circle>`;
+    }
+
+    return `
+      <g class="map-vehicle" onclick="selectVehicle('${v.id}')" style="cursor:pointer;" title="${v.name}">
+        ${pulse}
+        <circle cx="${cx}" cy="${cy}" r="${isSelected ? 14 : 11}" fill="${color}" stroke="${isSelected ? '#fff' : 'rgba(255,255,255,0.7)'}" stroke-width="${isSelected ? 3 : 1.5}"/>
+        <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" font-size="8" font-family="system-ui,sans-serif" fill="white" font-weight="700">${initials}</text>
+      </g>`;
+  }).join('');
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" style="min-height:480px;display:block;">
+      <!-- Background -->
+      <rect width="${W}" height="${H}" fill="#c8e6c9"/>
+      <!-- Farm boundary -->
+      <rect x="4" y="4" width="${W-8}" height="${H-8}" fill="#d4edda" stroke="#a5d6a7" stroke-width="2" rx="8"/>
+      <!-- Property title -->
+      <text x="${W/2}" y="18" text-anchor="middle" font-size="13" font-family="system-ui,sans-serif" fill="#1a3d2b" font-weight="700" opacity="0.6">Oleander Farms — 180 Acres, Karjat</text>
+      <!-- Roads -->
+      ${roadsSvg}
+      ${roadLinesSvg}
+      <!-- Zones -->
+      ${zonesSvg}
+      <!-- Vehicle dots -->
+      ${vehicleDots}
+    </svg>`;
+
+  // Update timestamp
+  document.getElementById('map-last-update').textContent = 'Updated: ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function pct(val, max) { return Math.round((val / 100) * max); }
+
+/* ── Select Vehicle ── */
+function selectVehicle(id) {
+  selectedId = (selectedId === id) ? null : id;
+  renderCards();
+  renderMap();
+  showPopup();
+}
+
+function showPopup() {
+  const popup = document.getElementById('map-popup');
+  if (!selectedId) {
+    popup.style.display = 'none';
+    return;
+  }
+
+  const v = allVehicles.find(x => x.id === selectedId);
+  if (!v) { popup.style.display = 'none'; return; }
+
+  const activeShift = allShifts.find(s => s.vehicleId === v.id && s.status === 'Active');
+  const statusColor = v.status === 'In Use' ? '#2d7a4f' : v.status === 'Available' ? '#64748b' : '#e67e22';
+  const fuelColor   = (v.fuelLevel || 0) < 25 ? '#e74c3c' : (v.fuelLevel || 0) < 50 ? '#e67e22' : '#2d7a4f';
+
+  let shiftHtml = '';
+  if (activeShift) {
+    const start   = new Date(activeShift.shiftStart);
+    const elapsed = Math.round((Date.now() - start) / 60000);
+    const hrs     = Math.floor(elapsed / 60), mins = elapsed % 60;
+    shiftHtml = `
+      <div style="margin-top:10px;padding:10px;background:white;border-radius:6px;border:1px solid var(--border);">
+        <div style="font-weight:700;font-size:12px;color:var(--primary);margin-bottom:6px;">Active Shift: ${activeShift.id}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;">
+          <span style="color:var(--text-muted);">Started:</span><span>${formatDateTime(activeShift.shiftStart)}</span>
+          <span style="color:var(--text-muted);">Duration:</span><span>${hrs}h ${mins}m</span>
+          <span style="color:var(--text-muted);">Start km:</span><span>${activeShift.startOdometer?.toLocaleString('en-IN') || '—'}</span>
+        </div>
+      </div>`;
+  }
+
+  popup.style.display = 'block';
+  popup.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div>
+        <div style="font-weight:800;font-size:15px;">${v.name}</div>
+        <div style="font-size:12px;color:var(--text-muted);font-family:monospace;">${v.vehicleNumber} &bull; ${v.category || v.type} &bull; ${v.year || ''}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${statusColor};"></span>
+        <span style="font-size:12px;font-weight:600;color:${statusColor};">${v.status}</span>
+        <button onclick="selectedId=null;showPopup();renderCards();renderMap();" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-muted);padding:0 4px;">&times;</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:12px;margin-bottom:10px;">
+      <div><div style="color:var(--text-muted);margin-bottom:2px;">Driver</div><div style="font-weight:600;">${v.driverName || 'Unassigned'}</div></div>
+      <div><div style="color:var(--text-muted);margin-bottom:2px;">Phone</div><div style="font-weight:600;">${v.driverPhone || '—'}</div></div>
+      <div><div style="color:var(--text-muted);margin-bottom:2px;">Seats</div><div style="font-weight:600;">${v.seatingCapacity || '—'}</div></div>
+      <div><div style="color:var(--text-muted);margin-bottom:2px;">Location</div><div style="font-weight:600;">${v.lastLocation || '—'}</div></div>
+      <div><div style="color:var(--text-muted);margin-bottom:2px;">Odometer</div><div style="font-weight:600;">${v.odometer ? v.odometer.toLocaleString('en-IN') + ' km' : '—'}</div></div>
+      <div><div style="color:var(--text-muted);margin-bottom:2px;">Fuel Type</div><div style="font-weight:600;">${v.fuelType}</div></div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;">
+        <span>${v.fuelType === 'Electric' ? 'Battery' : 'Fuel Level'}</span>
+        <span style="color:${fuelColor};font-weight:700;">${v.fuelLevel || 0}%</span>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:3px;">
+        <div style="height:6px;width:${v.fuelLevel || 0}%;background:${fuelColor};border-radius:3px;transition:width 0.4s;"></div>
+      </div>
+    </div>
+    ${v.assignedGuest ? `<div style="font-size:12px;margin-bottom:8px;"><span style="color:var(--text-muted);">Guest: </span><strong>${v.assignedGuest}</strong>${v.destination ? ` &rarr; ${v.destination}` : ''}</div>` : ''}
+    ${shiftHtml}
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <a href="driver-shift.html?vehicle=${v.id}" class="btn btn-sm btn-primary" style="flex:1;text-align:center;">Start Shift</a>
+      <a href="vehicle-expenses.html?vehicle=${v.id}" class="btn btn-sm btn-ghost" style="flex:1;text-align:center;">Add Expense</a>
+    </div>`;
+}
+
+/* ── Auto Refresh ── */
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(refreshTracker, 10000);
+}
+
+function refreshTracker() {
+  allVehicles = getData(KEYS.vehicles);
+  allShifts   = getData(KEYS.shifts);
+  renderStats();
+  renderCards();
+  renderMap();
+  if (selectedId) showPopup();
+}
+
+window.addEventListener('beforeunload', () => {
+  if (refreshTimer) clearInterval(refreshTimer);
+});
+</script>
+</body>
+</html>

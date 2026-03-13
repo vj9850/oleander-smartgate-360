@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – SmartGate 360</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+  <link rel="icon" href="assets/icons/logo.webp" type="image/webp" />
+  <script>(function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('index.html'); })();</script>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR BACKDROP -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb"><span>Dashboard Overview</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title" id="welcome-title">Welcome back</div>
+          <div class="page-subtitle">Oleander Farms Operations – Live Overview</div>
+        </div>
+        <a href="visitor/visitor-form.html" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Gate Pass
+        </a>
+      </div>
+
+      <!-- LOW STOCK ALERT (shows if needed) -->
+      <div id="low-stock-alert" style="display:none;" class="alert-banner warning">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span id="low-stock-text">Checking inventory…</span>
+        <a href="inventory/inventory-list.html" style="margin-left:auto;font-weight:700;color:inherit;text-decoration:none;white-space:nowrap;">View →</a>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stats-grid" id="stats-grid">
+        <!-- Injected by JS -->
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <div class="quick-actions">
+        <a href="visitor/visitor-form.html" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          Register Visitor
+        </a>
+        <a href="vehicle/vehicle-form.html" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Assign Vehicle
+        </a>
+        <a href="inventory/inventory-list.html" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Inventory
+        </a>
+        <a href="visitor/visitor-list.html" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Search Visitor
+        </a>
+        <a href="masters/masters-dashboard.html" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6.1a10 10 0 0 0-1.11 8.65"/><path d="M11.9 21.9a10 10 0 0 0 7.62-3.53"/></svg>
+          Master Data
+        </a>
+      </div>
+
+      <!-- OPERATIONS QUICK CARDS -->
+      <div class="ops-grid">
+        <a href="visitor/visitor-list.html" class="ops-card">
+          <div class="ops-card-icon" style="background:#e8f5ee;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1f5c3a" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div>
+            <div class="ops-card-label">Visitor Management</div>
+            <div class="ops-card-sub">Gate passes, check-in/out</div>
+          </div>
+        </a>
+        <a href="vehicle/vehicle-list.html" class="ops-card">
+          <div class="ops-card-icon" style="background:#e8eeff;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#3045c8" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <div>
+            <div class="ops-card-label">Vehicle Management</div>
+            <div class="ops-card-sub">Fleet tracking and dispatch</div>
+          </div>
+        </a>
+        <a href="inventory/inventory-list.html" class="ops-card">
+          <div class="ops-card-icon" style="background:#e0f4f0;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a8a78" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div>
+            <div class="ops-card-label">Inventory Management</div>
+            <div class="ops-card-sub">Stock levels and alerts</div>
+          </div>
+        </a>
+        <a href="masters/masters-dashboard.html" class="ops-card">
+          <div class="ops-card-icon" style="background:#f5f0ff;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6d28d9" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6.1a10 10 0 0 0-1.11 8.65"/><path d="M11.9 21.9a10 10 0 0 0 7.62-3.53"/></svg>
+          </div>
+          <div>
+            <div class="ops-card-label">Master Data</div>
+            <div class="ops-card-sub">Staff, gates, events & more</div>
+          </div>
+        </a>
+        <a href="masters/event-master.html" class="ops-card">
+          <div class="ops-card-icon" style="background:#fef3e2;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div>
+            <div class="ops-card-label">Events</div>
+            <div class="ops-card-sub">Weddings and corporate functions</div>
+          </div>
+        </a>
+        <a href="masters/staff-master.html" class="ops-card">
+          <div class="ops-card-icon" style="background:#fdecea;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+          <div>
+            <div class="ops-card-label">Staff Directory</div>
+            <div class="ops-card-sub">All resort staff members</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- RECENT VISITORS TABLE -->
+      <div class="section-card" style="margin-bottom:18px;">
+        <div class="section-header">
+          <h2>Recent Visitors</h2>
+          <div class="section-actions">
+            <a href="visitor/visitor-list.html" class="btn btn-sm btn-ghost">View All</a>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table id="recent-visitors-table">
+            <thead>
+              <tr>
+                <th>Pass ID</th>
+                <th class="tbl-hide-mobile">Name</th>
+                <th>Type</th>
+                <th class="tbl-hide-mobile">Location</th>
+                <th>Check-In</th>
+                <th class="tbl-hide-tablet">Check-Out</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recent-visitors-body">
+              <tr><td colspan="8" class="table-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VEHICLE STATUS TABLE -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Vehicle Status</h2>
+          <div class="section-actions">
+            <a href="vehicle/vehicle-list.html" class="btn btn-sm btn-ghost">View All</a>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table id="vehicle-status-table">
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th class="tbl-hide-mobile">Reg. Number</th>
+                <th class="tbl-hide-mobile">Driver</th>
+                <th>Ownership</th>
+                <th class="tbl-hide-tablet">Seats</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="vehicle-status-body">
+              <tr><td colspan="6" class="table-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<script src="js/app.js"></script>
+<script>
+(async function() {
+  renderAppSidebar('dashboard');
+  const session = requireAuth('index.html');
+  initAuthUI('index.html');
+  initMobileMenu();
+  if (session) {
+    const wt = document.getElementById('welcome-title');
+    if (wt) {
+      const name = session.name || session.username || '';
+      wt.textContent = `Welcome back, ${name.split(' ')[0]}`;
+    }
+  }
+
+  // Seed data
+  await seedIfEmpty(KEYS.visitors, 'visitor/visitor-data.json');
+  await seedIfEmpty(KEYS.vehicles, 'vehicle/vehicle-data.json');
+  await seedIfEmpty(KEYS.inventory,'inventory/inventory-data.json');
+
+  const visitors  = getData(KEYS.visitors);
+  const vehicles  = getData(KEYS.vehicles);
+  const inventory = getData(KEYS.inventory);
+
+  // Compute stats
+  const todayStr  = new Date().toISOString().slice(0, 10);
+  const todayVis  = visitors.filter(v => v.checkIn && v.checkIn.startsWith(todayStr));
+  const activeVis = visitors.filter(v => v.status === 'Active');
+  const inUseVeh  = vehicles.filter(v => v.status === 'In Use').length;
+  const availVeh  = vehicles.filter(v => v.status === 'Available').length;
+  const lowItems  = inventory.filter(i => Number(i.quantity) < Number(i.minStock));
+
+  // Stat cards
+  const statsData = [
+    { label: 'Visitors Today',       value: todayVis.length,   icon: 'users',  color: 'green',  desc: 'Total logged today',       sc: '--sc-color:#2d7a4f' },
+    { label: 'Active Gate Passes',   value: activeVis.length,  icon: 'badge',  color: 'blue',   desc: 'Currently active',         sc: '--sc-color:#3045c8' },
+    { label: 'Visitors On Property', value: activeVis.length,  icon: 'home',   color: 'teal',   desc: 'Inside right now',         sc: '--sc-color:#1a8a78' },
+    { label: 'Vehicles In Use',      value: inUseVeh,          icon: 'truck',  color: 'orange', desc: `${vehicles.length} fleet`, sc: '--sc-color:#b45309' },
+    { label: 'Available Vehicles',   value: availVeh,          icon: 'check',  color: 'green',  desc: 'Ready to assign',          sc: '--sc-color:#2d7a4f' },
+    { label: 'Low Inventory Alerts', value: lowItems.length,   icon: 'alert',  color: lowItems.length > 0 ? 'red' : 'green',  desc: lowItems.length > 0 ? 'Needs restocking' : 'All stocked', sc: lowItems.length > 0 ? '--sc-color:#dc2626' : '--sc-color:#2d7a4f' }
+  ];
+
+  const iconSVGs = {
+    users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    badge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/></svg>',
+    home:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+    truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+    alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>'
+  };
+
+  const statsGrid = document.getElementById('stats-grid');
+  statsGrid.innerHTML = statsData.map(s => `
+    <div class="stat-card" style="${s.sc}">
+      <div class="stat-icon ${s.color}">${iconSVGs[s.icon]}</div>
+      <div class="stat-body">
+        <div class="stat-value">${s.value}</div>
+        <div class="stat-label">${s.label}</div>
+        <div class="stat-change">${s.desc}</div>
+      </div>
+    </div>`).join('');
+
+  // Low stock alert
+  if (lowItems.length > 0) {
+    const alertEl = document.getElementById('low-stock-alert');
+    const textEl  = document.getElementById('low-stock-text');
+    alertEl.style.display = 'flex';
+    textEl.textContent = `${lowItems.length} item${lowItems.length > 1 ? 's' : ''} below minimum stock level`;
+  }
+
+  // Recent visitors table
+  const visBody   = document.getElementById('recent-visitors-body');
+  const displayed = [...visitors].sort((a, b) => new Date(b.checkIn) - new Date(a.checkIn)).slice(0, 8);
+  if (!displayed.length) {
+    visBody.innerHTML = `<tr><td colspan="8" class="table-empty">No visitors recorded today.</td></tr>`;
+  } else {
+    visBody.innerHTML = displayed.map(v => `
+      <tr>
+        <td data-label="Pass ID"><strong style="font-family:monospace;font-size:12px;color:var(--primary);">${v.id}</strong></td>
+        <td data-label="Name" class="tbl-hide-mobile">${v.name}</td>
+        <td data-label="Type">${typeBadge(v.type)}</td>
+        <td data-label="Location" class="tbl-hide-mobile">${v.locationVisiting || '—'}</td>
+        <td data-label="Check-In">${formatTime(v.checkIn)}</td>
+        <td data-label="Check-Out" class="tbl-hide-tablet">${v.checkOut ? formatTime(v.checkOut) : '—'}</td>
+        <td data-label="Status">${statusBadge(v.status)}</td>
+        <td data-label="Action">
+          <div class="actions-cell">
+            <a href="visitor/visitor-list.html" class="btn btn-sm btn-ghost" style="padding:4px 10px;font-size:12px;">View</a>
+            ${v.status === 'Active' ? `<button class="btn btn-sm btn-outline" onclick="checkoutVisitor('${v.id}')" style="padding:4px 10px;font-size:12px;">Out</button>` : ''}
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  // Vehicle status table
+  const vehBody = document.getElementById('vehicle-status-body');
+  if (!vehicles.length) {
+    vehBody.innerHTML = `<tr><td colspan="6" class="table-empty">No vehicles found.</td></tr>`;
+  } else {
+    vehBody.innerHTML = vehicles.map(v => `
+      <tr>
+        <td data-label="Vehicle"><strong style="font-size:13px;">${v.name}</strong></td>
+        <td data-label="Reg. No." class="tbl-hide-mobile"><span style="font-family:monospace;font-size:12px;">${v.vehicleNumber}</span></td>
+        <td data-label="Driver" class="tbl-hide-mobile">${v.driverName || '—'}</td>
+        <td data-label="Type">${typeBadge(v.type || v.vehicleType || '')}</td>
+        <td data-label="Seats" class="tbl-hide-tablet">${v.seatingCapacity || '—'}</td>
+        <td data-label="Status">${statusBadge(v.status)}</td>
+      </tr>`).join('');
+  }
+
+})();
+
+function checkoutVisitor(id) {
+  const visitors = getData(KEYS.visitors);
+  const idx = visitors.findIndex(v => v.id === id);
+  if (idx === -1) return;
+  visitors[idx].status   = 'Completed';
+  visitors[idx].checkOut = new Date().toISOString();
+  saveData(KEYS.visitors, visitors);
+  showToast('Visitor checked out successfully', 'success');
+  setTimeout(() => location.reload(), 1200);
+}
+</script>
+</body>
+</html>

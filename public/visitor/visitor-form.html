@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register Visitor – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();
+  </script>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Visitor Module / <span>Register Visitor</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <a href="visitor-list.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to All Visitors
+      </a>
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Register Visitor</div>
+          <div class="page-subtitle">Pre-registration – fill details to generate a digital gate pass</div>
+        </div>
+      </div>
+
+      <!-- Blacklist Warning (hidden by default) -->
+      <div class="alert alert-error" id="blacklist-warning" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>This mobile number is blacklisted. Entry not recommended.</span>
+      </div>
+
+      <div class="form-card" style="max-width:900px;">
+        <div class="form-card-header">
+          <div class="header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          </div>
+          <div>
+            <h2>Visitor Information</h2>
+            <p>Fields marked with <span style="color:#e74c3c">*</span> are required</p>
+          </div>
+        </div>
+
+        <form id="visitor-form" novalidate>
+          <!-- SECTION 1: Visitor Info -->
+          <div class="form-body" style="border-bottom:1px solid var(--border);">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:16px;">
+              Section 1 — Visitor Details
+            </div>
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label class="form-label">Visitor Name <span class="required">*</span></label>
+                <input type="text" name="name" id="f-name" class="form-input" placeholder="Full Name" data-required />
+                <span class="error-msg" data-error="name"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Mobile Number <span class="required">*</span></label>
+                <input type="tel" name="mobile" id="f-mobile" class="form-input" placeholder="10-digit mobile" maxlength="10" data-required />
+                <span class="error-msg" data-error="mobile"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" id="f-email" class="form-input" placeholder="visitor@example.com" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Visitor Type <span class="required">*</span></label>
+                <select name="visitorType" id="f-type" class="form-select" data-required>
+                  <option value="">Select Type</option>
+                  <option>Guest</option>
+                  <option>Vendor</option>
+                  <option>Staff</option>
+                  <option>Delivery</option>
+                  <option>Event Guest</option>
+                </select>
+                <span class="error-msg" data-error="visitorType"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">ID Proof Type <span class="required">*</span></label>
+                <select name="idProofType" id="f-idtype" class="form-select" data-required>
+                  <option value="">Select ID Proof</option>
+                  <option>Aadhar Card</option>
+                  <option>Passport</option>
+                  <option>Driving License</option>
+                  <option>Voter ID</option>
+                  <option>Employee ID</option>
+                  <option>PAN Card</option>
+                </select>
+                <span class="error-msg" data-error="idProofType"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">ID Number <span class="required">*</span></label>
+                <input type="text" name="idNumber" id="f-idnum" class="form-input" placeholder="ID document number" data-required />
+                <span class="error-msg" data-error="idNumber"></span>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Purpose of Visit <span class="required">*</span></label>
+                <input type="text" name="purpose" id="f-purpose" class="form-input" placeholder="e.g. Resort Stay, Meeting, Delivery…" data-required />
+                <span class="error-msg" data-error="purpose"></span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- SECTION 2: Visit Details -->
+          <div class="form-body" style="border-bottom:1px solid var(--border);">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:16px;">
+              Section 2 — Visit Details
+            </div>
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label class="form-label">Person to Meet (Host) <span class="required">*</span></label>
+                <input type="text" name="host" id="f-host" class="form-input" placeholder="Host name / department" data-required />
+                <span class="error-msg" data-error="host"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Location Visiting <span class="required">*</span></label>
+                <select name="location" id="f-location" class="form-select" data-required>
+                  <option value="">Select Location</option>
+                  <option>Rooms &amp; Villas</option>
+                  <option>Saltt Restaurant</option>
+                  <option>Coffee House</option>
+                  <option>Waves Pool Bar</option>
+                  <option>Vintage Wines</option>
+                  <option>CocoCart</option>
+                  <option>Kensho Greenery Nursery</option>
+                  <option>Organic Hub</option>
+                  <option>Akashi Clothing</option>
+                  <option>Spa &amp; Wellness</option>
+                  <option>Padel &amp; Pickleball Court</option>
+                  <option>Wine Tasting</option>
+                  <option>Tea Ceremony</option>
+                  <option>Corporate Events</option>
+                  <option>Wedding Venue</option>
+                </select>
+                <span class="error-msg" data-error="location"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Vehicle Number</label>
+                <input type="text" name="vehicleNumber" id="f-vehicle" class="form-input" placeholder="e.g. MH04AB1234 (optional)" style="text-transform:uppercase;" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Gate Name <span class="required">*</span></label>
+                <select name="gate" id="f-gate" class="form-select" data-required>
+                  <option value="">Select Gate</option>
+                  <option>Main Gate</option>
+                  <option>Service Gate</option>
+                  <option>Event Gate</option>
+                  <option>Staff Gate</option>
+                </select>
+                <span class="error-msg" data-error="gate"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Check-In Time <span class="required">*</span></label>
+                <input type="datetime-local" name="entryTime" id="f-entry" class="form-input" data-required />
+                <span class="error-msg" data-error="entryTime"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Expected Check-Out <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+                <input type="datetime-local" name="exitTime" id="f-exit" class="form-input" />
+              </div>
+
+            </div>
+          </div>
+
+          <!-- PHOTO SECTION -->
+          <div class="form-body">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:14px;">
+              Visitor Photo <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional – capture or upload)</span>
+            </div>
+
+            <!-- Tabs -->
+            <div class="photo-tabs">
+              <button type="button" class="photo-tab active" id="tab-camera" onclick="switchPhotoTab('camera')">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Capture Photo
+              </button>
+              <button type="button" class="photo-tab" id="tab-upload" onclick="switchPhotoTab('upload')">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                Upload File
+              </button>
+            </div>
+
+            <!-- Webcam Capture Panel -->
+            <div class="webcam-wrap show" id="webcam-wrap">
+              <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+                <div class="webcam-video-box" id="webcam-video-box">
+                  <video id="webcam-video" autoplay playsinline muted></video>
+                  <div class="webcam-off-msg" id="webcam-off-msg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <span>Camera not started</span>
+                  </div>
+                  <canvas id="webcam-canvas" width="640" height="480"></canvas>
+                </div>
+
+                <div class="webcam-controls">
+                  <button type="button" class="btn-webcam primary" id="btn-start-cam">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>
+                    Start Camera
+                  </button>
+                  <button type="button" class="btn-webcam" id="btn-capture" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3"/></svg>
+                    Capture
+                  </button>
+                  <button type="button" class="btn-webcam" id="btn-retake" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                    Retake
+                  </button>
+                  <button type="button" class="btn-webcam" id="btn-stop-cam" style="display:none;" onclick="stopCamera()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                    Stop Camera
+                  </button>
+                </div>
+
+                <!-- Captured preview -->
+                <div class="webcam-captured-preview" id="webcam-captured-preview">
+                  <img id="webcam-preview-img" src="" alt="Captured" />
+                  <span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Photo Captured
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Panel -->
+            <div class="upload-wrap hide" id="upload-wrap">
+              <div class="photo-upload-area" id="photo-upload-area" style="flex:1;min-width:200px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <p><span>Click to upload</span> or drag &amp; drop</p>
+                <p style="font-size:11px;margin-top:4px;">JPG, PNG – Max 2MB</p>
+              </div>
+              <div style="flex-shrink:0;text-align:center;">
+                <img id="photo-preview" class="photo-preview" src="" alt="Preview" style="display:none;" />
+              </div>
+            </div>
+
+            <input type="file" id="photo-input" accept="image/*" style="display:none;" />
+          </div>
+
+          <div class="form-footer">
+            <button type="button" class="btn btn-primary" id="submit-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Generate Gate Pass
+            </button>
+            <button type="button" class="btn btn-ghost" id="reset-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+              Reset Form
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Blacklist Confirm Modal -->
+<div class="modal-overlay" id="blacklist-confirm-modal">
+  <div class="modal">
+    <h3 style="color:#e74c3c;">Blacklisted Mobile Number</h3>
+    <p>The mobile number entered belongs to a <strong>blacklisted visitor</strong>. Allowing entry is not recommended per security policy.</p>
+    <p style="margin-top:-10px;">Do you still want to proceed and register this visitor?</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('blacklist-confirm-modal')">Cancel</button>
+      <button class="btn btn-danger" id="proceed-anyway-btn">Proceed Anyway</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/visitor.js"></script>
+<script>
+let photoDataUrl = null;
+let pendingSubmit = false;
+let cameraStream  = null;
+
+// ── Photo tab switcher ────────────────────────
+function switchPhotoTab(tab) {
+  document.getElementById('tab-camera').classList.toggle('active', tab === 'camera');
+  document.getElementById('tab-upload').classList.toggle('active', tab === 'upload');
+  document.getElementById('webcam-wrap').classList.toggle('show', tab === 'camera');
+  document.getElementById('upload-wrap').classList.toggle('hide', tab === 'camera');
+  document.getElementById('upload-wrap').classList.toggle('hide', tab !== 'upload');
+  if (tab !== 'camera') stopCamera();
+}
+
+// ── Camera helpers ────────────────────────────
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  const video = document.getElementById('webcam-video');
+  video.srcObject = null;
+  document.getElementById('webcam-off-msg').style.display = 'flex';
+  document.getElementById('btn-start-cam').style.display  = '';
+  document.getElementById('btn-stop-cam').style.display   = 'none';
+  document.getElementById('btn-capture').disabled         = true;
+}
+
+(async function () {
+  initVPage('visitor-form');
+  await seedIfEmpty(KEYS.visitors, '../visitor/visitor-data.json');
+
+  // Auto-fill entry time with current local datetime
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  document.getElementById('f-entry').value = local;
+
+  // Mobile blacklist check
+  document.getElementById('f-mobile').addEventListener('blur', function () {
+    const mobile = this.value.trim();
+    const warn = document.getElementById('blacklist-warning');
+    if (mobile.length >= 10 && VM.isMobileBlacklisted(mobile)) {
+      warn.style.display = 'flex';
+    } else {
+      warn.style.display = 'none';
+    }
+  });
+
+  // ── Webcam ────────────────────────────────
+  const video           = document.getElementById('webcam-video');
+  const canvas          = document.getElementById('webcam-canvas');
+  const offMsg          = document.getElementById('webcam-off-msg');
+  const btnStart        = document.getElementById('btn-start-cam');
+  const btnCapture      = document.getElementById('btn-capture');
+  const btnRetake       = document.getElementById('btn-retake');
+  const btnStop         = document.getElementById('btn-stop-cam');
+  const capturedPreview = document.getElementById('webcam-captured-preview');
+  const capturedImg     = document.getElementById('webcam-preview-img');
+
+  btnStart.addEventListener('click', async () => {
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
+      video.srcObject = cameraStream;
+      offMsg.style.display    = 'none';
+      btnStart.style.display  = 'none';
+      btnStop.style.display   = '';
+      btnCapture.disabled     = false;
+      capturedPreview.classList.remove('show');
+      btnRetake.style.display = 'none';
+    } catch (err) {
+      showToast('Camera access denied or not available. Please use file upload.', 'error');
+    }
+  });
+
+  btnCapture.addEventListener('click', () => {
+    const ctx = canvas.getContext('2d');
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 480;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    photoDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+    capturedImg.src = photoDataUrl;
+    capturedPreview.classList.add('show');
+
+    btnCapture.disabled     = true;
+    btnRetake.style.display = '';
+    showToast('Photo captured successfully!', 'success');
+  });
+
+  btnRetake.addEventListener('click', () => {
+    photoDataUrl = null;
+    capturedPreview.classList.remove('show');
+    capturedImg.src         = '';
+    btnCapture.disabled     = false;
+    btnRetake.style.display = 'none';
+  });
+
+  // ── File upload ───────────────────────────
+  const uploadArea  = document.getElementById('photo-upload-area');
+  const photoInput  = document.getElementById('photo-input');
+  const preview     = document.getElementById('photo-preview');
+
+  uploadArea.addEventListener('click', () => photoInput.click());
+  photoInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      photoDataUrl    = e.target.result;
+      preview.src     = photoDataUrl;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Submit
+  document.getElementById('submit-btn').addEventListener('click', function () {
+    clearFormErrors('visitor-form');
+    if (!validateForm('visitor-form')) {
+      showToast('Please fill in all required fields', 'error');
+      return;
+    }
+    const mobile = document.getElementById('f-mobile').value.trim();
+    if (VM.isMobileBlacklisted(mobile)) {
+      openModal('blacklist-confirm-modal');
+      return;
+    }
+    doSubmit();
+  });
+
+  document.getElementById('proceed-anyway-btn').addEventListener('click', function () {
+    closeModal('blacklist-confirm-modal');
+    doSubmit();
+  });
+
+  // Reset
+  document.getElementById('reset-btn').addEventListener('click', function () {
+    document.getElementById('visitor-form').reset();
+    clearFormErrors('visitor-form');
+    document.getElementById('blacklist-warning').style.display = 'none';
+    photoDataUrl = null;
+    preview.style.display = 'none';
+    preview.src = '';
+    capturedPreview.classList.remove('show');
+    capturedImg.src = '';
+    btnCapture.disabled = true;
+    btnRetake.style.display = 'none';
+    stopCamera();
+    const n = new Date();
+    const l = new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById('f-entry').value = l;
+  });
+})();
+
+function doSubmit() {
+  const id     = VM.nextId();
+  const passId = VM.nextPassId();
+
+  const fd = {
+    name:         document.getElementById('f-name').value.trim(),
+    mobile:       document.getElementById('f-mobile').value.trim(),
+    email:        document.getElementById('f-email').value.trim() || null,
+    visitorType:  document.getElementById('f-type').value,
+    idProofType:  document.getElementById('f-idtype').value,
+    idNumber:     document.getElementById('f-idnum').value.trim(),
+    purpose:      document.getElementById('f-purpose').value.trim(),
+    host:         document.getElementById('f-host').value.trim(),
+    location:     document.getElementById('f-location').value,
+    vehicleNumber: document.getElementById('f-vehicle').value.trim().toUpperCase() || null,
+    gate:         document.getElementById('f-gate').value,
+    entryTime:    document.getElementById('f-entry').value
+                    ? new Date(document.getElementById('f-entry').value).toISOString()
+                    : new Date().toISOString(),
+    exitTime:     document.getElementById('f-exit').value
+                    ? new Date(document.getElementById('f-exit').value).toISOString()
+                    : null
+  };
+
+  const visitor = {
+    id,
+    passId,
+    ...fd,
+    status: 'Active',
+    blacklisted: false,
+    blacklistReason: null,
+    photo: photoDataUrl || null
+  };
+
+  VM.add(visitor);
+
+  const hostName = fd.host || 'the host';
+  showToast(`Gate pass generated. Host notified: ${hostName} has been informed.`, 'success');
+
+  setTimeout(() => {
+    window.location.href = `visitor-pass.html?id=${id}`;
+  }, 1500);
+}
+</script>
+</body>
+</html>

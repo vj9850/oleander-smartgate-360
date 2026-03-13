@@ -1,0 +1,110 @@
+[
+  {
+    "id": "INV001",
+    "name": "Bath Towels",
+    "category": "Housekeeping",
+    "quantity": 45,
+    "minStock": 50,
+    "unit": "pcs",
+    "lastUpdated": "2026-03-12"
+  },
+  {
+    "id": "INV002",
+    "name": "Hand Soap (Bar)",
+    "category": "Room Service",
+    "quantity": 120,
+    "minStock": 80,
+    "unit": "pcs",
+    "lastUpdated": "2026-03-11"
+  },
+  {
+    "id": "INV003",
+    "name": "Shampoo (200ml)",
+    "category": "Room Service",
+    "quantity": 30,
+    "minStock": 60,
+    "unit": "bottle",
+    "lastUpdated": "2026-03-11"
+  },
+  {
+    "id": "INV004",
+    "name": "Bedsheets (King Size)",
+    "category": "Housekeeping",
+    "quantity": 28,
+    "minStock": 30,
+    "unit": "pcs",
+    "lastUpdated": "2026-03-10"
+  },
+  {
+    "id": "INV005",
+    "name": "Pillow Covers",
+    "category": "Housekeeping",
+    "quantity": 80,
+    "minStock": 60,
+    "unit": "pcs",
+    "lastUpdated": "2026-03-12"
+  },
+  {
+    "id": "INV006",
+    "name": "Aromatherapy Oil (Lavender)",
+    "category": "Spa",
+    "quantity": 15,
+    "minStock": 20,
+    "unit": "bottle",
+    "lastUpdated": "2026-03-09"
+  },
+  {
+    "id": "INV007",
+    "name": "Massage Candles",
+    "category": "Spa",
+    "quantity": 40,
+    "minStock": 25,
+    "unit": "pcs",
+    "lastUpdated": "2026-03-11"
+  },
+  {
+    "id": "INV008",
+    "name": "Olive Oil (1L)",
+    "category": "Restaurant",
+    "quantity": 18,
+    "minStock": 20,
+    "unit": "bottle",
+    "lastUpdated": "2026-03-12"
+  },
+  {
+    "id": "INV009",
+    "name": "Coffee Pods",
+    "category": "Restaurant",
+    "quantity": 200,
+    "minStock": 100,
+    "unit": "pcs",
+    "lastUpdated": "2026-03-12"
+  },
+  {
+    "id": "INV010",
+    "name": "Cleaning Liquid (5L)",
+    "category": "Maintenance",
+    "quantity": 8,
+    "minStock": 10,
+    "unit": "box",
+    "lastUpdated": "2026-03-10"
+  },
+  {
+    "id": "INV011",
+    "name": "Toilet Paper Roll",
+    "category": "Housekeeping",
+    "quantity": 150,
+    "minStock": 100,
+    "unit": "pcs",
+    "lastUpdated": "2026-03-12"
+  },
+  {
+    "id": "INV012",
+    "name": "Mineral Water Bottles (1L)",
+    "category": "Room Service",
+    "quantity": 12,
+    "minStock": 50,
+    "unit": "pcs",
+    "lastUpdated": "2026-03-12"
+  }
+]

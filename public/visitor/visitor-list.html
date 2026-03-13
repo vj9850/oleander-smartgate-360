@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Visitors – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();
+  </script>
+  <style>
+    /* ── Page-specific compact overrides ─────── */
+
+    /* Tighter page padding */
+    .page-content { padding: 20px 24px; }
+
+    /* Stats strip – slim horizontal bar */
+    .vl-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .vl-stat {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow);
+    }
+    .vl-stat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .vl-stat-icon svg { width: 18px; height: 18px; }
+    .vl-stat-icon.green { background: #e8f5ee; }
+    .vl-stat-icon.green svg { stroke: #2d7a4f; }
+    .vl-stat-icon.teal  { background: #e0f4f0; }
+    .vl-stat-icon.teal svg  { stroke: #1a8a78; }
+    .vl-stat-icon.blue  { background: #e8eeff; }
+    .vl-stat-icon.blue svg  { stroke: #3d5ef5; }
+    .vl-stat-icon.red   { background: #fdecea; }
+    .vl-stat-icon.red svg   { stroke: #e74c3c; }
+    .vl-stat-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .vl-stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    /* Section header tighter */
+    .section-header { padding: 14px 18px; }
+
+    /* Filter grid – 2 rows */
+    .vl-filters {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr auto auto auto auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .vl-filters .search-box { max-width: none; }
+    .vl-filters .filter-select {
+      font-size: 12.5px;
+      padding: 6px 10px;
+      min-width: 0;
+    }
+    .vl-filters .filter-date {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      background: var(--bg);
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .vl-filters .filter-date:focus { border-color: var(--primary); }
+    .vl-count-row {
+      padding: 7px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .vl-count-row span {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .btn-clear-filters {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .btn-clear-filters:hover { color: var(--primary); border-color: var(--primary); }
+
+    /* Compact table */
+    #visitor-table thead th {
+      padding: 9px 12px;
+      font-size: 10.5px;
+    }
+    #visitor-table tbody td {
+      padding: 9px 12px;
+      font-size: 12.5px;
+      vertical-align: middle;
+    }
+    #visitor-table tbody tr:hover { background: #fafcfb; }
+
+    /* Visitor cell */
+    .vis-cell { display: flex; align-items: center; gap: 9px; }
+    .vis-cell-info .vis-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+    .vis-cell-info .vis-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    /* Host/Location cell */
+    .hl-cell .hl-host {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .hl-cell .hl-loc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    /* Time cell */
+    .time-cell .tc-date {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .time-cell .tc-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .time-cell.muted .tc-date { color: var(--text-muted); font-weight: 500; }
+
+    /* Pass ID */
+    .pass-id-cell {
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--primary);
+      letter-spacing: 0.3px;
+    }
+
+    /* Action icon buttons */
+    .act-btns {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .act-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .act-btn svg { width: 13px; height: 13px; stroke: var(--text-secondary); pointer-events: none; }
+    .act-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .act-btn:hover svg { stroke: var(--primary); }
+    .act-btn.checkout { border-color: #d4e6db; }
+    .act-btn.checkout:hover { background: #e8f5ee; border-color: var(--primary); }
+    .act-btn.danger { border-color: #fbc9c9; }
+    .act-btn.danger svg { stroke: #e74c3c; }
+    .act-btn.danger:hover { background: #fdecea; border-color: #e74c3c; }
+    .act-btn.unblock { border-color: #b8d4c8; }
+    .act-btn.unblock svg { stroke: var(--primary); }
+    .act-btn.unblock:hover { background: var(--primary-light); }
+
+    /* Tooltip */
+    .act-btn::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 5px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a2e22;
+      color: #fff;
+      font-size: 10.5px;
+      font-family: inherit;
+      font-weight: 600;
+      white-space: nowrap;
+      padding: 3px 8px;
+      border-radius: 5px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 20;
+    }
+    .act-btn:hover::after { opacity: 1; }
+
+    /* Duration pill */
+    .dur-pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 2px 8px;
+      white-space: nowrap;
+    }
+
+    /* No data */
+    .vl-empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+    .vl-empty svg { width: 40px; height: 40px; stroke: var(--border); margin-bottom: 10px; display: block; margin: 0 auto 10px; }
+    .vl-empty p { font-size: 13px; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .vl-stats { grid-template-columns: repeat(2, 1fr); }
+      .vl-filters { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .vl-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .vl-filters { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Visitor Module / <span>All Visitors</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Page Header -->
+      <div class="page-header" style="margin-bottom:16px;">
+        <div class="page-header-left">
+          <div class="page-title">All Visitors</div>
+          <div class="page-subtitle">Gate pass records · check-in / check-out · visitor history</div>
+        </div>
+        <a href="visitor-form.html" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Register Visitor
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="vl-stats" id="vl-stats"></div>
+
+      <!-- Table Card -->
+      <div class="section-card">
+
+        <div class="section-header">
+          <h2>Visitor Records</h2>
+          <div class="section-actions">
+            <a href="visitor-form.html" class="btn btn-sm btn-outline">+ New</a>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="vl-filters">
+          <div class="search-box" style="min-width:0;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="vis-search" placeholder="Search name, mobile, pass ID…" />
+          </div>
+          <select class="filter-select" id="vis-type-filter">
+            <option value="">All Types</option>
+            <option>Guest</option><option>Vendor</option><option>Staff</option>
+            <option>Delivery</option><option>Event Guest</option>
+          </select>
+          <select class="filter-select" id="vis-status-filter">
+            <option value="">All Status</option>
+            <option>Active</option><option>Checked Out</option>
+            <option>Overstayed</option><option>Blacklisted</option>
+          </select>
+          <select class="filter-select" id="vis-gate-filter">
+            <option value="">All Gates</option>
+            <option>Main Gate</option><option>Service Gate</option>
+            <option>Event Gate</option><option>Staff Gate</option>
+          </select>
+          <select class="filter-select" id="vis-location-filter">
+            <option value="">All Locations</option>
+            <option>Rooms &amp; Villas</option><option>Saltt Restaurant</option>
+            <option>Coffee House</option><option>Waves Pool Bar</option>
+            <option>Vintage Wines</option><option>CocoCart</option>
+            <option>Kensho Greenery Nursery</option><option>Organic Hub</option>
+            <option>Akashi Clothing</option><option>Spa &amp; Wellness</option>
+            <option>Padel &amp; Pickleball Court</option><option>Wine Tasting</option>
+            <option>Tea Ceremony</option><option>Corporate Events</option>
+            <option>Wedding Venue</option>
+          </select>
+          <input type="date" class="filter-date" id="vis-date-filter" title="Filter by entry date" />
+        </div>
+
+        <!-- Count + clear row -->
+        <div class="vl-count-row">
+          <span id="vis-count">—</span>
+          <button class="btn-clear-filters" id="btn-clear-filters" onclick="clearFilters()">Clear Filters</button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+          <table id="visitor-table">
+            <thead>
+              <tr>
+                <th>Pass ID</th>
+                <th>Visitor</th>
+                <th>Type</th>
+                <th>Gate</th>
+                <th>Host / Location</th>
+                <th>Check-In</th>
+                <th>Check-Out</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="visitor-body">
+              <tr><td colspan="10" class="table-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Badge Modal -->
+<div class="modal-overlay" id="badge-modal">
+  <div class="modal" style="max-width:340px;">
+    <div class="badge-modal-content">
+      <div class="badge-modal-avatar" id="bm-avatar"></div>
+      <div class="badge-modal-name" id="bm-name"></div>
+      <div id="bm-type" style="margin-bottom:6px;"></div>
+      <div class="badge-modal-passid" id="bm-passid"></div>
+      <div class="badge-modal-time" id="bm-time"></div>
+      <div class="qr-mock" id="bm-qr"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeBadgeModal()">Close</button>
+      <button class="btn btn-primary" onclick="printBadge()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print Badge
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Blacklist Modal -->
+<div class="modal-overlay" id="blacklist-modal">
+  <div class="modal">
+    <h3>Blacklist Visitor</h3>
+    <p>Provide a reason for blacklisting <strong id="bl-visitor-name"></strong>. This will flag them across the system.</p>
+    <div class="form-group" style="margin-bottom:16px;">
+      <label class="form-label">Reason <span class="required">*</span></label>
+      <textarea class="form-textarea" id="bl-reason" placeholder="Describe the reason…" rows="3"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('blacklist-modal')">Cancel</button>
+      <button class="btn btn-danger" id="bl-confirm-btn">Blacklist</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/visitor.js"></script>
+<script>
+let pendingBlacklistId = null;
+
+(async function () {
+  // Mobile sidebar with backdrop
+  const _sb  = document.getElementById('sidebar');
+  const _bd  = document.getElementById('sidebar-backdrop');
+  const _cls = document.getElementById('sidebar-close-btn');
+  const _mb  = document.getElementById('mobile-menu-btn');
+  const _open  = () => { _sb.classList.add('open');    _bd && _bd.classList.add('show'); };
+  const _close = () => { _sb.classList.remove('open'); _bd && _bd.classList.remove('show'); };
+  _mb  && _mb.addEventListener('click',  _open);
+  _cls && _cls.addEventListener('click', _close);
+  _bd  && _bd.addEventListener('click',  _close);
+
+  initVPage('visitor-list');
+  await seedIfEmpty(KEYS.visitors, '../visitor/visitor-data.json');
+  VM.refreshOverstay();
+  renderStats();
+  renderTable(VM.getAll());
+  initFilters();
+  document.getElementById('bl-confirm-btn').addEventListener('click', confirmBlacklist);
+})();
+
+/* ── Stats ───────────────────────────────────── */
+function renderStats() {
+  const all    = VM.getAll();
+  const active = VM.getActiveList().length;
+  const today  = VM.getTodayList().length;
+  const blk    = VM.getBlacklisted().length;
+  document.getElementById('vl-stats').innerHTML = [
+    { icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>', color: 'green', val: all.length,    label: 'Total Visitors' },
+    { icon: '<polyline points="20 6 9 17 4 12"/>',                                                  color: 'teal',  val: active,         label: 'Active Inside' },
+    { icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',               color: 'blue',  val: today,          label: "Today's Visitors" },
+    { icon: '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>', color: 'red',   val: blk,            label: 'Blacklisted' }
+  ].map(s => `
+    <div class="vl-stat">
+      <div class="vl-stat-icon ${s.color}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${s.icon}</svg>
+      </div>
+      <div>
+        <div class="vl-stat-value">${s.val}</div>
+        <div class="vl-stat-label">${s.label}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ── Table ───────────────────────────────────── */
+function fmtDate(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
+}
+function fmtTime(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+}
+
+function renderTable(data) {
+  const body = document.getElementById('visitor-body');
+  document.getElementById('vis-count').textContent =
+    `${data.length} record${data.length !== 1 ? 's' : ''}`;
+
+  if (!data.length) {
+    body.innerHTML = `
+      <tr><td colspan="10">
+        <div class="vl-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+          </svg>
+          <p>No visitors found matching your filters.</p>
+        </div>
+      </td></tr>`;
+    return;
+  }
+
+  const sorted = [...data].sort((a, b) => new Date(b.entryTime) - new Date(a.entryTime));
+
+  body.innerHTML = sorted.map(v => {
+    const hasPhoto = !!v.photo;
+    const avatarHtml = hasPhoto
+      ? `<img src="${v.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--border);flex-shrink:0;" />`
+      : `<div style="width:32px;height:32px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:var(--primary);">${v.name.charAt(0).toUpperCase()}</div>`;
+
+    const isActive = v.status === 'Active' || v.status === 'Overstayed';
+
+    return `<tr>
+      <td><span class="pass-id-cell">${v.passId}</span></td>
+      <td>
+        <div class="vis-cell">
+          ${avatarHtml}
+          <div class="vis-cell-info">
+            <div class="vis-name">${v.name}</div>
+            <div class="vis-sub">${v.mobile} &middot; ${v.idProofType}</div>
+          </div>
+        </div>
+      </td>
+      <td>${visBadge(v.visitorType)}</td>
+      <td>${gBadge(v.gate)}</td>
+      <td>
+        <div class="hl-cell">
+          <div class="hl-host">${v.host}</div>
+          <div class="hl-loc">${v.location}</div>
+        </div>
+      </td>
+      <td>
+        <div class="time-cell">
+          <div class="tc-date">${fmtDate(v.entryTime)}</div>
+          <div class="tc-time">${fmtTime(v.entryTime)}</div>
+        </div>
+      </td>
+      <td>
+        ${v.exitTime
+          ? `<div class="time-cell muted">
+               <div class="tc-date">${fmtDate(v.exitTime)}</div>
+               <div class="tc-time">${fmtTime(v.exitTime)}</div>
+             </div>`
+          : `<span style="color:var(--text-muted);font-size:12px;">—</span>`}
+      </td>
+      <td><span class="dur-pill">${VM.duration(v.entryTime, v.exitTime)}</span></td>
+      <td>${visStatus(v.status)}</td>
+      <td>
+        <div class="act-btns">
+          <a class="act-btn" href="visitor-details.html?id=${v.id}" data-tip="View Details">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </a>
+          <a class="act-btn" href="visitor-pass.html?id=${v.id}" data-tip="Gate Pass">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="12" y2="13"/></svg>
+          </a>
+          <button class="act-btn" onclick="openBadgeModal('${v.id}')" data-tip="Print Badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          </button>
+          ${isActive
+            ? `<button class="act-btn checkout" onclick="doCheckout('${v.id}')" data-tip="Check-Out">
+                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+               </button>`
+            : ''}
+          ${!v.blacklisted
+            ? `<button class="act-btn danger" onclick="promptBlacklist('${v.id}','${v.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')" data-tip="Blacklist">
+                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+               </button>`
+            : `<button class="act-btn unblock" onclick="doUnblacklist('${v.id}')" data-tip="Unblacklist">
+                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+               </button>`}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── Filters ─────────────────────────────────── */
+function initFilters() {
+  const els = ['vis-search','vis-type-filter','vis-status-filter','vis-gate-filter','vis-location-filter','vis-date-filter']
+    .map(id => document.getElementById(id));
+  const apply = () => {
+    const [search, type, status, gate, loc, date] = els;
+    renderTable(VM.search(search.value, {
+      type: type.value, status: status.value,
+      location: loc.value, gate: gate.value, date: date.value
+    }));
+  };
+  els.forEach(el => el.addEventListener('input', apply));
+}
+
+function clearFilters() {
+  ['vis-search','vis-type-filter','vis-status-filter','vis-gate-filter','vis-location-filter','vis-date-filter']
+    .forEach(id => { const el = document.getElementById(id); el.value = ''; });
+  renderTable(VM.getAll());
+}
+
+/* ── Actions ─────────────────────────────────── */
+function doCheckout(id) {
+  if (VM.checkOut(id)) {
+    showToast('Visitor checked out successfully', 'success');
+    VM.refreshOverstay();
+    renderStats();
+    renderTable(VM.getAll());
+  } else {
+    showToast('Could not check out visitor', 'error');
+  }
+}
+
+function promptBlacklist(id, name) {
+  pendingBlacklistId = id;
+  document.getElementById('bl-visitor-name').textContent = name;
+  document.getElementById('bl-reason').value = '';
+  openModal('blacklist-modal');
+}
+
+function confirmBlacklist() {
+  const reason = document.getElementById('bl-reason').value.trim();
+  if (!reason) { showToast('Please provide a reason', 'warning'); return; }
+  if (VM.blacklist(pendingBlacklistId, reason)) {
+    showToast('Visitor blacklisted', 'warning');
+    closeModal('blacklist-modal');
+    renderStats();
+    renderTable(VM.getAll());
+  }
+  pendingBlacklistId = null;
+}
+
+function doUnblacklist(id) {
+  if (confirm('Remove this visitor from the blacklist?')) {
+    VM.unblacklist(id);
+    showToast('Visitor removed from blacklist', 'success');
+    renderStats();
+    renderTable(VM.getAll());
+  }
+}
+
+/* ── Badge Modal ─────────────────────────────── */
+function openBadgeModal(id) {
+  const v = VM.getById(id);
+  if (!v) return;
+  document.getElementById('bm-avatar').innerHTML = visAvatar(v.name, v.visitorType, v.photo, 80);
+  document.getElementById('bm-name').textContent = v.name;
+  document.getElementById('bm-type').innerHTML   = visBadge(v.visitorType) + ' ' + visStatus(v.status);
+  document.getElementById('bm-passid').textContent = v.passId;
+  document.getElementById('bm-time').textContent   = 'Entry: ' + formatDateTime(v.entryTime);
+  const pattern = [1,0,1,1,0,1,0,1,0,1,0,0,1,0,1,0,1,1,1,0,0,1,1,0,0,0,1,1,0,0,1,1,
+                   1,0,0,1,1,0,0,1,0,1,1,0,0,1,0,1,1,0,1,0,1,1,0,0,0,1,0,1,0,0,1,1];
+  document.getElementById('bm-qr').innerHTML =
+    pattern.map(p => `<div class="qr-mock-cell" style="opacity:${p ? 1 : 0};"></div>`).join('');
+  openModal('badge-modal');
+  window._badgeVisitorId = id;
+}
+function closeBadgeModal() { closeModal('badge-modal'); }
+function printBadge() {
+  document.body.classList.add('printing-badge');
+  window.print();
+  setTimeout(() => document.body.classList.remove('printing-badge'), 500);
+}
+</script>
+</body>
+</html>

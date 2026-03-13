@@ -1,0 +1,17 @@
+[
+  {"id":"DEP-A1B2C","deptId":"DEP-001","name":"Security","head":"Arjun Sharma","staffCount":8,"description":"Property security, gate operations and access control","contactExtension":"101","status":"Active"},
+  {"id":"DEP-B2C3D","deptId":"DEP-002","name":"Housekeeping","head":"Meena Pillai","staffCount":12,"description":"Room cleaning, linen management and public area maintenance","contactExtension":"102","status":"Active"},
+  {"id":"DEP-C3D4E","deptId":"DEP-003","name":"Front Office","head":"Priya Nair","staffCount":6,"description":"Guest reception, check-in, check-out and concierge services","contactExtension":"103","status":"Active"},
+  {"id":"DEP-D4E5F","deptId":"DEP-004","name":"Maintenance","head":"Ramesh Yadav","staffCount":7,"description":"Property maintenance, repairs and technical infrastructure","contactExtension":"104","status":"Active"},
+  {"id":"DEP-E5F6G","deptId":"DEP-005","name":"Restaurant","head":"Suresh Kumar","staffCount":10,"description":"Saltt Restaurant – multi-cuisine dining and banquet services","contactExtension":"105","status":"Active"},
+  {"id":"DEP-F6G7H","deptId":"DEP-006","name":"Spa & Wellness","head":"Anita Desai","staffCount":5,"description":"Ayurvedic spa, massage therapy and wellness treatments","contactExtension":"106","status":"Active"},
+  {"id":"DEP-G7H8I","deptId":"DEP-007","name":"Events","head":"Kavya Menon","staffCount":8,"description":"Wedding coordination, corporate events and festival planning","contactExtension":"107","status":"Active"},
+  {"id":"DEP-H8I9J","deptId":"DEP-008","name":"Management","head":"Rajan Oleander","staffCount":3,"description":"Senior leadership, operations oversight and strategic planning","contactExtension":"100","status":"Active"},
+  {"id":"DEP-I9J0K","deptId":"DEP-009","name":"Finance","head":"Deepa Iyer","staffCount":3,"description":"Accounts, billing, payroll and financial reporting","contactExtension":"108","status":"Active"},
+  {"id":"DEP-J0K1L","deptId":"DEP-010","name":"HR & Training","head":"Sonal Mehta","staffCount":2,"description":"Recruitment, employee relations, training and compliance","contactExtension":"109","status":"Active"},
+  {"id":"DEP-K1L2M","deptId":"DEP-011","name":"IT & Systems","head":"Vikram Nanda","staffCount":2,"description":"Technology infrastructure, PMS, CCTV and network management","contactExtension":"110","status":"Active"},
+  {"id":"DEP-L2M3N","deptId":"DEP-012","name":"Landscaping","head":"Gopal Tiwari","staffCount":6,"description":"Garden maintenance, lawns, floral arrangements and outdoor spaces","contactExtension":"111","status":"Active"},
+  {"id":"DEP-M3N4O","deptId":"DEP-013","name":"Kitchen","head":"Chef Ravi Verma","staffCount":9,"description":"Food preparation, kitchen operations and quality control","contactExtension":"112","status":"Active"},
+  {"id":"DEP-N4O5P","deptId":"DEP-014","name":"Pool & Recreation","head":"Nikhil Rao","staffCount":4,"description":"Swimming pool operations, water sports and recreation activities","contactExtension":"113","status":"Active"},
+  {"id":"DEP-O5P6Q","deptId":"DEP-015","name":"Laundry","head":"Sunita Bhor","staffCount":3,"description":"Commercial laundry, linen processing and uniform care","contactExtension":"114","status":"Active"}
+]

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehicle Master – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>(function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();</script>
+</head>
+<body>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Masters / <span>Vehicle Master</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="page-content" id="page-content"></div>
+  </div>
+</div>
+<script src="../js/app.js"></script>
+<script src="../js/masters.js"></script>
+<script>
+new MasterPage({
+  key:          'sg360_vehicle_master',
+  dataFile:     '../data/vehicle-master.json',
+  activeModule: 'vehicle',
+  title:        'Vehicle Master',
+  subtitle:     'Fleet registry of all resort-owned and rental vehicles',
+  itemLabel:    'Vehicle',
+  idPrefix:     'VHC',
+  idField:      'vehicleId',
+  pageSize:     10,
+
+  stats: [
+    { label: 'Total Vehicles', color: 'green' },
+    { label: 'Available',      color: 'teal',   filterKey: 'status', filterValue: 'Available' },
+    { label: 'In Use',         color: 'orange', filterKey: 'status', filterValue: 'In Use' },
+    { label: 'Owned',          color: 'blue',   filterKey: 'vehicleType', filterValue: 'Owned' }
+  ],
+
+  columns: [
+    { key: 'vehicleId',      label: 'Vehicle ID',    type: 'id' },
+    { key: 'name',           label: 'Vehicle Name',  type: 'bold' },
+    { key: 'vehicleNumber',  label: 'Reg. Number',   type: 'mono' },
+    { key: 'vehicleType',    label: 'Ownership',     type: 'badge' },
+    { key: 'fuelType',       label: 'Fuel',          type: 'badge' },
+    { key: 'seatingCapacity',label: 'Seats',         type: 'number' }
+  ],
+
+  searchKeys: ['name', 'vehicleId', 'vehicleNumber', 'vehicleType', 'fuelType', 'driverName'],
+
+  filters: [
+    { field: 'vehicleType', label: 'Ownership', options: ['Owned', 'Rental'] },
+    { field: 'fuelType',    label: 'Fuel Type', options: ['Diesel', 'Petrol', 'CNG', 'Electric'] },
+    { field: 'status',      label: 'Status',    options: ['Available', 'In Use'] }
+  ],
+
+  fields: [
+    { name: 'name',           label: 'Vehicle Name',      type: 'text',   required: true,  placeholder: 'e.g. Toyota Innova Crysta' },
+    { name: 'vehicleNumber',  label: 'Registration No.',  type: 'text',   required: true,  placeholder: 'e.g. MH04-AB-1234' },
+    { name: 'vehicleType',    label: 'Ownership Type',    type: 'select', required: true,  options: ['Owned', 'Rental'] },
+    { name: 'fuelType',       label: 'Fuel Type',         type: 'select', required: true,  options: ['Diesel', 'Petrol', 'CNG', 'Electric'] },
+    { name: 'seatingCapacity',label: 'Seating Capacity',  type: 'number', required: false, placeholder: 'No. of seats' },
+    { name: 'driverName',     label: 'Assigned Driver',   type: 'text',   required: false, placeholder: 'Driver name' },
+    { name: 'driverContact',  label: 'Driver Contact',    type: 'tel',    required: false, placeholder: 'Driver mobile' },
+    { name: 'insuranceExpiry',label: 'Insurance Expiry',  type: 'date',   required: false },
+    { name: 'pucExpiry',      label: 'PUC Expiry',        type: 'date',   required: false },
+    { name: 'notes',          label: 'Notes',             type: 'textarea', required: false, full: true, placeholder: 'Additional notes...' }
+  ]
+}).init();
+</script>
+</body>
+</html>

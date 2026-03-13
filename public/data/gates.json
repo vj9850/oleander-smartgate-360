@@ -1,0 +1,6 @@
+[
+  {"id":"GT-A1B2C","gateId":"GT-001","name":"Main Gate","gateType":"Entry / Exit","location":"NH-48 Highway Frontage","description":"Primary guest and vehicle entry gate with security cabin","status":"Active"},
+  {"id":"GT-B2C3D","gateId":"GT-002","name":"Service Gate","gateType":"Entry / Exit","location":"East Side – Supply Road","description":"Dedicated gate for vendor deliveries and service vehicles","status":"Active"},
+  {"id":"GT-C3D4E","gateId":"GT-003","name":"Event Gate","gateType":"Entry Only","location":"South Wing – Event Lawn","description":"Separate entry for large event gatherings and wedding guests","status":"Active"},
+  {"id":"GT-D4E5F","gateId":"GT-004","name":"Staff Gate","gateType":"Entry / Exit","location":"West Side – Staff Quarters Road","description":"Reserved for staff and employee entry with biometric access","status":"Active"}
+]
