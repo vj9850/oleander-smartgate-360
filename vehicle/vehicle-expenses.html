@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehicle Expenses – SmartGate 360</title>
+  <link rel="icon" type="image/webp" href="../assets/icons/logo.webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){
+      const s = sessionStorage.getItem('sg360_session');
+      if (!s) window.location.replace('../index.html');
+    })();
+  </script>
+  <style>
+    .exp-filter-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .exp-filter-bar .search-box { flex:1; min-width:180px; }
+    .exp-type-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .exp-fuel       { background:#dcfce7; color:#166534; }
+    .exp-toll       { background:#dbeafe; color:#1e40af; }
+    .exp-parking    { background:#ffedd5; color:#92400e; }
+    .exp-service    { background:#ede9fe; color:#5b21b6; }
+    .exp-repair     { background:#fee2e2; color:#991b1b; }
+    .exp-insurance  { background:#ccfbf1; color:#134e4a; }
+    .exp-cleaning   { background:#e0f2fe; color:#075985; }
+    .exp-other      { background:#f1f5f9; color:#475569; }
+    .modal-overlay  { display:none; }
+    .modal-overlay.show { display:flex; }
+    .receipt-capture-wrap {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .receipt-preview-box {
+      position: relative;
+      width: 160px;
+      height: 120px;
+      border-radius: 6px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .receipt-preview-box video,
+    .receipt-preview-box canvas,
+    .receipt-placeholder {
+      width: 160px;
+      height: 120px;
+      border-radius: 6px;
+    }
+    .receipt-placeholder {
+      background: var(--primary-light);
+      border: 2px dashed var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      gap: 4px;
+    }
+    .receipt-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    @media (max-width: 700px) {
+      .exp-filter-bar { flex-direction:column; }
+      .exp-filter-bar .search-box,
+      .exp-filter-bar select,
+      .exp-filter-bar input,
+      .exp-filter-bar .btn { width:100% !important; }
+      #exp-date-from,
+      #exp-date-to {
+        width: 100% !important;
+      }
+      .receipt-capture-wrap {
+        flex-direction: column;
+      }
+      .receipt-preview-box,
+      .receipt-preview-box video,
+      .receipt-preview-box canvas,
+      .receipt-placeholder,
+      .receipt-actions {
+        width: 100%;
+        max-width: 100%;
+      }
+      .receipt-preview-box {
+        height: auto;
+        aspect-ratio: 4 / 3;
+      }
+      .receipt-preview-box video,
+      .receipt-preview-box canvas,
+      .receipt-placeholder {
+        height: 100%;
+      }
+      .receipt-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Operations / Vehicle Management / <span>Expenses</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Vehicle Expenses</div>
+          <div class="page-subtitle">Track fuel, toll, service and all fleet expenses</div>
+        </div>
+        <button class="btn btn-primary" onclick="openExpenseModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Expense
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="exp-stats"></div>
+
+      <!-- Table Card -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Expense Records</h2>
+          <span id="exp-count" style="font-size:12px;color:var(--text-muted);"></span>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="exp-filter-bar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="exp-search" placeholder="Search vehicle, description…" />
+          </div>
+          <select class="filter-select" id="exp-vehicle-filter">
+            <option value="">All Vehicles</option>
+          </select>
+          <select class="filter-select" id="exp-type-filter">
+            <option value="">All Types</option>
+            <option>Fuel</option>
+            <option>Toll</option>
+            <option>Parking</option>
+            <option>Service</option>
+            <option>Repair</option>
+            <option>Insurance</option>
+            <option>Cleaning</option>
+            <option>Other</option>
+          </select>
+          <input type="date" class="filter-select" id="exp-date-from" title="From date" style="width:130px;" />
+          <input type="date" class="filter-select" id="exp-date-to"   title="To date"   style="width:130px;" />
+          <button class="btn btn-ghost btn-sm" id="exp-clear-btn">Clear</button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+          <table id="expenses-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Vehicle</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th class="tbl-hide-mobile">Odometer</th>
+                <th class="tbl-hide-tablet">Description</th>
+                <th class="tbl-hide-tablet">Added By</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="exp-body">
+              <tr><td colspan="8" class="table-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<!-- Add Expense Modal -->
+<div class="modal-overlay" id="expense-modal">
+  <div class="modal" style="max-width:520px;width:100%;">
+    <h3>Add Vehicle Expense</h3>
+    <div class="form-grid" style="margin-top:16px;">
+
+      <div class="form-group full-width">
+        <label class="form-label">Vehicle *</label>
+        <select class="form-select" id="exp-vehicle" data-required>
+          <option value="">Select vehicle…</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Expense Type *</label>
+        <select class="form-select" id="exp-type">
+          <option>Fuel</option>
+          <option>Toll</option>
+          <option>Parking</option>
+          <option>Service</option>
+          <option>Repair</option>
+          <option>Insurance</option>
+          <option>Cleaning</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount (&#8377;) *</label>
+        <input type="number" id="exp-amount" class="form-input" placeholder="e.g. 2500" min="0" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input type="date" id="exp-date" class="form-input" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Odometer (km)</label>
+        <input type="number" id="exp-odometer" class="form-input" placeholder="e.g. 24500" min="0" />
+      </div>
+
+      <div class="form-group full-width">
+        <label class="form-label">Description</label>
+        <input type="text" id="exp-desc" class="form-input" placeholder="e.g. Full tank diesel at HPCL" />
+      </div>
+
+      <!-- Receipt Photo -->
+      <div class="form-group full-width">
+        <label class="form-label">Receipt Photo (optional)</label>
+        <div class="receipt-capture-wrap">
+          <div class="receipt-preview-box">
+            <video id="receipt-cam" autoplay playsinline style="display:none;object-fit:cover;"></video>
+            <canvas id="receipt-canvas" style="display:none;"></canvas>
+            <div id="receipt-placeholder" class="receipt-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:24px;height:24px;opacity:0.5;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              No photo
+            </div>
+          </div>
+          <div class="receipt-actions">
+            <button class="btn btn-sm btn-ghost" id="receipt-cam-btn" onclick="openReceiptCam()">&#128247; Camera</button>
+            <button class="btn btn-sm btn-primary" id="receipt-capture-btn" onclick="captureReceipt()" style="display:none;">&#9889; Capture</button>
+            <button class="btn btn-sm btn-outline" id="receipt-retake-btn" onclick="retakeReceipt()" style="display:none;">&#8635; Retake</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeExpenseModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveExpense()">Save Expense</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+'use strict';
+
+let allExpenses = [];
+let allVehicles = [];
+let receiptStream = null;
+let receiptDataUrl = null;
+
+(async function init() {
+  renderAppSidebar('vehicle-expenses');
+  requireAuth('../index.html');
+  initAuthUI('../index.html');
+  initMobileMenu();
+  renderTopbarDate();
+
+  await seedIfEmpty(KEYS.vehicles, '../vehicle/vehicle-data.json');
+  await seedIfEmpty(KEYS.expenses, '../vehicle/expense-data.json');
+
+  allVehicles = getData(KEYS.vehicles);
+  allExpenses = getData(KEYS.expenses);
+
+  populateVehicleFilters();
+  checkUrlParam();
+  renderStats();
+  renderTable(allExpenses);
+  initFilters();
+})();
+
+/* ── URL param pre-select for modal ── */
+function checkUrlParam() {
+  const params = new URLSearchParams(window.location.search);
+  const vId = params.get('vehicle');
+  if (vId) {
+    openExpenseModal();
+    const sel = document.getElementById('exp-vehicle');
+    if (sel) sel.value = vId;
+  }
+}
+
+/* ── Populate vehicle dropdowns ── */
+function populateVehicleFilters() {
+  // Filter dropdown
+  const filterSel = document.getElementById('exp-vehicle-filter');
+  filterSel.innerHTML = '<option value="">All Vehicles</option>';
+  allVehicles.forEach(v => {
+    filterSel.innerHTML += `<option value="${v.id}">${v.name} (${v.vehicleNumber})</option>`;
+  });
+
+  // Modal dropdown
+  const modalSel = document.getElementById('exp-vehicle');
+  modalSel.innerHTML = '<option value="">Select vehicle…</option>';
+  allVehicles.forEach(v => {
+    modalSel.innerHTML += `<option value="${v.id}">${v.name} (${v.vehicleNumber})</option>`;
+  });
+}
+
+/* ── Stats ── */
+function renderStats() {
+  const total      = allExpenses.reduce((a, e) => a + (e.amount || 0), 0);
+  const now        = new Date();
+  const thisMonth  = allExpenses
+    .filter(e => { const d = new Date(e.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); })
+    .reduce((a, e) => a + (e.amount || 0), 0);
+  const fuel       = allExpenses.filter(e => e.expenseType === 'Fuel').reduce((a,e) => a + (e.amount||0), 0);
+  const tollPark   = allExpenses.filter(e => ['Toll','Parking'].includes(e.expenseType)).reduce((a,e) => a + (e.amount||0), 0);
+  const serviceRep = allExpenses.filter(e => ['Service','Repair'].includes(e.expenseType)).reduce((a,e) => a + (e.amount||0), 0);
+
+  document.getElementById('exp-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="stat-body"><div class="stat-value">&#8377;${total.toLocaleString('en-IN')}</div><div class="stat-label">Total Expenses</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="stat-body"><div class="stat-value">&#8377;${thisMonth.toLocaleString('en-IN')}</div><div class="stat-label">This Month</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>
+      <div class="stat-body"><div class="stat-value">&#8377;${fuel.toLocaleString('en-IN')}</div><div class="stat-label">Fuel Expenses</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+      <div class="stat-body"><div class="stat-value">&#8377;${tollPark.toLocaleString('en-IN')}</div><div class="stat-label">Toll &amp; Parking</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+      <div class="stat-body"><div class="stat-value">&#8377;${serviceRep.toLocaleString('en-IN')}</div><div class="stat-label">Service &amp; Repairs</div></div>
+    </div>
+  `;
+}
+
+/* ── Type badge helper ── */
+function expTypeBadge(type) {
+  const map = {
+    'Fuel':      'exp-fuel',
+    'Toll':      'exp-toll',
+    'Parking':   'exp-parking',
+    'Service':   'exp-service',
+    'Repair':    'exp-repair',
+    'Insurance': 'exp-insurance',
+    'Cleaning':  'exp-cleaning',
+    'Other':     'exp-other'
+  };
+  const cls = map[type] || 'exp-other';
+  return `<span class="exp-type-badge ${cls}">${type}</span>`;
+}
+
+/* ── Render Table ── */
+function renderTable(data) {
+  const body = document.getElementById('exp-body');
+  document.getElementById('exp-count').textContent = `${data.length} record${data.length !== 1 ? 's' : ''}`;
+
+  if (!data.length) {
+    body.innerHTML = '<tr><td colspan="8" class="table-empty">No expense records found.</td></tr>';
+    return;
+  }
+
+  const sorted = [...data].sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  body.innerHTML = sorted.map(e => `
+    <tr>
+      <td data-label="Date" style="font-size:12px;white-space:nowrap;">${formatDate(e.date)}</td>
+      <td data-label="Vehicle">
+        <div style="font-weight:600;font-size:13px;">${e.vehicleName || '—'}</div>
+        <div style="font-size:11px;color:var(--text-muted);font-family:monospace;">${e.vehicleNumber || ''}</div>
+      </td>
+      <td data-label="Type">${expTypeBadge(e.expenseType)}</td>
+      <td data-label="Amount" style="font-weight:700;font-size:13px;color:var(--primary);">&#8377;${(e.amount||0).toLocaleString('en-IN')}</td>
+      <td data-label="Odometer" class="tbl-hide-mobile" style="font-size:12px;">${e.odometer ? e.odometer.toLocaleString('en-IN') + ' km' : '—'}</td>
+      <td data-label="Description" class="tbl-hide-tablet" style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.description || '—'}</td>
+      <td data-label="Added By" class="tbl-hide-tablet" style="font-size:12px;">${e.addedBy || '—'}</td>
+      <td data-label="Actions">
+        <button class="btn btn-sm btn-ghost" style="font-size:11px;padding:4px 8px;" onclick="deleteExpense('${e.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ── Filters ── */
+function initFilters() {
+  const search     = document.getElementById('exp-search');
+  const vehicleFil = document.getElementById('exp-vehicle-filter');
+  const typeFil    = document.getElementById('exp-type-filter');
+  const dateFrom   = document.getElementById('exp-date-from');
+  const dateTo     = document.getElementById('exp-date-to');
+  const clearBtn   = document.getElementById('exp-clear-btn');
+
+  function applyFilters() {
+    const q    = search.value.toLowerCase();
+    const vid  = vehicleFil.value;
+    const type = typeFil.value;
+    const from = dateFrom.value ? new Date(dateFrom.value) : null;
+    const to   = dateTo.value   ? new Date(dateTo.value + 'T23:59:59') : null;
+
+    const filtered = allExpenses.filter(e => {
+      const matchQ   = !q    || [e.vehicleName, e.vehicleNumber, e.description, e.expenseType].join(' ').toLowerCase().includes(q);
+      const matchV   = !vid  || e.vehicleId === vid;
+      const matchT   = !type || e.expenseType === type;
+      const eDate    = new Date(e.date);
+      const matchDF  = !from || eDate >= from;
+      const matchDT  = !to   || eDate <= to;
+      return matchQ && matchV && matchT && matchDF && matchDT;
+    });
+    renderTable(filtered);
+  }
+
+  [search, vehicleFil, typeFil, dateFrom, dateTo].forEach(el => el.addEventListener('input', applyFilters));
+
+  clearBtn.addEventListener('click', () => {
+    search.value = ''; vehicleFil.value = ''; typeFil.value = '';
+    dateFrom.value = ''; dateTo.value = '';
+    renderTable(allExpenses);
+  });
+}
+
+/* ── Modal ── */
+function openExpenseModal() {
+  // Set today's date default
+  document.getElementById('exp-date').value = new Date().toISOString().slice(0, 10);
+  receiptDataUrl = null;
+  resetReceiptCam();
+  openModal('expense-modal');
+}
+
+function closeExpenseModal() {
+  if (receiptStream) { receiptStream.getTracks().forEach(t => t.stop()); receiptStream = null; }
+  closeModal('expense-modal');
+}
+
+/* ── Receipt Camera ── */
+async function openReceiptCam() {
+  if (receiptStream) { receiptStream.getTracks().forEach(t => t.stop()); receiptStream = null; }
+  try {
+    receiptStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    const vid = document.getElementById('receipt-cam');
+    vid.srcObject = receiptStream;
+    vid.style.display = 'block';
+    document.getElementById('receipt-placeholder').style.display = 'none';
+    document.getElementById('receipt-canvas').style.display       = 'none';
+    document.getElementById('receipt-capture-btn').style.display  = '';
+    document.getElementById('receipt-retake-btn').style.display   = 'none';
+  } catch(e) {
+    showToast('Camera not available: ' + e.message, 'error');
+  }
+}
+
+function captureReceipt() {
+  const vid    = document.getElementById('receipt-cam');
+  const canvas = document.getElementById('receipt-canvas');
+  canvas.width  = vid.videoWidth  || 320;
+  canvas.height = vid.videoHeight || 240;
+  canvas.getContext('2d').drawImage(vid, 0, 0);
+  vid.style.display    = 'none';
+  canvas.style.display = 'block';
+  if (receiptStream) { receiptStream.getTracks().forEach(t => t.stop()); receiptStream = null; }
+  receiptDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+  document.getElementById('receipt-capture-btn').style.display = 'none';
+  document.getElementById('receipt-retake-btn').style.display  = '';
+}
+
+function retakeReceipt() {
+  receiptDataUrl = null;
+  resetReceiptCam();
+  openReceiptCam();
+}
+
+function resetReceiptCam() {
+  document.getElementById('receipt-cam').style.display          = 'none';
+  document.getElementById('receipt-canvas').style.display       = 'none';
+  document.getElementById('receipt-placeholder').style.display  = '';
+  document.getElementById('receipt-capture-btn').style.display  = 'none';
+  document.getElementById('receipt-retake-btn').style.display   = 'none';
+}
+
+/* ── Save Expense ── */
+function saveExpense() {
+  const vehicleId  = document.getElementById('exp-vehicle').value;
+  const expType    = document.getElementById('exp-type').value;
+  const amount     = parseFloat(document.getElementById('exp-amount').value);
+  const date       = document.getElementById('exp-date').value;
+  const odometer   = parseInt(document.getElementById('exp-odometer').value, 10);
+  const desc       = document.getElementById('exp-desc').value.trim();
+
+  if (!vehicleId)     { showToast('Please select a vehicle.', 'error');  return; }
+  if (isNaN(amount) || amount <= 0) { showToast('Enter a valid amount.', 'error'); return; }
+  if (!date)          { showToast('Date is required.', 'error');          return; }
+
+  const vehicle = allVehicles.find(v => v.id === vehicleId);
+  const session = JSON.parse(sessionStorage.getItem('sg360_session') || '{}');
+
+  const newExp = {
+    id:          'EXP' + Date.now().toString(36).toUpperCase(),
+    vehicleId,
+    vehicleName:   vehicle ? vehicle.name : vehicleId,
+    vehicleNumber: vehicle ? vehicle.vehicleNumber : '',
+    expenseType:   expType,
+    amount,
+    date,
+    odometer:      isNaN(odometer) ? null : odometer,
+    description:   desc,
+    receipt:       receiptDataUrl || null,
+    addedBy:       session.username || 'admin',
+    createdAt:     new Date().toISOString()
+  };
+
+  allExpenses.push(newExp);
+  saveData(KEYS.expenses, allExpenses);
+
+  // Reset modal fields
+  document.getElementById('exp-vehicle').value  = '';
+  document.getElementById('exp-amount').value   = '';
+  document.getElementById('exp-odometer').value = '';
+  document.getElementById('exp-desc').value     = '';
+  receiptDataUrl = null;
+  resetReceiptCam();
+
+  closeExpenseModal();
+  renderStats();
+  renderTable(allExpenses);
+  showToast(`Expense of ₹${amount.toLocaleString('en-IN')} saved!`);
+}
+
+/* ── Delete Expense ── */
+function deleteExpense(id) {
+  if (!confirm('Delete this expense record?')) return;
+  allExpenses = allExpenses.filter(e => e.id !== id);
+  saveData(KEYS.expenses, allExpenses);
+  renderStats();
+  renderTable(allExpenses);
+  showToast('Expense deleted.', 'warning');
+}
+</script>
+</body>
+</html>

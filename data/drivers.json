@@ -1,0 +1,7 @@
+[
+  {"id":"DRV-A1B2C","driverId":"DRV-001","name":"Suresh Kamble","mobile":"9876541001","licenseNumber":"MH04-20150056789","licenseExpiry":"2027-08-14","assignedVehicle":"MH04-AB-1234 (Innova Crysta)","status":"Active"},
+  {"id":"DRV-B2C3D","driverId":"DRV-002","name":"Balaji Rao","mobile":"9876541002","licenseNumber":"MH04-20120034567","licenseExpiry":"2026-03-22","assignedVehicle":"MH04-CD-5678 (Force Traveller)","status":"Active"},
+  {"id":"DRV-C3D4E","driverId":"DRV-003","name":"Prakash Shinde","mobile":"9876541003","licenseNumber":"MH04-20180078901","licenseExpiry":"2028-11-05","assignedVehicle":"MH04-EF-9012 (Tata Safari)","status":"Active"},
+  {"id":"DRV-D4E5F","driverId":"DRV-004","name":"Ramesh More","mobile":"9876541004","licenseNumber":"MH04-20140045678","licenseExpiry":"2025-06-30","assignedVehicle":"Unassigned","status":"Inactive"},
+  {"id":"DRV-E5F6G","driverId":"DRV-005","name":"Nilesh Pawar","mobile":"9876541006","licenseNumber":"MH04-20190089012","licenseExpiry":"2029-01-18","assignedVehicle":"MH04-KL-2345 (Maruti Ertiga)","status":"Active"}
+]

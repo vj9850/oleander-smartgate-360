@@ -1,0 +1,8 @@
+[
+  {"id":"VT-A1B2C","typeId":"VT-001","name":"Guest","description":"Resort guests with confirmed bookings or day visits","accessLevel":"Full Property","status":"Active"},
+  {"id":"VT-B2C3D","typeId":"VT-002","name":"Vendor","description":"Registered vendors and service providers visiting for deliveries or services","accessLevel":"Service Areas Only","status":"Active"},
+  {"id":"VT-C3D4E","typeId":"VT-003","name":"Staff","description":"Property employees reporting for duty","accessLevel":"Full Property","status":"Active"},
+  {"id":"VT-D4E5F","typeId":"VT-004","name":"Delivery","description":"One-time delivery personnel for parcels and goods","accessLevel":"Reception & Service Gate","status":"Active"},
+  {"id":"VT-E5F6G","typeId":"VT-005","name":"Event Guest","description":"Visitors attending specific events like weddings or corporate meets","accessLevel":"Event Venue Only","status":"Active"},
+  {"id":"VT-F6G7H","typeId":"VT-006","name":"Maintenance","description":"External maintenance contractors on-site for repair work","accessLevel":"Maintenance Areas","status":"Active"}
+]

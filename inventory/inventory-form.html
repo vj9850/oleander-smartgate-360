@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Inventory Item – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){
+      const s = sessionStorage.getItem('sg360_session');
+      if (!s) window.location.replace('../index.html');
+    })();
+  </script>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Inventory Management / <span>Add Item</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <a href="inventory-list.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Inventory
+      </a>
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Add Inventory Item</div>
+          <div class="page-subtitle">Register a new supply item and set minimum stock levels</div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-card-header">
+          <div class="header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div>
+            <h2>Item Details</h2>
+            <p>Fields marked <span style="color:#e74c3c">*</span> are required</p>
+          </div>
+        </div>
+
+        <form class="form-body" id="inventory-form" novalidate>
+          <div class="form-grid">
+
+            <div class="form-group full-width">
+              <label class="form-label">Item Name <span class="required">*</span></label>
+              <input type="text" name="name" class="form-input" placeholder="e.g. Bath Towels, Shampoo 200ml…" data-required />
+              <span class="error-msg" data-error="name"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Category <span class="required">*</span></label>
+              <select name="category" class="form-select" data-required>
+                <option value="">Select Category</option>
+                <option>Housekeeping</option>
+                <option>Room Service</option>
+                <option>Spa</option>
+                <option>Restaurant</option>
+                <option>Maintenance</option>
+              </select>
+              <span class="error-msg" data-error="category"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Unit <span class="required">*</span></label>
+              <select name="unit" class="form-select" data-required>
+                <option value="">Select Unit</option>
+                <option>pcs</option>
+                <option>box</option>
+                <option>bottle</option>
+                <option>kg</option>
+                <option>litre</option>
+              </select>
+              <span class="error-msg" data-error="unit"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Opening Stock Quantity <span class="required">*</span></label>
+              <input type="number" name="quantity" class="form-input" placeholder="e.g. 100" min="0" data-required />
+              <span class="error-msg" data-error="quantity"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Minimum Stock Level <span class="required">*</span></label>
+              <input type="number" name="minStock" class="form-input" placeholder="Alert below this level" min="1" data-required />
+              <span class="error-msg" data-error="minStock"></span>
+            </div>
+
+          </div>
+
+          <!-- Live preview -->
+          <div id="stock-preview" style="display:none;margin-top:18px;padding:14px;background:var(--primary-light);border-radius:8px;border:1px solid var(--border);">
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Stock Preview</div>
+            <div id="stock-preview-bar"></div>
+          </div>
+        </form>
+
+        <div class="form-footer">
+          <button class="btn btn-primary" id="submit-inv-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Add Item
+          </button>
+          <button class="btn btn-ghost" id="reset-inv-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Reset
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(async function() {
+  renderAppSidebar('inventory-form');
+  requireAuth('../index.html');
+  initAuthUI('../index.html');
+  initMobileMenu();
+  await seedIfEmpty(KEYS.inventory, '../inventory/inventory-data.json');
+  renderTopbarDate();
+
+  // Live stock preview
+  const qtyInput = document.querySelector('[name="quantity"]');
+  const minInput = document.querySelector('[name="minStock"]');
+
+  function updatePreview() {
+    const qty = parseInt(qtyInput.value, 10);
+    const min = parseInt(minInput.value, 10);
+    if (!isNaN(qty) && !isNaN(min) && qty >= 0 && min > 0) {
+      const preview = document.getElementById('stock-preview');
+      const bar = document.getElementById('stock-preview-bar');
+      preview.style.display = 'block';
+      bar.innerHTML = stockBar(qty, min) + `<span style="margin-left:8px;font-size:12px;color:${qty < min ? '#e74c3c' : 'var(--primary)'};">${qty < min ? 'Below minimum – Low Stock Alert will trigger' : 'Stock level is sufficient'}</span>`;
+    }
+  }
+
+  [qtyInput, minInput].forEach(el => el && el.addEventListener('input', updatePreview));
+
+  document.getElementById('submit-inv-btn').addEventListener('click', () => {
+    clearFormErrors('inventory-form');
+    if (!validateForm('inventory-form')) {
+      showToast('Please fill in all required fields', 'error');
+      return;
+    }
+
+    const form = document.getElementById('inventory-form');
+    const fd   = new FormData(form);
+    const id   = 'INV' + Date.now().toString(36).toUpperCase().slice(-6);
+
+    const item = {
+      id,
+      name:        fd.get('name').trim(),
+      category:    fd.get('category'),
+      quantity:    parseInt(fd.get('quantity'), 10) || 0,
+      minStock:    parseInt(fd.get('minStock'), 10) || 1,
+      unit:        fd.get('unit'),
+      lastUpdated: new Date().toISOString().slice(0, 10)
+    };
+
+    const inventory = getData(KEYS.inventory);
+    inventory.push(item);
+    saveData(KEYS.inventory, inventory);
+
+    showToast('Inventory item added successfully!');
+    setTimeout(() => window.location.href = 'inventory-list.html', 1200);
+  });
+
+  document.getElementById('reset-inv-btn').addEventListener('click', () => {
+    document.getElementById('inventory-form').reset();
+    clearFormErrors('inventory-form');
+    document.getElementById('stock-preview').style.display = 'none';
+  });
+})();
+</script>
+</body>
+</html>

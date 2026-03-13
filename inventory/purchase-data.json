@@ -1,0 +1,74 @@
+[
+  {
+    "id": "GRN2603001",
+    "date": "2026-03-10",
+    "vendor": "Sunrise Linen Supplies",
+    "invoiceNo": "SLS-INV-1042",
+    "items": [
+      { "itemId": "INV001", "itemName": "Bath Towels", "qty": 50, "unit": "pcs", "unitPrice": 280, "total": 14000 },
+      { "itemId": "INV004", "itemName": "Bedsheets (King Size)", "qty": 30, "unit": "pcs", "unitPrice": 520, "total": 15600 }
+    ],
+    "totalAmount": 29600,
+    "status": "Received",
+    "receivedBy": "Ramesh Kumar",
+    "notes": "Regular monthly linen procurement"
+  },
+  {
+    "id": "GRN2603002",
+    "date": "2026-03-11",
+    "vendor": "CleanPro Distributors",
+    "invoiceNo": "CP-5567",
+    "items": [
+      { "itemId": "INV002", "itemName": "Hand Soap (Bar)", "qty": 200, "unit": "pcs", "unitPrice": 22, "total": 4400 },
+      { "itemId": "INV003", "itemName": "Shampoo (200ml)", "qty": 120, "unit": "bottle", "unitPrice": 65, "total": 7800 },
+      { "itemId": "INV011", "itemName": "Toilet Paper Roll", "qty": 300, "unit": "pcs", "unitPrice": 18, "total": 5400 }
+    ],
+    "totalAmount": 17600,
+    "status": "Received",
+    "receivedBy": "Ramesh Kumar",
+    "notes": "Urgent order – weekend event stock-up"
+  },
+  {
+    "id": "GRN2603003",
+    "date": "2026-03-12",
+    "vendor": "Agro Fresh Suppliers",
+    "invoiceNo": "AFS-891",
+    "items": [
+      { "itemId": "INV008", "itemName": "Olive Oil (1L)", "qty": 24, "unit": "bottle", "unitPrice": 350, "total": 8400 },
+      { "itemId": "INV009", "itemName": "Coffee Pods", "qty": 500, "unit": "pcs", "unitPrice": 18, "total": 9000 },
+      { "itemId": "INV012", "itemName": "Mineral Water Bottles (1L)", "qty": 200, "unit": "pcs", "unitPrice": 20, "total": 4000 }
+    ],
+    "totalAmount": 21400,
+    "status": "Received",
+    "receivedBy": "Chef Ganesh Rao",
+    "notes": "F&B restocking for wedding season"
+  },
+  {
+    "id": "GRN2603004",
+    "date": "2026-03-12",
+    "vendor": "Aroma Essence Pvt Ltd",
+    "invoiceNo": "AE-330",
+    "items": [
+      { "itemId": "INV006", "itemName": "Aromatherapy Oil (Lavender)", "qty": 30, "unit": "bottle", "unitPrice": 480, "total": 14400 },
+      { "itemId": "INV007", "itemName": "Massage Candles", "qty": 60, "unit": "pcs", "unitPrice": 120, "total": 7200 }
+    ],
+    "totalAmount": 21600,
+    "status": "Received",
+    "receivedBy": "Anita Singh",
+    "notes": "Spa month-end replenishment"
+  },
+  {
+    "id": "GRN2603005",
+    "date": "2026-03-13",
+    "vendor": "TechMart Hardware",
+    "invoiceNo": "TM-7891",
+    "items": [
+      { "itemId": "INV010", "itemName": "Cleaning Liquid (5L)", "qty": 20, "unit": "box", "unitPrice": 420, "total": 8400 },
+      { "itemId": "INV005", "itemName": "Pillow Covers", "qty": 80, "unit": "pcs", "unitPrice": 95, "total": 7600 }
+    ],
+    "totalAmount": 16000,
+    "status": "Pending",
+    "receivedBy": "",
+    "notes": "Awaiting delivery – expected today"
+  }
+]

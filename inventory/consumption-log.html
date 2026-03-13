@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consumption Log – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>(function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();</script>
+  <style>
+    .dept-pill { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+  </style>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Inventory / <span>Consumption Log</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Material Consumption Log</div>
+          <div class="page-subtitle">Track daily material usage per department — deducted directly from inventory</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('con-modal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Log Consumption
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:20px;" id="con-stats"></div>
+
+      <!-- Table -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Consumption Records</h2>
+          <span id="con-count" style="font-size:13px;color:var(--text-muted);"></span>
+        </div>
+        <div class="table-controls">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="con-search" placeholder="Search item, department, purpose…" />
+          </div>
+          <select class="filter-select" id="con-dept-filter">
+            <option value="">All Departments</option>
+            <option>Housekeeping</option>
+            <option>Restaurant</option>
+            <option>Spa & Wellness</option>
+            <option>Maintenance</option>
+            <option>Room Service</option>
+            <option>Events</option>
+          </select>
+          <input type="date" class="filter-select" id="con-date-filter" style="padding:8px 10px;" title="Filter by date" />
+        </div>
+        <div class="table-wrapper">
+          <table id="con-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Department</th>
+                <th>Item</th>
+                <th>Qty Consumed</th>
+                <th>Purpose</th>
+                <th>Recorded By</th>
+              </tr>
+            </thead>
+            <tbody id="con-body">
+              <tr><td colspan="7" class="table-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOG CONSUMPTION MODAL -->
+<div class="modal-overlay" id="con-modal">
+  <div class="modal" style="max-width:560px;">
+    <h3>Log Material Consumption</h3>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="form-group">
+        <label class="form-label">Department <span style="color:red">*</span></label>
+        <select class="form-input" id="con-dept">
+          <option value="">— Select Department —</option>
+          <option>Housekeeping</option>
+          <option>Restaurant</option>
+          <option>Spa & Wellness</option>
+          <option>Maintenance</option>
+          <option>Room Service</option>
+          <option>Events</option>
+          <option>Front Office</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date <span style="color:red">*</span></label>
+        <input type="date" class="form-input" id="con-date" />
+      </div>
+      <div class="form-group" style="grid-column:1/-1;">
+        <label class="form-label">Item <span style="color:red">*</span></label>
+        <select class="form-input" id="con-item" onchange="updateConAvail()">
+          <option value="">— Select Item —</option>
+        </select>
+        <div style="font-size:12px;color:#64748b;margin-top:4px;" id="con-avail"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quantity Consumed <span style="color:red">*</span></label>
+        <input type="number" class="form-input" id="con-qty" min="1" value="1" placeholder="Enter quantity" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Recorded By</label>
+        <input type="text" class="form-input" id="con-by" placeholder="Staff name" />
+      </div>
+      <div class="form-group" style="grid-column:1/-1;">
+        <label class="form-label">Purpose <span style="color:red">*</span></label>
+        <input type="text" class="form-input" id="con-purpose" placeholder="e.g. Morning Breakfast Service, Couple Spa Session…" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('con-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCon()">Record Consumption</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+const KEY_CON = 'sg360_inv_consumption';
+let allCon  = [];
+let invItems = [];
+const today = new Date().toISOString().slice(0, 10);
+const thisMonth = today.slice(0, 7);
+
+const DEPT_COLORS = {
+  'Housekeeping': { bg: '#dcfce7', color: '#16a34a' },
+  'Restaurant':   { bg: '#fef3c7', color: '#b45309' },
+  'Spa & Wellness':{ bg: '#f5f0ff', color: '#7c3aed' },
+  'Maintenance':  { bg: '#fee2e2', color: '#dc2626' },
+  'Room Service': { bg: '#e0f2fe', color: '#0284c7' },
+  'Events':       { bg: '#fce7f3', color: '#be185d' }
+};
+
+function deptPill(dept) {
+  const c = DEPT_COLORS[dept] || { bg: '#f1f5f9', color: '#64748b' };
+  return `<span class="dept-pill" style="background:${c.bg};color:${c.color};">${dept}</span>`;
+}
+
+(async function init() {
+  renderAppSidebar('consumption-log');
+  requireAuth('../index.html');
+  initAuthUI('../index.html');
+  initMobileMenu();
+  renderTopbarDate();
+  document.getElementById('con-date').value = today;
+
+  await Promise.all([
+    seedIfEmpty(KEY_CON, '../inventory/consumption-data.json'),
+    seedIfEmpty(KEYS.inventory, '../inventory/inventory-data.json')
+  ]);
+
+  allCon   = getData(KEY_CON);
+  invItems = getData(KEYS.inventory);
+
+  populateItemSelect();
+  renderStats();
+  renderTable(allCon);
+  initFilters();
+})();
+
+function populateItemSelect() {
+  const sel = document.getElementById('con-item');
+  sel.innerHTML = '<option value="">— Select Item —</option>' +
+    invItems.map(i => `<option value="${i.id}" data-stock="${i.quantity}" data-unit="${i.unit}">${i.name} (${i.quantity} ${i.unit})</option>`).join('');
+}
+
+function updateConAvail() {
+  const sel = document.getElementById('con-item');
+  const opt = sel.options[sel.selectedIndex];
+  const avail = document.getElementById('con-avail');
+  if (opt && opt.value) {
+    avail.textContent = `Available in store: ${opt.dataset.stock} ${opt.dataset.unit}`;
+  } else {
+    avail.textContent = '';
+  }
+}
+
+function renderStats() {
+  const todayC  = allCon.filter(c => c.date === today);
+  const monthC  = allCon.filter(c => c.date.startsWith(thisMonth));
+  const todayQty = todayC.reduce((s,c) => s+c.qty, 0);
+  const monthQty = monthC.reduce((s,c) => s+c.qty, 0);
+  const depts   = new Set(monthC.map(c => c.department)).size;
+  const itemsC  = new Set(monthC.map(c => c.itemId)).size;
+
+  document.getElementById('con-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-body"><div class="stat-value">${allCon.length}</div><div class="stat-label">Total Entries</div></div></div>
+    <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-body"><div class="stat-value">${todayQty}</div><div class="stat-label">Units Today</div></div></div>
+    <div class="stat-card"><div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><div class="stat-body"><div class="stat-value">${monthQty}</div><div class="stat-label">Units This Month</div></div></div>
+    <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div><div class="stat-body"><div class="stat-value">${depts}</div><div class="stat-label">Depts This Month</div></div></div>
+    <div class="stat-card"><div class="stat-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="stat-body"><div class="stat-value">${itemsC}</div><div class="stat-label">Items Consumed</div></div></div>
+  `;
+}
+
+function renderTable(data) {
+  const body = document.getElementById('con-body');
+  document.getElementById('con-count').textContent = `${data.length} record${data.length !== 1 ? 's' : ''}`;
+  if (!data.length) { body.innerHTML = '<tr><td colspan="7" class="table-empty">No consumption records found.</td></tr>'; return; }
+  body.innerHTML = [...data].sort((a,b) => b.date.localeCompare(a.date)).map(c => `
+    <tr>
+      <td><strong style="color:var(--primary);font-size:12px;">${c.id}</strong></td>
+      <td>${formatDate(c.date)}</td>
+      <td>${deptPill(c.department)}</td>
+      <td><strong>${c.itemName}</strong></td>
+      <td><strong>${c.qty} ${c.unit}</strong></td>
+      <td style="color:#64748b">${c.purpose}</td>
+      <td>${c.recordedBy || '—'}</td>
+    </tr>`).join('');
+}
+
+function initFilters() {
+  const search = document.getElementById('con-search');
+  const dept   = document.getElementById('con-dept-filter');
+  const date   = document.getElementById('con-date-filter');
+  const apply  = () => {
+    const q = search.value.toLowerCase();
+    const d = dept.value;
+    const dt = date.value;
+    renderTable(allCon.filter(c => {
+      const matchQ  = !q  || c.itemName.toLowerCase().includes(q) || c.department.toLowerCase().includes(q) || c.purpose.toLowerCase().includes(q);
+      const matchD  = !d  || c.department === d;
+      const matchDt = !dt || c.date === dt;
+      return matchQ && matchD && matchDt;
+    }));
+  };
+  [search, dept, date].forEach(el => el.addEventListener('input', apply));
+}
+
+function saveCon() {
+  const dept    = document.getElementById('con-dept').value;
+  const date    = document.getElementById('con-date').value;
+  const itemSel = document.getElementById('con-item');
+  const itemId  = itemSel.value;
+  const qty     = parseInt(document.getElementById('con-qty').value) || 0;
+  const by      = document.getElementById('con-by').value.trim();
+  const purpose = document.getElementById('con-purpose').value.trim();
+
+  if (!dept || !date || !itemId || !qty || !purpose) {
+    showToast('Fill all required fields', 'error'); return;
+  }
+
+  const item = invItems.find(i => i.id === itemId);
+  if (!item) { showToast('Item not found', 'error'); return; }
+  if (item.quantity < qty) {
+    showToast(`Not enough stock. Available: ${item.quantity} ${item.unit}`, 'error'); return;
+  }
+
+  // Deduct from inventory
+  const inventory = getData(KEYS.inventory);
+  const idx = inventory.findIndex(i => i.id === itemId);
+  if (idx !== -1) {
+    inventory[idx].quantity = Math.max(0, inventory[idx].quantity - qty);
+    inventory[idx].lastUpdated = date;
+  }
+  saveData(KEYS.inventory, inventory);
+  invItems = inventory;
+  populateItemSelect();
+
+  const newCon = {
+    id: 'CON' + Date.now().toString(36).toUpperCase(),
+    date, department: dept,
+    itemId, itemName: item.name, qty, unit: item.unit,
+    purpose, recordedBy: by
+  };
+
+  allCon = getData(KEY_CON);
+  allCon.unshift(newCon);
+  saveData(KEY_CON, allCon);
+  closeModal('con-modal');
+  resetConForm();
+  renderStats();
+  renderTable(allCon);
+  showToast('Consumption recorded. Inventory updated.');
+}
+
+function resetConForm() {
+  document.getElementById('con-dept').value = '';
+  document.getElementById('con-date').value = today;
+  document.getElementById('con-item').value = '';
+  document.getElementById('con-avail').textContent = '';
+  document.getElementById('con-qty').value = 1;
+  document.getElementById('con-by').value = '';
+  document.getElementById('con-purpose').value = '';
+}
+</script>
+</body>
+</html>
