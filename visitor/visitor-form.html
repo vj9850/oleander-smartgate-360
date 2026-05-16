@@ -10,8 +10,63 @@
   <script>
     (function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();
   </script>
+  <style>
+    .visitor-form-page .page-content {
+      padding: 24px;
+    }
+    .visitor-form-page .form-card {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .visitor-form-page .form-grid {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .visitor-form-page .form-body {
+      padding: 22px 24px;
+    }
+    .visitor-form-page .form-card-header {
+      padding: 22px 24px;
+    }
+    .visitor-form-page .form-footer {
+      padding: 20px 24px 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .visitor-form-page .form-footer .btn {
+      min-width: 180px;
+    }
+    .visitor-form-page .photo-tabs {
+      flex-wrap: wrap;
+    }
+    .visitor-form-page .webcam-wrap,
+    .visitor-form-page .upload-wrap {
+      width: 100%;
+    }
+    @media (max-width: 1024px) {
+      .visitor-form-page .page-content {
+        padding: 20px;
+      }
+    }
+    @media (max-width: 640px) {
+      .visitor-form-page .page-content {
+        padding: 16px;
+      }
+      .visitor-form-page .form-card-header,
+      .visitor-form-page .form-body,
+      .visitor-form-page .form-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .visitor-form-page .form-footer .btn {
+        width: 100%;
+        min-width: 0;
+      }
+    }
+  </style>
 </head>
-<body>
+<body class="visitor-form-page">
 <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 <div class="app-wrapper">
 
@@ -61,7 +116,7 @@
         <span>This mobile number is blacklisted. Entry not recommended.</span>
       </div>
 
-      <div class="form-card" style="max-width:900px;">
+      <div class="form-card">
         <div class="form-card-header">
           <div class="header-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
