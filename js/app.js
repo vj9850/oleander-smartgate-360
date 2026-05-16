@@ -457,6 +457,10 @@ function renderAppSidebar(active) {
     <div class="sidebar-footer">
       <div class="property-tag">Oleander Farms · Karjat · 180 Acres</div>
       <div class="powered-by">Powered by <strong>Bpointer Technologies</strong></div>
+      <button class="btn-cache-clear" id="clear-cache-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        Clear Cache
+      </button>
       <button class="btn-logout" id="logout-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Sign Out
@@ -517,8 +521,39 @@ function logout(indexPath) {
   window.location.replace(indexPath || '../index.html');
 }
 
+async function clearAppCache() {
+  const confirmClear = window.confirm(
+    'Clear cached app data? This will reset locally stored records and reload the app. You will stay signed in.'
+  );
+  if (!confirmClear) return;
+
+  try {
+    localStorage.clear();
+
+    if ('caches' in window && typeof caches.keys === 'function') {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(key => caches.delete(key)));
+    }
+
+    if (typeof showToast === 'function') {
+      showToast('App cache cleared. Reloading…', 'success');
+    }
+
+    setTimeout(() => window.location.reload(), 500);
+  } catch (err) {
+    console.error('Failed to clear app cache', err);
+    if (typeof showToast === 'function') {
+      showToast('Could not clear cache', 'error');
+    } else {
+      window.alert('Could not clear cache');
+    }
+  }
+}
+
 // ─── INIT ─────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
   renderTopbarDate();
+  const clearBtn = document.getElementById('clear-cache-btn');
+  if (clearBtn) clearBtn.addEventListener('click', clearAppCache);
 });

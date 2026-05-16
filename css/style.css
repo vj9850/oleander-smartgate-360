@@ -320,6 +320,35 @@ video {
   font-weight: 600;
 }
 
+.btn-cache-clear {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: rgba(255, 193, 7, 0.08);
+  border: 1px solid rgba(255, 193, 7, 0.28);
+  border-radius: 8px;
+  color: #ffd36a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+
+.btn-cache-clear:hover {
+  background: rgba(255, 193, 7, 0.16);
+  border-color: rgba(255, 193, 7, 0.38);
+}
+
+.btn-cache-clear svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+
 .btn-logout {
   display: flex;
   align-items: center;
