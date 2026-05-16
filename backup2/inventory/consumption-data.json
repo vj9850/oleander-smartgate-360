@@ -1,0 +1,101 @@
+[
+  {
+    "id": "CON2603001",
+    "date": "2026-03-11",
+    "department": "Restaurant",
+    "itemId": "INV008",
+    "itemName": "Olive Oil (1L)",
+    "qty": 3,
+    "unit": "bottle",
+    "purpose": "Lunch Service",
+    "recordedBy": "Chef Ganesh Rao"
+  },
+  {
+    "id": "CON2603002",
+    "date": "2026-03-11",
+    "department": "Housekeeping",
+    "itemId": "INV011",
+    "itemName": "Toilet Paper Roll",
+    "qty": 40,
+    "unit": "pcs",
+    "purpose": "Daily Room Service",
+    "recordedBy": "Sunita Devi"
+  },
+  {
+    "id": "CON2603003",
+    "date": "2026-03-11",
+    "department": "Restaurant",
+    "itemId": "INV009",
+    "itemName": "Coffee Pods",
+    "qty": 60,
+    "unit": "pcs",
+    "purpose": "Morning Breakfast Service",
+    "recordedBy": "Chef Ganesh Rao"
+  },
+  {
+    "id": "CON2603004",
+    "date": "2026-03-12",
+    "department": "Spa & Wellness",
+    "itemId": "INV006",
+    "itemName": "Aromatherapy Oil (Lavender)",
+    "qty": 3,
+    "unit": "bottle",
+    "purpose": "Guest Therapy Sessions",
+    "recordedBy": "Anita Singh"
+  },
+  {
+    "id": "CON2603005",
+    "date": "2026-03-12",
+    "department": "Restaurant",
+    "itemId": "INV008",
+    "itemName": "Olive Oil (1L)",
+    "qty": 4,
+    "unit": "bottle",
+    "purpose": "Wedding Banquet Dinner",
+    "recordedBy": "Chef Ganesh Rao"
+  },
+  {
+    "id": "CON2603006",
+    "date": "2026-03-12",
+    "department": "Housekeeping",
+    "itemId": "INV001",
+    "itemName": "Bath Towels",
+    "qty": 12,
+    "unit": "pcs",
+    "purpose": "Guest Checkout Replacement",
+    "recordedBy": "Sunita Devi"
+  },
+  {
+    "id": "CON2603007",
+    "date": "2026-03-13",
+    "department": "Room Service",
+    "itemId": "INV012",
+    "itemName": "Mineral Water Bottles (1L)",
+    "qty": 30,
+    "unit": "pcs",
+    "purpose": "In-room complimentary",
+    "recordedBy": "Meena Joshi"
+  },
+  {
+    "id": "CON2603008",
+    "date": "2026-03-13",
+    "department": "Spa & Wellness",
+    "itemId": "INV007",
+    "itemName": "Massage Candles",
+    "qty": 8,
+    "unit": "pcs",
+    "purpose": "Couple Spa Sessions",
+    "recordedBy": "Anita Singh"
+  },
+  {
+    "id": "CON2603009",
+    "date": "2026-03-13",
+    "department": "Restaurant",
+    "itemId": "INV009",
+    "itemName": "Coffee Pods",
+    "qty": 80,
+    "unit": "pcs",
+    "purpose": "Corporate Event Coffee Service",
+    "recordedBy": "Chef Ganesh Rao"
+  }
+]

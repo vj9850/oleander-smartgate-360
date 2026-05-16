@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gate Pass – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();
+  </script>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Visitor Module / <span>Gate Pass</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Action Buttons -->
+      <div class="print-hide" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+        <a id="back-to-details" href="visitor-list.html" class="back-link" style="margin-bottom:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to Details
+        </a>
+        <div style="flex:1;"></div>
+        <button class="btn btn-ghost" onclick="doScanMock()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3v3M18 21h3M14 3v5h3M14 14h3v3M17 20v1h3M14 17v4"/></svg>
+          Scan Pass (Mock)
+        </button>
+        <button class="btn btn-primary" onclick="window.print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print Pass
+        </button>
+      </div>
+
+      <div class="pass-layout">
+        <!-- Pass Container -->
+        <div class="pass-container" id="pass-container">
+
+        <!-- PASS HEADER -->
+        <div class="pass-header">
+          <div class="pass-header-left">
+            <div class="pass-label">Gate Pass</div>
+            <div class="pass-id" id="pass-id-display">—</div>
+          </div>
+          <img src="../assets/icons/logo.webp" alt="Oleander Farms" />
+        </div>
+
+        <!-- PASS BODY -->
+        <div class="pass-body">
+          <!-- Visitor Info row: meta left, photo right -->
+          <div class="pass-visitor-info">
+            <div class="pass-visitor-meta">
+              <div class="pass-visitor-name" id="pass-name">—</div>
+              <div class="pass-visitor-type" id="pass-type-status"></div>
+            </div>
+            <div class="pass-photo-box" id="pass-photo-box">
+              <div class="pass-photo-none">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>No Photo</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fields Grid -->
+          <div class="pass-fields" id="pass-fields"></div>
+        </div>
+
+        <!-- QR Section -->
+        <div class="pass-qr-section">
+          <div id="qr-code"></div>
+          <div class="qr-info">
+            <div class="scan-label">Scan to Verify</div>
+            <div class="qr-pass-id" id="qr-passid">—</div>
+            <div class="qr-time" id="qr-time">—</div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="pass-footer">
+          Oleander Farms &nbsp;·&nbsp; Karjat &nbsp;·&nbsp; SmartGate 360
+        </div>
+
+        </div>
+        <!-- /pass-container -->
+
+        <!-- Host Approval Panel -->
+        <div class="host-approval-box print-hide" id="host-approval-box"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/visitor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+  .pass-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 24px;
+    align-items: start;
+  }
+  .pass-layout .pass-container {
+    min-width: 0;
+  }
+  .host-approval-box {
+    position: sticky;
+    top: 24px;
+    margin-top: 0;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(45, 122, 79, 0.08), rgba(255, 255, 255, 0.92));
+    box-shadow: var(--shadow);
+  }
+  .host-approval-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .host-approval-state {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+  .host-approval-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .host-approval-waiting {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(45, 122, 79, 0.08);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .host-approval-spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(45, 122, 79, 0.22);
+    border-top-color: var(--primary);
+    animation: hostApprovalSpin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  .host-approval-dots {
+    display: inline-flex;
+    gap: 3px;
+    margin-left: 2px;
+  }
+  .host-approval-dots span {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: hostApprovalPulse 1.1s infinite ease-in-out;
+  }
+  .host-approval-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .host-approval-dots span:nth-child(3) { animation-delay: 0.3s; }
+  .host-approval-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .host-approval-actions .btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  @media (max-width: 1100px) {
+    .pass-layout {
+      grid-template-columns: 1fr;
+    }
+    .host-approval-box {
+      position: static;
+    }
+  }
+  @media print {
+    .pass-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+  @keyframes hostApprovalSpin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes hostApprovalPulse {
+    0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+</style>
+<script>
+(async function () {
+  initVPage('visitor-pass');
+  await seedIfEmpty(KEYS.visitors, '../visitor/visitor-data.json');
+  VM.refreshOverstay();
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) { window.location.replace('visitor-list.html'); return; }
+
+  const v = VM.getById(id);
+  if (!v) { window.location.replace('visitor-list.html'); return; }
+
+  // Back link
+  document.getElementById('back-to-details').href = `visitor-details.html?id=${id}`;
+
+  // Pass ID
+  document.getElementById('pass-id-display').textContent = v.passId;
+
+  // Photo – ID card style (large)
+  const photoBox = document.getElementById('pass-photo-box');
+  if (v.photo) {
+    photoBox.innerHTML = `<img src="${v.photo}" alt="${v.name}" />`;
+  }
+  // else keep the "No Photo" placeholder
+
+  // Name
+  document.getElementById('pass-name').textContent = v.name;
+
+  // Type + status badges
+  document.getElementById('pass-type-status').innerHTML = visBadge(v.visitorType) + ' ' + visStatus(v.status);
+  renderHostApproval(v);
+
+  // Pass fields
+  const fields = [
+    ['Mobile', v.mobile],
+    ['Host', v.host],
+    ['Location', v.location],
+    ['Gate', v.gate],
+    ['Vehicle No', v.vehicleNumber || '—'],
+    ['Purpose', v.purpose.length > 28 ? v.purpose.slice(0, 26) + '…' : v.purpose],
+    ['Entry Time', formatDateTime(v.entryTime)],
+    ['Exit Time', v.exitTime ? formatDateTime(v.exitTime) : 'Still Inside']
+  ];
+  document.getElementById('pass-fields').innerHTML = fields.map(([l, val]) => `
+    <div class="pass-field">
+      <div class="pf-label">${l}</div>
+      <div class="pf-value">${val}</div>
+    </div>`).join('');
+
+  // QR Info
+  document.getElementById('qr-passid').textContent = v.passId;
+  document.getElementById('qr-time').textContent = formatDateTime(v.entryTime);
+
+  // QR Code generation
+  new QRCode(document.getElementById('qr-code'), {
+    text: JSON.stringify({
+      id: v.id,
+      passId: v.passId,
+      name: v.name,
+      entryTime: v.entryTime,
+      gate: v.gate
+    }),
+    width: 100,
+    height: 100,
+    colorDark: '#1a3d2b',
+    colorLight: '#e8f5ee',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+})();
+
+function doScanMock() {
+  showToast('Pass scanned successfully. Identity verified.', 'success');
+}
+
+function renderHostApproval(v) {
+  const box = document.getElementById('host-approval-box');
+  const approvalStatus = v.approvalStatus || 'Pending';
+  const approvalUpdated = v.approvalUpdatedAt ? `Updated ${formatDateTime(v.approvalUpdatedAt)}` : 'Awaiting host response';
+  const showActions = approvalStatus === 'Pending';
+  const waitingLoader = approvalStatus === 'Pending'
+    ? `
+      <div class="host-approval-waiting" aria-live="polite" aria-label="Waiting for host approval">
+        <span class="host-approval-spinner" aria-hidden="true"></span>
+        <span>Waiting for Host Approval</span>
+        <span class="host-approval-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+      </div>
+    `
+    : '';
+
+  box.innerHTML = `
+    <div class="host-approval-title">
+      <span>Host Approval</span>
+      ${hostApprovalBadge(approvalStatus)}
+    </div>
+    <div class="host-approval-state">${hostApprovalStatusLabel(approvalStatus)}</div>
+    <div class="host-approval-note">
+      ${approvalStatus === 'Approved'
+        ? 'Host has approved entry for this visitor.'
+        : approvalStatus === 'Rejected'
+          ? 'Host has rejected entry for this visitor.'
+          : 'Mock state: waiting for host approval before entry is confirmed.'}
+      ${waitingLoader}
+      <div style="margin-top:6px;">${approvalUpdated}</div>
+    </div>
+    ${showActions ? `
+      <div class="host-approval-actions">
+        <button type="button" class="btn btn-primary" onclick="setHostApproval('${v.id}', 'Approved')">Approve</button>
+        <button type="button" class="btn btn-danger" onclick="setHostApproval('${v.id}', 'Rejected')">Reject</button>
+      </div>
+    ` : `
+      <div class="host-approval-actions">
+        <button type="button" class="btn btn-ghost" onclick="setHostApproval('${v.id}', 'Pending')">Reset to Pending</button>
+      </div>
+    `}
+  `;
+}
+
+function setHostApproval(id, status) {
+  const updated = { approvalStatus: status, approvalUpdatedAt: new Date().toISOString() };
+  if (VM.update(id, updated)) {
+    const v = VM.getById(id);
+    renderHostApproval(v);
+    document.getElementById('pass-type-status').innerHTML = visBadge(v.visitorType) + ' ' + visStatus(v.status);
+    showToast(`Host approval marked as ${hostApprovalStatusLabel(status).toLowerCase()}.`, 'success');
+  } else {
+    showToast('Could not update host approval status', 'error');
+  }
+}
+</script>
+</body>
+</html>

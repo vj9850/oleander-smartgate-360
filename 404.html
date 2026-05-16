@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="refresh" content="2; url=index.html" />
+  <title>Page Not Found</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7f5;
+      --card: #ffffff;
+      --border: #d8e3dc;
+      --text: #17311f;
+      --muted: #5f7166;
+      --accent: #2d7a4f;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #eef5f0 0%, #f8faf8 55%, #edf3ef 100%);
+      color: var(--text);
+    }
+    body {
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      width: min(520px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(23, 49, 31, 0.08);
+      padding: 32px;
+    }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 32px;
+      line-height: 1.1;
+    }
+    p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    a {
+      color: var(--accent);
+      font-weight: 700;
+      text-decoration: none;
+    }
+  </style>
+  <script>setTimeout(() => window.location.replace('index.html'), 2000);</script>
+</head>
+<body>
+  <main class="card">
+    <div class="eyebrow">404</div>
+    <h1>Page not found</h1>
+    <p>The requested page does not exist. Returning to the login page.</p>
+    <p><a href="index.html">Go to login now</a></p>
+  </main>
+</body>
+</html>

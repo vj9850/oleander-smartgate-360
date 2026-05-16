@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Vehicle – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){
+      const s = sessionStorage.getItem('sg360_session');
+      if (!s) window.location.replace('../index.html');
+    })();
+  </script>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Vehicle Management / <span>Add Vehicle</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <a href="vehicle-list.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Vehicle List
+      </a>
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Add / Assign Vehicle</div>
+          <div class="page-subtitle">Register a new vehicle or create an assignment record</div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-card-header">
+          <div class="header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <div>
+            <h2>Vehicle Details</h2>
+            <p>Fields marked <span style="color:#e74c3c">*</span> are required</p>
+          </div>
+        </div>
+
+        <form class="form-body" id="vehicle-form" novalidate>
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label class="form-label">Vehicle Name <span class="required">*</span></label>
+              <input type="text" name="name" class="form-input" placeholder="e.g. Toyota Innova" data-required />
+              <span class="error-msg" data-error="name"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Vehicle Number <span class="required">*</span></label>
+              <input type="text" name="vehicleNumber" class="form-input" placeholder="e.g. MH04OLF001" data-required />
+              <span class="error-msg" data-error="vehicleNumber"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Vehicle Type <span class="required">*</span></label>
+              <select name="type" class="form-select" data-required>
+                <option value="">Select Type</option>
+                <option>Owned</option>
+                <option>Rental</option>
+              </select>
+              <span class="error-msg" data-error="type"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Fuel Type <span class="required">*</span></label>
+              <select name="fuelType" class="form-select" data-required>
+                <option value="">Select Fuel</option>
+                <option>Petrol</option>
+                <option>Diesel</option>
+                <option>CNG</option>
+                <option>Electric</option>
+              </select>
+              <span class="error-msg" data-error="fuelType"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Seating Capacity</label>
+              <input type="number" name="seatingCapacity" class="form-input" placeholder="e.g. 7" min="1" max="50" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Driver Name <span class="required">*</span></label>
+              <input type="text" name="driverName" class="form-input" placeholder="Full name of driver" data-required />
+              <span class="error-msg" data-error="driverName"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Driver Phone <span class="required">*</span></label>
+              <input type="tel" name="driverPhone" class="form-input" placeholder="10-digit mobile" maxlength="10" data-required />
+              <span class="error-msg" data-error="driverPhone"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Purpose</label>
+              <select name="purpose" class="form-select">
+                <option value="">Select Purpose</option>
+                <option>Pickup</option>
+                <option>Drop</option>
+                <option>Internal Tour</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Initial Status</label>
+              <select name="status" class="form-select">
+                <option>Available</option>
+                <option>In Use</option>
+                <option>Maintenance</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Assigned Guest</label>
+              <input type="text" name="assignedGuest" class="form-input" placeholder="Guest name (if applicable)" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Pickup Location</label>
+              <input type="text" name="pickupLocation" class="form-input" placeholder="e.g. Karjat Station" />
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Destination</label>
+              <input type="text" name="destination" class="form-input" placeholder="e.g. Rooms & Villas" />
+            </div>
+
+          </div>
+        </form>
+
+        <div class="form-footer">
+          <button class="btn btn-primary" id="submit-veh-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Save Vehicle
+          </button>
+          <button class="btn btn-ghost" id="reset-veh-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Reset
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(async function() {
+  renderAppSidebar('vehicle-form');
+  requireAuth('../index.html');
+  initAuthUI('../index.html');
+  initMobileMenu();
+  await seedIfEmpty(KEYS.vehicles, '../vehicle/vehicle-data.json');
+  renderTopbarDate();
+
+  document.getElementById('submit-veh-btn').addEventListener('click', () => {
+    clearFormErrors('vehicle-form');
+    if (!validateForm('vehicle-form')) {
+      showToast('Please fill in all required fields', 'error');
+      return;
+    }
+
+    const form = document.getElementById('vehicle-form');
+    const fd   = new FormData(form);
+    const id   = 'VH' + Date.now().toString(36).toUpperCase().slice(-6);
+
+    const vehicle = {
+      id,
+      name:            fd.get('name').trim(),
+      vehicleNumber:   fd.get('vehicleNumber').trim().toUpperCase(),
+      type:            fd.get('type'),
+      fuelType:        fd.get('fuelType'),
+      seatingCapacity: parseInt(fd.get('seatingCapacity'), 10) || null,
+      driverName:      fd.get('driverName').trim(),
+      driverPhone:     fd.get('driverPhone').trim(),
+      purpose:         fd.get('purpose'),
+      status:          fd.get('status'),
+      assignedGuest:   fd.get('assignedGuest').trim(),
+      pickupLocation:  fd.get('pickupLocation').trim(),
+      destination:     fd.get('destination').trim()
+    };
+
+    const vehicles = getData(KEYS.vehicles);
+    vehicles.push(vehicle);
+    saveData(KEYS.vehicles, vehicles);
+
+    showToast('Vehicle saved successfully!');
+    setTimeout(() => window.location.href = 'vehicle-list.html', 1200);
+  });
+
+  document.getElementById('reset-veh-btn').addEventListener('click', () => {
+    document.getElementById('vehicle-form').reset();
+    clearFormErrors('vehicle-form');
+  });
+})();
+</script>
+</body>
+</html>

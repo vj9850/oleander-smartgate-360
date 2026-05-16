@@ -1,0 +1,7 @@
+[
+  {"id":"EVT-A1B2C","eventId":"EVT-001","name":"Sharma–Iyer Wedding","eventType":"Wedding","organizer":"Suresh Sharma","contactNumber":"9800001111","eventDate":"2026-03-20","eventLocation":"Wedding Venue","expectedVisitors":300,"status":"Active"},
+  {"id":"EVT-B2C3D","eventId":"EVT-002","name":"TechCorp Annual Offsite","eventType":"Corporate Event","organizer":"Ananya Krishnan","contactNumber":"9800002222","eventDate":"2026-04-05","eventLocation":"Corporate Events Hall","expectedVisitors":80,"status":"Active"},
+  {"id":"EVT-C3D4E","eventId":"EVT-003","name":"Holi Carnival 2026","eventType":"Festival","organizer":"Oleander Events Team","contactNumber":"9800003333","eventDate":"2026-03-14","eventLocation":"Lawn & Pool Area","expectedVisitors":200,"status":"Active"},
+  {"id":"EVT-D4E5F","eventId":"EVT-004","name":"Patel Birthday Celebration","eventType":"Private Party","organizer":"Neha Patel","contactNumber":"9800004444","eventDate":"2026-03-28","eventLocation":"Waves Pool Bar","expectedVisitors":60,"status":"Active"},
+  {"id":"EVT-E5F6G","eventId":"EVT-005","name":"Green Summit 2026","eventType":"Conference","organizer":"EcoFarm Alliance","contactNumber":"9800005555","eventDate":"2026-05-10","eventLocation":"Corporate Events Hall","expectedVisitors":120,"status":"Active"}
+]

@@ -1,0 +1,12 @@
+[
+  {"id":"ROL-A1B2C","roleId":"ROL-001","name":"Super Admin","description":"Full system access with all permissions","permissions":["Visitor Management","Vehicle Management","Inventory Management","Master Data","Reports","Settings","User Management"],"userCount":1,"status":"Active"},
+  {"id":"ROL-B2C3D","roleId":"ROL-002","name":"Admin","description":"Operations dashboard and management access","permissions":["Visitor Management","Vehicle Management","Inventory Management","Reports"],"userCount":2,"status":"Active"},
+  {"id":"ROL-C3D4E","roleId":"ROL-003","name":"Security Guard","description":"Visitor check-in/out and gate monitoring","permissions":["Visitor Management"],"userCount":3,"status":"Active"},
+  {"id":"ROL-D4E5F","roleId":"ROL-004","name":"Gate Operator","description":"Gate pass entry and visitor registration at gate","permissions":["Visitor Management"],"userCount":2,"status":"Active"},
+  {"id":"ROL-E5F6G","roleId":"ROL-005","name":"Receptionist","description":"Guest pre-registration and front desk visitor management","permissions":["Visitor Management","Reports"],"userCount":3,"status":"Active"},
+  {"id":"ROL-F6G7H","roleId":"ROL-006","name":"Vehicle Manager","description":"Vehicle assignment and fleet management","permissions":["Vehicle Management","Reports"],"userCount":1,"status":"Active"},
+  {"id":"ROL-G7H8I","roleId":"ROL-007","name":"Inventory Manager","description":"Full inventory control and stock management","permissions":["Inventory Management","Reports"],"userCount":1,"status":"Active"},
+  {"id":"ROL-H8I9J","roleId":"ROL-008","name":"Housekeeping Manager","description":"Housekeeping and room supplies management","permissions":["Inventory Management"],"userCount":2,"status":"Active"},
+  {"id":"ROL-I9J0K","roleId":"ROL-009","name":"Event Manager","description":"Event visitors and event-related operations","permissions":["Visitor Management","Reports"],"userCount":1,"status":"Active"},
+  {"id":"ROL-J0K1L","roleId":"ROL-010","name":"Maintenance Staff","description":"Vendor entry approval and maintenance inventory","permissions":["Visitor Management","Inventory Management"],"userCount":2,"status":"Active"}
+]

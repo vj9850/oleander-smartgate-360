@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Management – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){
+      const s = sessionStorage.getItem('sg360_session');
+      if (!s) window.location.replace('../index.html');
+    })();
+  </script>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Modules / <span>Inventory Management</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Inventory Management</div>
+          <div class="page-subtitle">Track housekeeping, hospitality and operational supplies</div>
+        </div>
+        <a href="inventory-form.html" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Item
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:20px;" id="inv-stats"></div>
+
+      <!-- Low Stock Alert -->
+      <div id="inv-low-alert" class="alert alert-warning" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span id="inv-low-text"></span>
+      </div>
+
+      <!-- Table -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Inventory List</h2>
+          <div class="section-actions">
+            <span id="inv-count" style="font-size:13px;color:var(--text-muted);"></span>
+          </div>
+        </div>
+
+        <div class="table-controls">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="inv-search" placeholder="Search items…" />
+          </div>
+          <select class="filter-select" id="inv-category-filter">
+            <option value="">All Categories</option>
+            <option>Housekeeping</option>
+            <option>Room Service</option>
+            <option>Spa</option>
+            <option>Restaurant</option>
+            <option>Maintenance</option>
+          </select>
+          <select class="filter-select" id="inv-status-filter">
+            <option value="">All Stock Status</option>
+            <option value="low">Low Stock</option>
+            <option value="ok">Sufficient</option>
+          </select>
+        </div>
+
+        <div class="table-wrapper">
+          <table id="inventory-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Item Name</th>
+                <th>Category</th>
+                <th>Stock Level</th>
+                <th>Min. Stock</th>
+                <th>Unit</th>
+                <th>Status</th>
+                <th>Last Updated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-body">
+              <tr><td colspan="9" class="table-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stock In/Out Modal -->
+<div class="modal-overlay" id="stock-modal">
+  <div class="modal">
+    <h3 id="stock-modal-title">Stock In</h3>
+    <p>Update stock for <strong id="stock-item-name"></strong></p>
+    <div style="margin-bottom:16px">
+      <label class="form-label" style="margin-bottom:6px;display:block">Quantity</label>
+      <input type="number" class="form-input" id="stock-qty-input" min="1" value="1" placeholder="Enter quantity" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('stock-modal')">Cancel</button>
+      <button class="btn btn-primary" id="confirm-stock-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+let allInventory = [];
+let stockAction  = null; // 'in' | 'out'
+let stockItemId  = null;
+
+(async function init() {
+  renderAppSidebar('inventory-list');
+  requireAuth('../index.html');
+  initAuthUI('../index.html');
+  initMobileMenu();
+  await seedIfEmpty(KEYS.inventory, '../inventory/inventory-data.json');
+  allInventory = getData(KEYS.inventory);
+
+  renderStats();
+  renderLowAlert();
+  renderTable(allInventory);
+  initFilters();
+  renderTopbarDate();
+})();
+
+function renderStats() {
+  const total   = allInventory.length;
+  const low     = allInventory.filter(i => i.quantity < i.minStock).length;
+  const ok      = total - low;
+  const cats    = [...new Set(allInventory.map(i => i.category))].length;
+
+  document.getElementById('inv-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="stat-body"><div class="stat-value">${total}</div><div class="stat-label">Total Items</div></div></div>
+    <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stat-body"><div class="stat-value">${ok}</div><div class="stat-label">Sufficient Stock</div></div></div>
+    <div class="stat-card"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div><div class="stat-body"><div class="stat-value">${low}</div><div class="stat-label">Low Stock Alerts</div></div></div>
+    <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><div class="stat-body"><div class="stat-value">${cats}</div><div class="stat-label">Categories</div></div></div>
+  `;
+}
+
+function renderLowAlert() {
+  const lowItems = allInventory.filter(i => i.quantity < i.minStock);
+  const alertEl  = document.getElementById('inv-low-alert');
+  const textEl   = document.getElementById('inv-low-text');
+  if (lowItems.length > 0) {
+    alertEl.style.display = 'flex';
+    textEl.textContent = `Low stock: ${lowItems.map(i => `${i.name} (${i.quantity} ${i.unit})`).join(', ')}`;
+  } else {
+    alertEl.style.display = 'none';
+  }
+}
+
+function catBadge(cat) {
+  const colors = {
+    'Housekeeping': 'type-staff',
+    'Room Service': 'type-guest',
+    'Spa':          'type-event',
+    'Restaurant':   'type-vendor',
+    'Maintenance':  ''
+  };
+  return `<span class="type-badge ${colors[cat]||''}" style="font-size:11px">${cat}</span>`;
+}
+
+function renderTable(data) {
+  const body = document.getElementById('inventory-body');
+  document.getElementById('inv-count').textContent = `${data.length} item${data.length !== 1 ? 's' : ''}`;
+
+  if (data.length === 0) {
+    body.innerHTML = '<tr class="no-data-row"><td colspan="9">No inventory items found.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = data.map(item => {
+    const isLow = item.quantity < item.minStock;
+    return `
+      <tr>
+        <td><strong style="color:var(--primary)">${item.id}</strong></td>
+        <td><strong>${item.name}</strong></td>
+        <td>${catBadge(item.category)}</td>
+        <td>${stockBar(item.quantity, item.minStock)}</td>
+        <td style="color:var(--text-muted)">${item.minStock} ${item.unit}</td>
+        <td>${item.unit}</td>
+        <td>${isLow ? statusBadge('Low') : statusBadge('OK')}</td>
+        <td style="color:var(--text-muted)">${formatDate(item.lastUpdated)}</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-sm btn-outline" onclick="openStockModal('${item.id}','in')">Stock In</button>
+            <button class="btn btn-sm btn-ghost" onclick="openStockModal('${item.id}','out')">Stock Out</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function initFilters() {
+  const searchInput  = document.getElementById('inv-search');
+  const catFilter    = document.getElementById('inv-category-filter');
+  const statusFilter = document.getElementById('inv-status-filter');
+
+  function applyFilters() {
+    const q      = searchInput.value.toLowerCase();
+    const cat    = catFilter.value;
+    const status = statusFilter.value;
+
+    const filtered = allInventory.filter(item => {
+      const matchQ = !q || item.name.toLowerCase().includes(q) || item.category.toLowerCase().includes(q) || item.id.toLowerCase().includes(q);
+      const matchC = !cat    || item.category === cat;
+      const matchS = !status || (status === 'low' ? item.quantity < item.minStock : item.quantity >= item.minStock);
+      return matchQ && matchC && matchS;
+    });
+    renderTable(filtered);
+  }
+
+  [searchInput, catFilter, statusFilter].forEach(el => el.addEventListener('input', applyFilters));
+}
+
+function openStockModal(id, action) {
+  stockAction = action;
+  stockItemId = id;
+  const item  = allInventory.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('stock-modal-title').textContent = action === 'in' ? 'Stock In' : 'Stock Out';
+  document.getElementById('stock-item-name').textContent = `${item.name} (Current: ${item.quantity} ${item.unit})`;
+  document.getElementById('stock-qty-input').value = 1;
+  openModal('stock-modal');
+}
+
+document.getElementById('confirm-stock-btn').addEventListener('click', () => {
+  const qty = parseInt(document.getElementById('stock-qty-input').value, 10);
+  if (!qty || qty < 1) { showToast('Enter a valid quantity', 'error'); return; }
+
+  const inventory = getData(KEYS.inventory);
+  const idx = inventory.findIndex(i => i.id === stockItemId);
+  if (idx === -1) return;
+
+  if (stockAction === 'in') {
+    inventory[idx].quantity += qty;
+  } else {
+    if (inventory[idx].quantity < qty) {
+      showToast('Cannot remove more than current stock', 'error');
+      return;
+    }
+    inventory[idx].quantity -= qty;
+  }
+  inventory[idx].lastUpdated = new Date().toISOString().slice(0, 10);
+
+  saveData(KEYS.inventory, inventory);
+  allInventory = inventory;
+  closeModal('stock-modal');
+  renderStats();
+  renderLowAlert();
+  renderTable(allInventory);
+  showToast(`Stock ${stockAction === 'in' ? 'added' : 'removed'} successfully`);
+});
+</script>
+</body>
+</html>

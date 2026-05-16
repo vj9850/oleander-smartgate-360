@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Issue – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>(function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();</script>
+  <style>
+    .items-table { width:100%; border-collapse:collapse; margin-top:12px; }
+    .items-table th { background:#f8fafc; font-size:12px; font-weight:600; color:#64748b; padding:8px 10px; border:1px solid #e2e8f0; text-align:left; }
+    .items-table td { padding:8px 10px; border:1px solid #e2e8f0; vertical-align:middle; }
+    .items-table input, .items-table select { width:100%; border:none; outline:none; font-size:13px; background:transparent; padding:2px 0; font-family:inherit; }
+    .items-table .remove-row { color:#ef4444; cursor:pointer; background:none; border:none; font-size:16px; padding:0 4px; }
+    .add-row-btn { margin-top:8px; font-size:13px; color:var(--primary); background:none; border:none; cursor:pointer; font-weight:600; padding:0; }
+    .add-row-btn:hover { text-decoration:underline; }
+    .dept-pill { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+    .view-modal .modal { max-width:620px; }
+    .iss-meta-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+    .iss-meta-item label { color:#64748b; display:block; font-size:11px; margin-bottom:2px; }
+    .iss-meta-item span { font-weight:600; color:#1e293b; font-size:13px; }
+  </style>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Inventory / <span>Stock Issue</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Stock Issue to Departments</div>
+          <div class="page-subtitle">Distribute stock items to departments — all issues are tracked and deducted from inventory</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('issue-modal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Issue Slip
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:20px;" id="iss-stats"></div>
+
+      <!-- Table -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Issue Records</h2>
+          <span id="iss-count" style="font-size:13px;color:var(--text-muted);"></span>
+        </div>
+        <div class="table-controls">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="iss-search" placeholder="Search issue ID, department, person…" />
+          </div>
+          <select class="filter-select" id="iss-dept-filter">
+            <option value="">All Departments</option>
+            <option>Housekeeping</option>
+            <option>Restaurant</option>
+            <option>Spa & Wellness</option>
+            <option>Maintenance</option>
+            <option>Room Service</option>
+            <option>Events</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <table id="iss-table">
+            <thead>
+              <tr>
+                <th>Issue ID</th>
+                <th>Date</th>
+                <th>Department</th>
+                <th>Issued To</th>
+                <th>Purpose</th>
+                <th>Items</th>
+                <th>Issued By</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="iss-body">
+              <tr><td colspan="8" class="table-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW ISSUE MODAL -->
+<div class="modal-overlay" id="issue-modal">
+  <div class="modal" style="max-width:660px;">
+    <h3>New Issue Slip</h3>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="form-group">
+        <label class="form-label">Department <span style="color:red">*</span></label>
+        <select class="form-input" id="iss-dept">
+          <option value="">— Select Department —</option>
+          <option>Housekeeping</option>
+          <option>Restaurant</option>
+          <option>Spa & Wellness</option>
+          <option>Maintenance</option>
+          <option>Room Service</option>
+          <option>Events</option>
+          <option>Front Office</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Issue Date <span style="color:red">*</span></label>
+        <input type="date" class="form-input" id="iss-date" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Issued To <span style="color:red">*</span></label>
+        <input type="text" class="form-input" id="iss-to" placeholder="Staff name" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Issued By</label>
+        <input type="text" class="form-input" id="iss-by" placeholder="Your name" />
+      </div>
+      <div class="form-group" style="grid-column:1/-1;">
+        <label class="form-label">Purpose</label>
+        <input type="text" class="form-input" id="iss-purpose" placeholder="e.g. Room Turnovers, Wedding Banquet…" />
+      </div>
+    </div>
+
+    <label class="form-label" style="margin-bottom:6px;display:block;">Items to Issue <span style="color:red">*</span></label>
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th style="width:45%">Item</th>
+          <th style="width:25%">Qty</th>
+          <th style="width:20%">Available</th>
+          <th style="width:10%"></th>
+        </tr>
+      </thead>
+      <tbody id="iss-items-body"></tbody>
+    </table>
+    <button class="add-row-btn" onclick="addIssueRow()">+ Add Item Row</button>
+
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeModal('issue-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIssue()">Issue Stock</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW ISSUE MODAL -->
+<div class="modal-overlay view-modal" id="view-iss-modal">
+  <div class="modal" style="max-width:580px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 id="view-iss-id" style="margin:0;">Issue Details</h3>
+    </div>
+    <div class="iss-meta-row" id="view-iss-meta"></div>
+    <label class="form-label">Items Issued</label>
+    <div class="table-wrapper" style="margin-top:8px;">
+      <table>
+        <thead><tr><th>#</th><th>Item Name</th><th>Qty</th><th>Unit</th></tr></thead>
+        <tbody id="view-iss-items"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeModal('view-iss-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+const KEY_ISS = 'sg360_inv_issues';
+let allIssues = [];
+let invItems  = [];
+const today = new Date().toISOString().slice(0, 10);
+const thisMonth = today.slice(0, 7);
+
+const DEPT_COLORS = {
+  'Housekeeping': { bg: '#dcfce7', color: '#16a34a' },
+  'Restaurant':   { bg: '#fef3c7', color: '#b45309' },
+  'Spa & Wellness':{ bg: '#f5f0ff', color: '#7c3aed' },
+  'Maintenance':  { bg: '#fee2e2', color: '#dc2626' },
+  'Room Service': { bg: '#e0f2fe', color: '#0284c7' },
+  'Events':       { bg: '#fce7f3', color: '#be185d' }
+};
+
+function deptPill(dept) {
+  const c = DEPT_COLORS[dept] || { bg: '#f1f5f9', color: '#64748b' };
+  return `<span class="dept-pill" style="background:${c.bg};color:${c.color};">${dept}</span>`;
+}
+
+(async function init() {
+  renderAppSidebar('stock-issue');
+  requireAuth('../index.html');
+  initAuthUI('../index.html');
+  initMobileMenu();
+  renderTopbarDate();
+  document.getElementById('iss-date').value = today;
+
+  await Promise.all([
+    seedIfEmpty(KEY_ISS, '../inventory/issue-data.json'),
+    seedIfEmpty(KEYS.inventory, '../inventory/inventory-data.json')
+  ]);
+
+  allIssues = getData(KEY_ISS);
+  invItems  = getData(KEYS.inventory);
+
+  renderStats();
+  renderTable(allIssues);
+  initFilters();
+  addIssueRow();
+})();
+
+function renderStats() {
+  const todayIss  = allIssues.filter(i => i.date === today).length;
+  const monthIss  = allIssues.filter(i => i.date.startsWith(thisMonth)).length;
+  const depts     = new Set(allIssues.filter(i => i.date.startsWith(thisMonth)).map(i => i.department)).size;
+  const totalItems = allIssues.reduce((s, i) => s + i.items.reduce((a,x) => a + x.qty, 0), 0);
+
+  document.getElementById('iss-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div><div class="stat-body"><div class="stat-value">${allIssues.length}</div><div class="stat-label">Total Issues</div></div></div>
+    <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-body"><div class="stat-value">${todayIss}</div><div class="stat-label">Today's Issues</div></div></div>
+    <div class="stat-card"><div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stat-body"><div class="stat-value">${monthIss}</div><div class="stat-label">This Month</div></div></div>
+    <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div><div class="stat-body"><div class="stat-value">${depts}</div><div class="stat-label">Depts Served</div></div></div>
+    <div class="stat-card"><div class="stat-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="stat-body"><div class="stat-value">${totalItems}</div><div class="stat-label">Units Issued</div></div></div>
+  `;
+}
+
+function renderTable(data) {
+  const body = document.getElementById('iss-body');
+  document.getElementById('iss-count').textContent = `${data.length} record${data.length !== 1 ? 's' : ''}`;
+  if (!data.length) { body.innerHTML = '<tr><td colspan="8" class="table-empty">No issue records found.</td></tr>'; return; }
+  body.innerHTML = [...data].sort((a,b) => b.date.localeCompare(a.date)).map(i => `
+    <tr>
+      <td><strong style="color:var(--primary)">${i.id}</strong></td>
+      <td>${formatDate(i.date)}</td>
+      <td>${deptPill(i.department)}</td>
+      <td><strong>${i.issuedTo}</strong></td>
+      <td style="color:#64748b">${i.purpose || '—'}</td>
+      <td>${i.items.length} item${i.items.length !== 1 ? 's' : ''}<small style="color:#94a3b8;margin-left:4px;">(${i.items.reduce((s,x)=>s+x.qty,0)} units)</small></td>
+      <td>${i.issuedBy || '—'}</td>
+      <td><button class="btn btn-sm btn-outline" onclick="viewIssue('${i.id}')">View</button></td>
+    </tr>`).join('');
+}
+
+function initFilters() {
+  const search = document.getElementById('iss-search');
+  const dept   = document.getElementById('iss-dept-filter');
+  const apply = () => {
+    const q = search.value.toLowerCase();
+    const d = dept.value;
+    renderTable(allIssues.filter(i => {
+      const matchQ = !q || i.id.toLowerCase().includes(q) || i.department.toLowerCase().includes(q) || i.issuedTo.toLowerCase().includes(q);
+      const matchD = !d || i.department === d;
+      return matchQ && matchD;
+    }));
+  };
+  [search, dept].forEach(el => el.addEventListener('input', apply));
+}
+
+function addIssueRow() {
+  const tbody = document.getElementById('iss-items-body');
+  const row = document.createElement('tr');
+  const itemOpts = invItems.map(i => `<option value="${i.id}" data-stock="${i.quantity}" data-unit="${i.unit}">${i.name}</option>`).join('');
+  row.innerHTML = `
+    <td>
+      <select onchange="updateAvailable(this)" style="width:100%;border:none;outline:none;font-size:13px;background:transparent;font-family:inherit;">
+        <option value="">— Select Item —</option>
+        ${itemOpts}
+      </select>
+    </td>
+    <td><input type="number" min="1" value="1" placeholder="Qty" /></td>
+    <td class="avail-cell" style="color:#64748b;font-size:13px;">—</td>
+    <td><button class="remove-row" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(row);
+}
+
+function updateAvailable(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  const stock = opt.dataset.stock || '—';
+  const unit  = opt.dataset.unit  || '';
+  sel.closest('tr').querySelector('.avail-cell').textContent = stock !== '—' ? `${stock} ${unit}` : '—';
+}
+
+function saveIssue() {
+  const dept    = document.getElementById('iss-dept').value;
+  const date    = document.getElementById('iss-date').value;
+  const issuedTo = document.getElementById('iss-to').value.trim();
+  const issuedBy = document.getElementById('iss-by').value.trim();
+  const purpose  = document.getElementById('iss-purpose').value.trim();
+
+  if (!dept || !date || !issuedTo) { showToast('Fill department, date and issued to', 'error'); return; }
+
+  const items = [];
+  let ok = true;
+  document.querySelectorAll('#iss-items-body tr').forEach(row => {
+    const sel = row.cells[0].querySelector('select');
+    const qty = parseInt(row.cells[1].querySelector('input')?.value) || 0;
+    if (sel && sel.value && qty > 0) {
+      const item = invItems.find(i => i.id === sel.value);
+      if (item && item.quantity < qty) {
+        showToast(`Not enough stock for ${item.name}. Available: ${item.quantity}`, 'error');
+        ok = false;
+        return;
+      }
+      items.push({ itemId: sel.value, itemName: item ? item.name : sel.value, qty, unit: item ? item.unit : '' });
+    }
+  });
+
+  if (!ok) return;
+  if (!items.length) { showToast('Add at least one item', 'error'); return; }
+
+  // Deduct from inventory
+  const inventory = getData(KEYS.inventory);
+  items.forEach(it => {
+    const idx = inventory.findIndex(i => i.id === it.itemId);
+    if (idx !== -1) {
+      inventory[idx].quantity = Math.max(0, inventory[idx].quantity - it.qty);
+      inventory[idx].lastUpdated = date;
+    }
+  });
+  saveData(KEYS.inventory, inventory);
+  invItems = inventory;
+
+  const newIss = {
+    id: 'ISS' + Date.now().toString(36).toUpperCase(),
+    date, department: dept, issuedTo, issuedBy, purpose, items, status: 'Issued'
+  };
+
+  allIssues = getData(KEY_ISS);
+  allIssues.unshift(newIss);
+  saveData(KEY_ISS, allIssues);
+  closeModal('issue-modal');
+  resetIssueForm();
+  renderStats();
+  renderTable(allIssues);
+  showToast('Stock issued successfully! Inventory updated.');
+}
+
+function resetIssueForm() {
+  document.getElementById('iss-dept').value = '';
+  document.getElementById('iss-date').value = today;
+  ['iss-to','iss-by','iss-purpose'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('iss-items-body').innerHTML = '';
+  addIssueRow();
+}
+
+function viewIssue(id) {
+  const iss = allIssues.find(x => x.id === id);
+  if (!iss) return;
+  document.getElementById('view-iss-id').textContent = iss.id;
+  document.getElementById('view-iss-meta').innerHTML = `
+    <div class="iss-meta-item"><label>Department</label><span>${iss.department}</span></div>
+    <div class="iss-meta-item"><label>Date</label><span>${formatDate(iss.date)}</span></div>
+    <div class="iss-meta-item"><label>Issued To</label><span>${iss.issuedTo}</span></div>
+    <div class="iss-meta-item"><label>Issued By</label><span>${iss.issuedBy || '—'}</span></div>
+    <div class="iss-meta-item" style="grid-column:1/-1;"><label>Purpose</label><span>${iss.purpose || '—'}</span></div>
+  `;
+  document.getElementById('view-iss-items').innerHTML = iss.items.map((it, i) => `
+    <tr><td>${i+1}</td><td><strong>${it.itemName}</strong></td><td>${it.qty}</td><td>${it.unit}</td></tr>`).join('');
+  openModal('view-iss-modal');
+}
+</script>
+</body>
+</html>

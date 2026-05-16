@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Items – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>(function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();</script>
+</head>
+<body>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Masters / <span>Inventory Items</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="page-content" id="page-content"></div>
+  </div>
+</div>
+<script src="../js/app.js"></script>
+<script src="../js/masters.js"></script>
+<script>
+new MasterPage({
+  key:          'sg360_inv_items',
+  dataFile:     '../data/inventory-items-master.json',
+  activeModule: 'invitems',
+  title:        'Inventory Items',
+  subtitle:     'Master catalogue of all inventory items tracked across the resort',
+  itemLabel:    'Inventory Item',
+  idPrefix:     'ITM',
+  idField:      'itemId',
+  pageSize:     10,
+
+  stats: [
+    { label: 'Total Items',      color: 'green' },
+    { label: 'Active',           color: 'teal',   filterKey: 'status',   filterValue: 'Active' },
+    { label: 'Housekeeping',     color: 'blue',   filterKey: 'category', filterValue: 'Housekeeping' },
+    { label: 'Low Stock Items',  color: 'red',    countFn: all => all.filter(i => i.currentStock !== undefined && i.minStock !== undefined && Number(i.currentStock) <= Number(i.minStock)).length }
+  ],
+
+  columns: [
+    { key: 'itemId',       label: 'Item ID',   type: 'id' },
+    { key: 'name',         label: 'Item Name', type: 'bold' },
+    { key: 'category',     label: 'Category',  type: 'badge' },
+    { key: 'unit',         label: 'Unit',      type: 'muted' },
+    { key: 'minStock',     label: 'Min. Stock',type: 'number' },
+    { key: 'description',  label: 'Description',type: 'muted' }
+  ],
+
+  searchKeys: ['name', 'itemId', 'category', 'unit', 'description'],
+
+  filters: [
+    { field: 'category', label: 'Categories', options: ['Housekeeping', 'Room Service', 'Food & Beverage', 'Maintenance', 'Sports', 'Events'] },
+    { field: 'status',   label: 'Status',     options: ['Active', 'Inactive'] }
+  ],
+
+  fields: [
+    { name: 'name',        label: 'Item Name',     type: 'text',     required: true,  placeholder: 'e.g. Bath Towels' },
+    { name: 'category',    label: 'Category',      type: 'select',   required: true,  options: ['Housekeeping', 'Room Service', 'Food & Beverage', 'Maintenance', 'Sports', 'Events'] },
+    { name: 'unit',        label: 'Unit',          type: 'select',   required: true,  options: ['pcs', 'sets', 'litres', 'kg', 'boxes', 'rolls', 'pairs', 'bottles', 'packets'] },
+    { name: 'minStock',    label: 'Minimum Stock', type: 'number',   required: false, placeholder: 'Reorder threshold' },
+    { name: 'description', label: 'Description',   type: 'textarea', required: false, full: true, placeholder: 'Item description and specifications' }
+  ]
+}).init();
+</script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mobile Apps – SmartGate 360</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(160deg,#0d2b1a 0%,#1a3d2b 40%,#2d7a4f 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
+.header{text-align:center;margin-bottom:48px}
+.logo{width:60px;height:60px;background:rgba(255,255,255,.15);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.logo svg{width:30px;height:30px;fill:none;stroke:#fff;stroke-width:2}
+h1{color:#fff;font-size:28px;font-weight:800;margin-bottom:6px}
+p{color:rgba(255,255,255,.6);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:840px;width:100%}
+.app-card{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);border-radius:20px;padding:24px;text-decoration:none;transition:all .2s;display:flex;flex-direction:column;gap:14px;backdrop-filter:blur(10px)}
+.app-card:hover{background:rgba(255,255,255,.18);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.3)}
+.app-icon{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.app-name{color:#fff;font-size:16px;font-weight:800}
+.app-desc{color:rgba(255,255,255,.6);font-size:12px;line-height:1.5}
+.app-tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);margin-top:auto}
+.accountant-card{grid-column:span 3;flex-direction:row;align-items:center;gap:20px}
+.accountant-card .app-icon{flex-shrink:0;width:60px;height:60px;font-size:30px}
+.accountant-card .app-info{flex:1}
+.accountant-card .app-desc{max-width:500px}
+.accountant-card .app-tag{background:rgba(52,152,219,.3);color:#87ceeb}
+footer{color:rgba(255,255,255,.35);font-size:11px;margin-top:40px;text-align:center}
+@media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.accountant-card{grid-column:span 2}}
+@media(max-width:500px){.grid{grid-template-columns:1fr}.accountant-card{grid-column:span 1;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+  <h1>SmartGate 360 Mobile Apps</h1>
+  <p>Role-based mobile interfaces for Oleander Farms operations</p>
+</div>
+<div class="grid">
+  <a class="app-card" href="fleet-manager-app.html">
+    <div class="app-icon" style="background:rgba(46,125,80,.4)">🚗</div>
+    <div>
+      <div class="app-name">Fleet Manager</div>
+      <div class="app-desc">Monitor all vehicles, approve driver expenses, track active trips, manage driver roster</div>
+    </div>
+    <span class="app-tag">Mobile App</span>
+  </a>
+  <a class="app-card" href="driver-app.html">
+    <div class="app-icon" style="background:rgba(230,126,34,.25)">🧑‍✈️</div>
+    <div>
+      <div class="app-name">Driver / Valet</div>
+      <div class="app-desc">Start/end trips, log fuel &amp; toll expenses, shift check-in with inspection photos</div>
+    </div>
+    <span class="app-tag">Mobile App</span>
+  </a>
+  <a class="app-card" href="fuel-manager-app.html">
+    <div class="app-icon" style="background:rgba(52,152,219,.25)">⛽</div>
+    <div>
+      <div class="app-name">Fuel Manager</div>
+      <div class="app-desc">Log fuel fills, monitor fleet fuel levels, track consumption, generate usage reports</div>
+    </div>
+    <span class="app-tag">Mobile App</span>
+  </a>
+  <a class="app-card" href="security-supervisor-app.html">
+    <div class="app-icon" style="background:rgba(231,76,60,.25)">🛡️</div>
+    <div>
+      <div class="app-name">Security Supervisor</div>
+      <div class="app-desc">Gate control &amp; toggle, live visitor tracking, blacklist alerts, security incident management</div>
+    </div>
+    <span class="app-tag">Mobile App</span>
+  </a>
+  <a class="app-card accountant-card" href="accountant-panel.html">
+    <div class="app-icon" style="background:rgba(155,89,182,.3)">🧾</div>
+    <div class="app-info">
+      <div class="app-name">Accountant Panel — Expense Reimbursement</div>
+      <div class="app-desc">View all approved expense claims from fleet operations. Settle reimbursements by NEFT, cash, or UPI. Track monthly expenditure by driver, vehicle, and expense type.</div>
+    </div>
+    <span class="app-tag">Web Panel</span>
+  </a>
+</div>
+<footer>SmartGate 360 · Oleander Farms · All roles accessible via demo credentials</footer>
+</body>
+</html>

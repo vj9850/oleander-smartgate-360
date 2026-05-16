@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Management – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>(function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();</script>
+</head>
+<body>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Masters / <span>Event Management</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="page-content" id="page-content"></div>
+  </div>
+</div>
+<script src="../js/app.js"></script>
+<script src="../js/masters.js"></script>
+<script>
+new MasterPage({
+  key:          'sg360_events',
+  dataFile:     '../data/events.json',
+  activeModule: 'event',
+  title:        'Event Management',
+  subtitle:     'Manage scheduled events, functions and gatherings at Oleander Farms',
+  itemLabel:    'Event',
+  idPrefix:     'EVT',
+  idField:      'eventId',
+  pageSize:     10,
+
+  stats: [
+    { label: 'Total Events',    color: 'green' },
+    { label: 'Active',          color: 'teal',   filterKey: 'status', filterValue: 'Active' },
+    { label: 'Weddings',        color: 'purple', filterKey: 'eventType', filterValue: 'Wedding' },
+    { label: 'Total Expected',  color: 'blue',   countFn: all => all.filter(e => e.status === 'Active').reduce((s, e) => s + (Number(e.expectedVisitors) || 0), 0) }
+  ],
+
+  columns: [
+    { key: 'eventId',          label: 'Event ID',  type: 'id' },
+    { key: 'name',             label: 'Event Name',type: 'bold' },
+    { key: 'eventType',        label: 'Type',      type: 'badge' },
+    { key: 'organizer',        label: 'Organizer', type: 'muted' },
+    { key: 'eventDate',        label: 'Date',      type: 'date' },
+    { key: 'eventLocation',    label: 'Venue',     type: 'muted' },
+    { key: 'expectedVisitors', label: 'Expected',  type: 'number' }
+  ],
+
+  searchKeys: ['name', 'eventId', 'eventType', 'organizer', 'eventLocation', 'contactNumber'],
+
+  filters: [
+    { field: 'eventType', label: 'Event Types', options: ['Wedding', 'Corporate Event', 'Private Party', 'Festival', 'Conference'] },
+    { field: 'status',    label: 'Status',      options: ['Active', 'Inactive'] }
+  ],
+
+  fields: [
+    { name: 'name',             label: 'Event Name',       type: 'text',   required: true,  full: true, placeholder: 'e.g. Sharma–Iyer Wedding' },
+    { name: 'eventType',        label: 'Event Type',       type: 'select', required: true,  options: ['Wedding', 'Corporate Event', 'Private Party', 'Festival', 'Conference'] },
+    { name: 'organizer',        label: 'Organizer Name',   type: 'text',   required: true,  placeholder: 'Event organizer or contact name' },
+    { name: 'contactNumber',    label: 'Contact Number',   type: 'tel',    required: true,  placeholder: '10-digit mobile' },
+    { name: 'eventDate',        label: 'Event Date',       type: 'date',   required: true  },
+    { name: 'eventLocation',    label: 'Event Venue',      type: 'select', required: true,  options: ['Wedding Venue', 'Corporate Events Hall', 'Lawn & Pool Area', 'Waves Pool Bar', 'Saltt Restaurant', 'Amphitheatre', 'Conference Room', 'Outdoor Pavilion'] },
+    { name: 'expectedVisitors', label: 'Expected Visitors',type: 'number', required: false, placeholder: 'Estimated guest count' }
+  ]
+}).init();
+</script>
+</body>
+</html>

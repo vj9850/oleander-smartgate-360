@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accountant Panel – SmartGate 360</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f4f7f5;min-height:100vh;display:flex;flex-direction:column}
+/* ── Top bar ── */
+.topbar{background:#1a3d2b;padding:0 24px;height:60px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.tb-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.tb-icon{width:32px;height:32px;background:#2d7a4f;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tb-name{color:#fff;font-size:15px;font-weight:800}
+.tb-sub{color:rgba(255,255,255,.45);font-size:10px;font-weight:500}
+.tb-title{flex:1;color:#fff;font-size:14px;font-weight:700;margin-left:8px;padding-left:14px;border-left:1px solid rgba(255,255,255,.18)}
+.tb-right{display:flex;align-items:center;gap:10px}
+.tb-date{color:rgba(255,255,255,.55);font-size:11.5px}
+.user-chip{background:rgba(255,255,255,.1);border-radius:8px;padding:5px 10px;display:flex;align-items:center;gap:8px}
+.u-ava{width:26px;height:26px;border-radius:6px;background:#4caf7d;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff}
+.u-name{color:#fff;font-size:12px;font-weight:700}
+.u-role{color:rgba(255,255,255,.5);font-size:10px}
+.back-btn{color:rgba(255,255,255,.7);text-decoration:none;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.15);transition:background .15s}
+.back-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+/* ── Layout ── */
+.layout{display:flex;flex:1;min-height:calc(100vh - 60px)}
+/* ── Sidebar ── */
+.sidebar{width:230px;background:#fff;border-right:1.5px solid #e0ece5;padding:20px 0;flex-shrink:0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+.nav-lbl{font-size:10px;font-weight:700;color:#8fa898;text-transform:uppercase;letter-spacing:.7px;padding:12px 20px 5px;display:block}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:1px 8px;border-radius:10px;cursor:pointer;transition:background .14s;text-decoration:none}
+.ni:hover{background:#f4f7f5}
+.ni.on{background:#e8f5ee}
+.ni-ico{width:18px;height:18px;fill:none;stroke:#8fa898;stroke-width:2;flex-shrink:0}
+.ni.on .ni-ico{stroke:#2d7a4f}
+.ni-lbl{font-size:13px;font-weight:600;color:#5a7a65}
+.ni.on .ni-lbl{color:#2d7a4f;font-weight:700}
+.ni-badge{margin-left:auto;background:#e8f5ee;color:#2d7a4f;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;min-width:22px;text-align:center}
+.ni-badge-warn{background:#fef3e2;color:#e67e22}
+.ni-badge-red{background:#fee2e2;color:#dc2626}
+/* ── Main ── */
+.main{flex:1;padding:28px;overflow-y:auto}
+.page{display:none}
+.page.on{display:block}
+/* ── Page header ── */
+.ph{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.ph-left h2{font-size:22px;font-weight:800;color:#1a2e22}
+.ph-left p{font-size:13px;color:#8fa898;margin-top:3px}
+.ph-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;font-family:inherit;border:none;cursor:pointer;transition:background .15s,box-shadow .15s,transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:#2d7a4f;color:#fff}
+.btn-primary:hover{background:#1f5c3a;box-shadow:0 4px 14px rgba(45,122,79,.3)}
+.btn-secondary{background:#e8f5ee;color:#2d7a4f;border:1.5px solid #b8e6cc}
+.btn-secondary:hover{background:#d4eedd;border-color:#4caf7d}
+.btn-danger{background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5}
+.btn-danger:hover{background:#fecaca}
+.btn-warn{background:#fef3e2;color:#d97706;border:1.5px solid #fde68a}
+.btn-warn:hover{background:#fde68a}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:7px}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+/* ── Stat cards ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.sc{background:#fff;border-radius:14px;padding:18px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.sc-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:18px}
+.sc-val{font-size:22px;font-weight:800;color:#1a2e22;line-height:1}
+.sc-lbl{font-size:12px;color:#8fa898;margin-top:5px}
+.sc-trend{font-size:11.5px;font-weight:600;margin-top:8px}
+.sc-trend.up{color:#16a34a}
+.sc-trend.dn{color:#dc2626}
+/* ── Filter bar ── */
+.fbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.fbar-pills{display:flex;gap:6px;flex-wrap:wrap}
+.pl{padding:6px 14px;border-radius:100px;font-size:12px;font-weight:700;background:#e8f5ee;color:#5a7a65;border:1.5px solid #d0e8d9;cursor:pointer;transition:all .14s;font-family:inherit}
+.pl:hover{background:#d4eedd;border-color:#4caf7d}
+.pl.on{background:#2d7a4f;color:#fff;border-color:#2d7a4f}
+.fbar-search{flex:1;min-width:180px;max-width:280px;position:relative}
+.fbar-search input{width:100%;height:36px;padding:0 12px 0 34px;border:1.5px solid #d0e8d9;border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:#1a2e22;transition:border .15s}
+.fbar-search input:focus{border-color:#2d7a4f}
+.fbar-search-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:#8fa898;fill:none;stroke-width:2;pointer-events:none}
+/* ── Table ── */
+.tbl-wrap{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{padding:12px 16px;font-size:11px;font-weight:700;color:#8fa898;text-transform:uppercase;letter-spacing:.5px;background:#f8fcfa;border-bottom:1.5px solid #e8f5ee;text-align:left;white-space:nowrap}
+.tbl td{padding:13px 16px;font-size:13px;color:#1a2e22;border-bottom:1px solid #f0f7f3;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#fafdf9}
+.tbl-empty{text-align:center;padding:40px 20px;color:#8fa898;font-size:13px}
+/* ── Status badges ── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:11.5px;font-weight:700}
+.badge-pending{background:#fef3e2;color:#d97706}
+.badge-approved{background:#dcfce7;color:#16a34a}
+.badge-settled{background:#dbeafe;color:#2563eb}
+.badge-rejected{background:#fee2e2;color:#dc2626}
+/* ── Priority ── */
+.pri{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pri-high{background:#dc2626}
+.pri-med{background:#d97706}
+.pri-low{background:#16a34a}
+/* ── Category tags ── */
+.ctag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:#f0f7f3;color:#3d7a5a}
+/* ── Modal overlay ── */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}
+.mbox{background:#fff;border-radius:18px;padding:0;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,.22);animation:mIn .22s ease;overflow:hidden;max-height:90vh;display:flex;flex-direction:column}
+@keyframes mIn{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:none}}
+.mhead{padding:20px 24px 16px;border-bottom:1px solid #e8f5ee;display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0}
+.mhead-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;margin-right:12px}
+.mhead-text h3{font-size:16px;font-weight:800;color:#1a2e22}
+.mhead-text p{font-size:12px;color:#8fa898;margin-top:3px}
+.mhead-left{display:flex;align-items:flex-start}
+.mclose{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;transition:background .14s;line-height:0}
+.mclose:hover{background:#f0f7f3}
+.mclose svg{width:18px;height:18px;stroke:#8fa898;fill:none;stroke-width:2}
+.mbody{padding:20px 24px;overflow-y:auto;flex:1}
+.mfooter{padding:14px 24px;border-top:1px solid #e8f5ee;display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
+/* ── Form fields ── */
+.fg{margin-bottom:15px}
+.fg label{display:block;font-size:11.5px;font-weight:700;color:#5a7a65;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 13px;border:1.5px solid #d0e8d9;border-radius:9px;font-size:13.5px;font-family:inherit;color:#1a2e22;outline:none;background:#fff;transition:border .15s,box-shadow .15s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#2d7a4f;box-shadow:0 0 0 3px rgba(45,122,79,.1)}
+.fg textarea{resize:vertical;min-height:70px}
+.fg select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238fa898' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer}
+.fg-err{font-size:11.5px;color:#dc2626;margin-top:4px;display:none}
+.ferr .fg-err{display:block}
+.ferr input,.ferr select,.ferr textarea{border-color:#dc2626}
+/* ── Expense detail card (inside modal) ── */
+.exp-detail{background:#f8fcfa;border-radius:12px;padding:14px;margin-bottom:16px}
+.exp-detail-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #e8f5ee;font-size:13px}
+.exp-detail-row:last-child{border-bottom:none}
+.exp-detail-row .edl{color:#8fa898;font-weight:600}
+.exp-detail-row .edr{color:#1a2e22;font-weight:700}
+.exp-detail-row .edr.amt{color:#2d7a4f;font-size:15px}
+/* ── Toast ── */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:11px 20px;border-radius:10px;font-size:13px;font-weight:700;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.22);opacity:0;transition:opacity .25s;z-index:9999;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1}
+/* ── Charts / summary bars ── */
+.sum-bar-wrap{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:18px}
+.sum-bar-wrap h4{font-size:14px;font-weight:800;color:#1a2e22;margin-bottom:14px}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:12.5px}
+.bar-lbl{width:90px;color:#5a7a65;font-weight:600;text-align:right;flex-shrink:0}
+.bar-bg{flex:1;height:10px;background:#e8f5ee;border-radius:100px;overflow:hidden}
+.bar-fill{height:100%;background:#2d7a4f;border-radius:100px;transition:width .5s ease}
+.bar-val{width:70px;color:#1a2e22;font-weight:700;flex-shrink:0}
+/* ── Activity feed ── */
+.activity-list{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.activity-list h4{font-size:14px;font-weight:800;color:#1a2e22;margin-bottom:14px}
+.act-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f0f7f3}
+.act-item:last-child{border-bottom:none}
+.act-dot{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.act-body{flex:1;font-size:12.5px}
+.act-title{font-weight:700;color:#1a2e22;margin-bottom:2px}
+.act-sub{color:#8fa898;line-height:1.4}
+.act-time{font-size:11px;color:#8fa898;margin-top:3px}
+/* ── Amount input group ── */
+.amt-preview{background:#e8f5ee;border-radius:8px;padding:10px 14px;font-size:13px;color:#2d7a4f;font-weight:700;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+/* ── Bulk actions ── */
+.bulk-bar{background:#1a3d2b;border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:12px;margin-bottom:14px;display:none}
+.bulk-bar.show{display:flex}
+.bulk-bar-info{color:#fff;font-size:13px;font-weight:700;flex:1}
+.bulk-bar-info span{color:#7dcea0}
+/* ── Pagination ── */
+.pgn{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-top:1.5px solid #e8f5ee;background:#fff;border-radius:0 0 14px 14px;font-size:12.5px;color:#8fa898}
+.pgn-btns{display:flex;gap:6px}
+.pgn-btn{padding:5px 12px;border-radius:7px;border:1.5px solid #d0e8d9;background:#fff;font-size:12px;font-weight:700;color:#5a7a65;cursor:pointer;transition:all .13s;font-family:inherit}
+.pgn-btn:hover:not(:disabled){background:#e8f5ee;border-color:#4caf7d;color:#2d7a4f}
+.pgn-btn:disabled{opacity:.4;cursor:not-allowed}
+.pgn-btn.cur{background:#2d7a4f;color:#fff;border-color:#2d7a4f}
+/* ── Responsive ── */
+@media(max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:820px){.sidebar{display:none}.main{padding:18px}}
+@media(max-width:600px){.stats{grid-template-columns:1fr}.ph{flex-direction:column;align-items:flex-start}}
+/* ── Auth Overlay ── */
+.mob-auth{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#0a2016,#1a3d2b,#2a6a42);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.auth-box{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:22px;padding:36px 32px;display:flex;flex-direction:column;align-items:center;width:100%;max-width:340px}
+.auth-app-icon{font-size:54px;margin-bottom:10px;line-height:1}
+.auth-app-name{color:#fff;font-size:21px;font-weight:800;text-align:center}
+.auth-app-sub{color:rgba(255,255,255,.45);font-size:10px;text-align:center;margin-top:3px;margin-bottom:24px}
+.auth-uid-inp{width:100%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:11px;padding:11px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;margin-bottom:16px;text-align:center;letter-spacing:.5px}
+.auth-uid-inp::placeholder{color:rgba(255,255,255,.3)}
+.auth-uid-inp:focus{border-color:rgba(74,222,128,.5);background:rgba(255,255,255,.14)}
+.auth-pin-row{display:flex;gap:14px;justify-content:center;margin-bottom:18px}
+.auth-pd{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,.3);transition:all .12s}
+.auth-pd.on{background:#4ade80;border-color:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.2)}
+.auth-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:100%}
+.auth-k{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.12);color:#fff;font-size:20px;font-weight:700;border-radius:13px;padding:14px 0;cursor:pointer;transition:all .12s;font-family:inherit;user-select:none}
+.auth-k:active,.auth-k:hover{background:rgba(74,222,128,.2);border-color:rgba(74,222,128,.35)}
+.auth-k.k-del{font-size:16px}
+.auth-k.k-ok{background:rgba(74,222,128,.18);border-color:rgba(74,222,128,.3);color:#4ade80}
+.auth-err{color:#fca5a5;font-size:11px;font-weight:700;text-align:center;min-height:16px;margin-top:10px}
+.auth-hint{color:rgba(255,255,255,.22);font-size:10px;text-align:center;margin-top:14px;line-height:1.7}
+.tb-lock-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 12px;color:rgba(255,255,255,.7);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .14s;font-family:inherit}
+.tb-lock-btn:hover{background:rgba(255,255,255,.18);color:#fff}
+.tb-lock-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2}
+@keyframes authShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+</style>
+</head>
+<body>
+
+<!-- ── AUTH OVERLAY ── -->
+<div class="mob-auth" id="mob-auth">
+  <div class="auth-box">
+    <div class="auth-app-icon">🧾</div>
+    <div class="auth-app-name">Accountant Panel</div>
+    <div class="auth-app-sub">Oleander Farms · SmartGate 360</div>
+    <input class="auth-uid-inp" id="auth-uid" placeholder="Employee ID (e.g. AC001)" autocomplete="off" autocapitalize="characters" />
+    <div class="auth-pin-row">
+      <div class="auth-pd" id="ap0"></div>
+      <div class="auth-pd" id="ap1"></div>
+      <div class="auth-pd" id="ap2"></div>
+      <div class="auth-pd" id="ap3"></div>
+    </div>
+    <div class="auth-pad">
+      <button class="auth-k" onclick="authKey('1')">1</button>
+      <button class="auth-k" onclick="authKey('2')">2</button>
+      <button class="auth-k" onclick="authKey('3')">3</button>
+      <button class="auth-k" onclick="authKey('4')">4</button>
+      <button class="auth-k" onclick="authKey('5')">5</button>
+      <button class="auth-k" onclick="authKey('6')">6</button>
+      <button class="auth-k" onclick="authKey('7')">7</button>
+      <button class="auth-k" onclick="authKey('8')">8</button>
+      <button class="auth-k" onclick="authKey('9')">9</button>
+      <button class="auth-k k-del" onclick="authDel()">⌫</button>
+      <button class="auth-k" onclick="authKey('0')">0</button>
+      <button class="auth-k k-ok" onclick="authGo()">✓</button>
+    </div>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="auth-hint">Demo credentials<br>Employee ID: <strong style="color:rgba(255,255,255,.5)">AC001</strong> · PIN: <strong style="color:rgba(255,255,255,.5)">1234</strong></div>
+  </div>
+</div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <a href="../index.html" class="tb-logo">
+    <div class="tb-icon">🏡</div>
+    <div>
+      <div class="tb-name">SmartGate 360</div>
+      <div class="tb-sub">Oleander Farms</div>
+    </div>
+  </a>
+  <div class="tb-title">💼 Accountant Panel</div>
+  <div class="tb-right">
+    <span class="tb-date" id="tbDate"></span>
+    <button class="tb-lock-btn" onclick="authLock()">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Lock
+    </button>
+    <a href="../index.html" class="back-btn">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Login
+    </a>
+    <div class="user-chip">
+      <div class="u-ava">RA</div>
+      <div><div class="u-name">Riya Acharya</div><div class="u-role">Sr. Accountant</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <span class="nav-lbl">Overview</span>
+    <a class="ni on" onclick="nav('dash')" href="javascript:void(0)">
+      <svg class="ni-ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span class="ni-lbl">Dashboard</span>
+    </a>
+
+    <span class="nav-lbl">Expenses</span>
+    <a class="ni" onclick="nav('pending')" href="javascript:void(0)">
+      <svg class="ni-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <span class="ni-lbl">Pending Settlement</span>
+      <span class="ni-badge ni-badge-warn" id="nav-pending-badge">0</span>
+    </a>
+    <a class="ni" onclick="nav('settled')" href="javascript:void(0)">
+      <svg class="ni-ico" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span class="ni-lbl">Settled</span>
+    </a>
+    <a class="ni" onclick="nav('rejected')" href="javascript:void(0)">
+      <svg class="ni-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      <span class="ni-lbl">Rejected</span>
+    </a>
+    <a class="ni" onclick="nav('all')" href="javascript:void(0)">
+      <svg class="ni-ico" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></svg>
+      <span class="ni-lbl">All Expenses</span>
+    </a>
+
+    <span class="nav-lbl">Finance</span>
+    <a class="ni" onclick="nav('reports')" href="javascript:void(0)">
+      <svg class="ni-ico" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="ni-lbl">Reports</span>
+    </a>
+    <a class="ni" onclick="nav('budget')" href="javascript:void(0)">
+      <svg class="ni-ico" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 6v6l4 2"/></svg>
+      <span class="ni-lbl">Budget Tracker</span>
+    </a>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page on" id="pg-dash">
+      <div class="ph">
+        <div class="ph-left">
+          <h2>Dashboard</h2>
+          <p>Financial overview – SmartGate 360</p>
+        </div>
+        <div class="ph-right">
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV('all')">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="nav('pending')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            Settle Pending
+          </button>
+        </div>
+      </div>
+      <div class="stats" id="dash-stats"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px" id="dash-charts"></div>
+      <div id="dash-activity"></div>
+    </div>
+
+    <!-- ── PENDING ── -->
+    <div class="page" id="pg-pending">
+      <div class="ph">
+        <div class="ph-left">
+          <h2>Pending Settlement</h2>
+          <p>Approved expenses awaiting payment</p>
+        </div>
+        <div class="ph-right">
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV('approved')">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="settleAll()">
+            <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Settle All
+          </button>
+        </div>
+      </div>
+      <div class="fbar">
+        <div class="fbar-pills" id="pending-pills">
+          <button class="pl on" onclick="filterPending(this,'all')">All</button>
+          <button class="pl" onclick="filterPending(this,'driver')">Driver</button>
+          <button class="pl" onclick="filterPending(this,'fuel')">Fuel</button>
+          <button class="pl" onclick="filterPending(this,'maintenance')">Maintenance</button>
+          <button class="pl" onclick="filterPending(this,'other')">Other</button>
+        </div>
+        <div class="fbar-search">
+          <svg class="fbar-search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search expenses…" oninput="searchPending(this.value)" id="pending-search">
+        </div>
+      </div>
+      <div id="bulk-bar" class="bulk-bar">
+        <div class="bulk-bar-info"><span id="bulk-count">0</span> items selected</div>
+        <button class="btn btn-secondary btn-sm" onclick="clearSelection()">Clear</button>
+        <button class="btn btn-primary btn-sm" onclick="settleSelected()">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Settle Selected
+        </button>
+      </div>
+      <div class="tbl-wrap" id="pending-table"></div>
+    </div>
+
+    <!-- ── SETTLED ── -->
+    <div class="page" id="pg-settled">
+      <div class="ph">
+        <div class="ph-left">
+          <h2>Settled Expenses</h2>
+          <p>Paid and completed reimbursements</p>
+        </div>
+        <div class="ph-right">
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV('settled')">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+      <div class="fbar">
+        <div class="fbar-search">
+          <svg class="fbar-search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search settled expenses…" oninput="searchSettled(this.value)">
+        </div>
+      </div>
+      <div class="tbl-wrap" id="settled-table"></div>
+    </div>
+
+    <!-- ── REJECTED ── -->
+    <div class="page" id="pg-rejected">
+      <div class="ph">
+        <div class="ph-left">
+          <h2>Rejected Expenses</h2>
+          <p>Expenses that were declined</p>
+        </div>
+        <div class="ph-right">
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV('rejected')">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+      <div class="fbar">
+        <div class="fbar-search">
+          <svg class="fbar-search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search rejected expenses…" oninput="searchRejected(this.value)">
+        </div>
+      </div>
+      <div class="tbl-wrap" id="rejected-table"></div>
+    </div>
+
+    <!-- ── ALL ── -->
+    <div class="page" id="pg-all">
+      <div class="ph">
+        <div class="ph-left">
+          <h2>All Expenses</h2>
+          <p>Complete expense ledger</p>
+        </div>
+        <div class="ph-right">
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV('all')">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+      <div class="fbar">
+        <div class="fbar-pills">
+          <button class="pl on" onclick="filterAll(this,'all')">All</button>
+          <button class="pl" onclick="filterAll(this,'approved')">Approved</button>
+          <button class="pl" onclick="filterAll(this,'settled')">Settled</button>
+          <button class="pl" onclick="filterAll(this,'rejected')">Rejected</button>
+        </div>
+        <div class="fbar-search">
+          <svg class="fbar-search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search all expenses…" oninput="searchAll(this.value)">
+        </div>
+      </div>
+      <div class="tbl-wrap" id="all-table"></div>
+    </div>
+
+    <!-- ── REPORTS ── -->
+    <div class="page" id="pg-reports">
+      <div class="ph">
+        <div class="ph-left">
+          <h2>Financial Reports</h2>
+          <p>Monthly expense breakdown and analytics</p>
+        </div>
+        <div class="ph-right">
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV('all')">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Report
+          </button>
+        </div>
+      </div>
+      <div id="reports-content"></div>
+    </div>
+
+    <!-- ── BUDGET ── -->
+    <div class="page" id="pg-budget">
+      <div class="ph">
+        <div class="ph-left">
+          <h2>Budget Tracker</h2>
+          <p>Monthly budget vs actual spend</p>
+        </div>
+      </div>
+      <div id="budget-content"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── SETTLE MODAL ── -->
+<div class="modal" id="settle-modal">
+  <div class="mbox">
+    <div class="mhead">
+      <div class="mhead-left">
+        <div class="mhead-ico" style="background:#dcfce7">✅</div>
+        <div class="mhead-text">
+          <h3>Settle Expense</h3>
+          <p id="settle-sub">Enter payment details</p>
+        </div>
+      </div>
+      <button class="mclose" onclick="closeModal('settle-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="mbody">
+      <div id="settle-exp-detail"></div>
+      <div class="fg">
+        <label>Payment Method *</label>
+        <select id="s-method">
+          <option value="">— Select method —</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Cash">Cash</option>
+          <option value="Cheque">Cheque</option>
+          <option value="UPI">UPI</option>
+          <option value="NEFT">NEFT</option>
+        </select>
+        <div class="fg-err">Please select a payment method</div>
+      </div>
+      <div class="fg">
+        <label>Reference / Transaction ID</label>
+        <input type="text" id="s-ref" placeholder="e.g. TXN2026031201 (optional)">
+      </div>
+      <div class="fg">
+        <label>Settlement Amount (₹) *</label>
+        <input type="number" id="s-amount" placeholder="0.00" min="1">
+        <div class="fg-err">Enter a valid amount</div>
+      </div>
+      <div class="fg">
+        <label>Settlement Date *</label>
+        <input type="date" id="s-date">
+        <div class="fg-err">Select a date</div>
+      </div>
+      <div class="fg">
+        <label>Remarks</label>
+        <textarea id="s-remarks" placeholder="Optional notes…" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="mfooter">
+      <button class="btn btn-secondary" onclick="closeModal('settle-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmSettle()">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Confirm Settlement
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── REJECT MODAL ── -->
+<div class="modal" id="reject-modal">
+  <div class="mbox">
+    <div class="mhead">
+      <div class="mhead-left">
+        <div class="mhead-ico" style="background:#fee2e2">❌</div>
+        <div class="mhead-text">
+          <h3>Reject Expense</h3>
+          <p id="reject-sub">Provide a reason for rejection</p>
+        </div>
+      </div>
+      <button class="mclose" onclick="closeModal('reject-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="mbody">
+      <div id="reject-exp-detail"></div>
+      <div class="fg">
+        <label>Rejection Reason *</label>
+        <select id="r-reason">
+          <option value="">— Select reason —</option>
+          <option value="Duplicate expense">Duplicate expense</option>
+          <option value="Missing receipt / documentation">Missing receipt / documentation</option>
+          <option value="Exceeds approved limit">Exceeds approved limit</option>
+          <option value="Not a valid business expense">Not a valid business expense</option>
+          <option value="Out of policy">Out of policy</option>
+          <option value="Requires GM approval">Requires GM approval</option>
+          <option value="Other">Other</option>
+        </select>
+        <div class="fg-err">Select a reason</div>
+      </div>
+      <div class="fg">
+        <label>Additional Notes</label>
+        <textarea id="r-notes" placeholder="Explain the rejection (optional)…" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="mfooter">
+      <button class="btn btn-secondary" onclick="closeModal('reject-modal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmReject()">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        Reject Expense
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SETTLE ALL CONFIRM MODAL ── -->
+<div class="modal" id="settle-all-modal">
+  <div class="mbox">
+    <div class="mhead">
+      <div class="mhead-left">
+        <div class="mhead-ico" style="background:#dbeafe">💸</div>
+        <div class="mhead-text">
+          <h3>Settle All Pending</h3>
+          <p>Process all approved expenses at once</p>
+        </div>
+      </div>
+      <button class="mclose" onclick="closeModal('settle-all-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="mbody">
+      <div class="amt-preview">
+        <span>Total Amount to Settle</span>
+        <span id="settle-all-total">₹0</span>
+      </div>
+      <div class="fg">
+        <label>Payment Method *</label>
+        <select id="sa-method">
+          <option value="">— Select method —</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Cash">Cash</option>
+          <option value="Cheque">Cheque</option>
+          <option value="UPI">UPI</option>
+          <option value="NEFT">NEFT</option>
+        </select>
+        <div class="fg-err">Please select a payment method</div>
+      </div>
+      <div class="fg">
+        <label>Settlement Date *</label>
+        <input type="date" id="sa-date">
+        <div class="fg-err">Select a date</div>
+      </div>
+      <div class="fg">
+        <label>Bulk Reference</label>
+        <input type="text" id="sa-ref" placeholder="e.g. BULK-2026-0321 (optional)">
+      </div>
+    </div>
+    <div class="mfooter">
+      <button class="btn btn-secondary" onclick="closeModal('settle-all-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmSettleAll()">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Confirm Settle All
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── VIEW DETAIL MODAL ── -->
+<div class="modal" id="view-modal">
+  <div class="mbox" style="max-width:520px">
+    <div class="mhead">
+      <div class="mhead-left">
+        <div class="mhead-ico" style="background:#e8f5ee">🧾</div>
+        <div class="mhead-text">
+          <h3>Expense Details</h3>
+          <p id="view-sub">Full expense record</p>
+        </div>
+      </div>
+      <button class="mclose" onclick="closeModal('view-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="mbody" id="view-modal-body"></div>
+    <div class="mfooter">
+      <button class="btn btn-secondary" onclick="closeModal('view-modal')">Close</button>
+      <button class="btn btn-danger btn-sm" id="view-reject-btn" onclick="rejectFromView()">Reject</button>
+      <button class="btn btn-primary btn-sm" id="view-settle-btn" onclick="settleFromView()">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Settle
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ── MOBILE AUTH ──────────────────────────────────────────────────────────
+const MOB_AUTH_KEY='mob_ac_auth';
+let _authPin='';
+(function(){if(sessionStorage.getItem(MOB_AUTH_KEY)==='ok')document.getElementById('mob-auth').style.display='none'})();
+function authLock(){const el=document.getElementById('mob-auth');el.style.display='flex';_authPin='';_authUpdDots();document.getElementById('auth-err').textContent='';document.getElementById('auth-uid').value=''}
+function authKey(d){if(_authPin.length>=4)return;_authPin+=d;_authUpdDots();if(_authPin.length===4)setTimeout(authGo,180)}
+function authDel(){_authPin=_authPin.slice(0,-1);_authUpdDots();document.getElementById('auth-err').textContent=''}
+function _authUpdDots(){for(let i=0;i<4;i++)document.getElementById('ap'+i).classList.toggle('on',i<_authPin.length)}
+function authGo(){
+  const uid=(document.getElementById('auth-uid').value||'').trim().toUpperCase();
+  if(['AC001','AC002','ACCOUNTS','RIYA','PRIYA'].includes(uid)&&_authPin==='1234'){
+    sessionStorage.setItem(MOB_AUTH_KEY,'ok');
+    document.getElementById('mob-auth').style.display='none';
+  } else {
+    document.getElementById('auth-err').textContent='Invalid Employee ID or PIN';
+    _authPin='';_authUpdDots();
+    const el=document.querySelector('.auth-box');
+    el.style.animation='authShake .35s';setTimeout(()=>el.style.animation='',350);
+  }
+}
+
+// ─── DB helpers ───────────────────────────────────
+const DB={
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+};
+
+// ─── Default expense data ────────────────────────
+const EXP_DEF=[
+  {id:'E001',submittedBy:'Rahul Singh',role:'Driver',category:'driver',description:'Toll charges – Mumbai Highway',amount:450,date:'2026-03-18',status:'approved',receipt:true,vehicle:'MH-12-AB-1234',notes:'Expressway toll both ways',priority:'low',approvedBy:'Fleet Mgr'},
+  {id:'E002',submittedBy:'Priya Sharma',role:'Driver',category:'fuel',description:'Diesel fill – Karjat pump',amount:3200,date:'2026-03-19',status:'approved',receipt:true,vehicle:'MH-12-CD-5678',notes:'80 litres @ ₹40/L',priority:'med',approvedBy:'Fleet Mgr'},
+  {id:'E003',submittedBy:'Ankit Verma',role:'Driver',category:'maintenance',description:'Tyre puncture repair',amount:850,date:'2026-03-17',status:'approved',receipt:false,vehicle:'MH-12-EF-9012',notes:'Front left tyre at service station',priority:'med',approvedBy:'Fleet Mgr'},
+  {id:'E004',submittedBy:'Suresh Kumar',role:'Driver',category:'driver',description:'Driver meal allowance – outstation trip',amount:600,date:'2026-03-20',status:'approved',receipt:true,vehicle:'MH-12-GH-3456',notes:'2 meals en route',priority:'low',approvedBy:'Fleet Mgr'},
+  {id:'E005',submittedBy:'Neha Joshi',role:'Fuel Manager',category:'fuel',description:'AdBlue purchase',amount:1500,date:'2026-03-16',status:'approved',receipt:true,vehicle:'MH-12-IJ-7890',notes:'20L AdBlue for diesel trucks',priority:'high',approvedBy:'Operations Mgr'},
+  {id:'E006',submittedBy:'Vijay Patil',role:'Driver',category:'maintenance',description:'Engine oil change',amount:2800,date:'2026-03-15',status:'settled',receipt:true,vehicle:'MH-12-KL-2345',notes:'Fully synthetic 5W-30',priority:'med',approvedBy:'Fleet Mgr',settledOn:'2026-03-16',settledVia:'Bank Transfer',settledRef:'TXN20260316A'},
+  {id:'E007',submittedBy:'Meena Desai',role:'Driver',category:'driver',description:'Parking charges – Pune trip',amount:320,date:'2026-03-14',status:'settled',receipt:true,vehicle:'MH-12-MN-6789',notes:'Multilevel parking 2 days',priority:'low',approvedBy:'Fleet Mgr',settledOn:'2026-03-15',settledVia:'Cash',settledRef:''},
+  {id:'E008',submittedBy:'Raju Nair',role:'Driver',category:'fuel',description:'CNG fill – Khopoli',amount:780,date:'2026-03-13',status:'rejected',receipt:false,vehicle:'MH-12-OP-0123',notes:'',priority:'low',approvedBy:null,rejectedReason:'Missing receipt / documentation',rejectedBy:'Accountant'},
+  {id:'E009',submittedBy:'Deepak Mehta',role:'Security',category:'other',description:'Uniform dry cleaning',amount:550,date:'2026-03-19',status:'approved',receipt:true,vehicle:null,notes:'4 sets of uniforms',priority:'low',approvedBy:'Security Sup'},
+  {id:'E010',submittedBy:'Sonal Agarwal',role:'Fleet Manager',category:'maintenance',description:'Brake pad replacement – Bolero',amount:4200,date:'2026-03-18',status:'approved',receipt:true,vehicle:'MH-12-QR-4567',notes:'Both front wheels',priority:'high',approvedBy:'GM'},
+  {id:'E011',submittedBy:'Kiran More',role:'Driver',category:'driver',description:'Overnight stay – Nashik trip',amount:1200,date:'2026-03-17',status:'approved',receipt:true,vehicle:'MH-12-ST-8901',notes:'Hotel stay as per policy',priority:'med',approvedBy:'Fleet Mgr'},
+  {id:'E012',submittedBy:'Amol Pawar',role:'Driver',category:'fuel',description:'Petrol – Innova Crysta',amount:2100,date:'2026-03-20',status:'approved',receipt:true,vehicle:'MH-12-UV-2345',notes:'52L for guest transfer',priority:'med',approvedBy:'Fleet Mgr'},
+];
+
+// ─── State ────────────────────────────────────────
+let expenses = DB.get('ap_expenses', EXP_DEF);
+let selectedIds = new Set();
+let currentViewId = null;
+let pendingFilter = 'all';
+let pendingSearch = '';
+let allFilter = 'all';
+let settledSearch = '';
+let rejectedSearch = '';
+let allSearch = '';
+
+function saveExpenses(){DB.set('ap_expenses',expenses)}
+
+// ─── Toast ────────────────────────────────────────
+function toast(msg,type='s'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=type==='s'?'#2d7a4f':type==='e'?'#dc2626':'#d97706';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ─── Navigation ───────────────────────────────────
+function nav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  document.getElementById('pg-'+page).classList.add('on');
+  document.querySelectorAll('.ni').forEach(n=>{
+    if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+page+"'")) n.classList.add('on');
+  });
+  if(page==='dash') renderDash();
+  if(page==='pending') renderPending();
+  if(page==='settled') renderSettled();
+  if(page==='rejected') renderRejected();
+  if(page==='all') renderAll();
+  if(page==='reports') renderReports();
+  if(page==='budget') renderBudget();
+}
+
+// ─── Modal ────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.modal').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')});
+});
+
+// ─── Formatters ───────────────────────────────────
+function fmt(n){return'₹'+Number(n).toLocaleString('en-IN')}
+function fmtDate(d){if(!d)return'—';const[y,m,dd]=d.split('-');const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return`${dd} ${months[+m-1]} ${y}`}
+function today(){return new Date().toISOString().split('T')[0]}
+function statusBadge(s){
+  const m={approved:'badge-approved',settled:'badge-settled',rejected:'badge-rejected'};
+  const l={approved:'Approved',settled:'Settled',rejected:'Rejected'};
+  return`<span class="badge ${m[s]||'badge-pending'}">${l[s]||s}</span>`;
+}
+function priDot(p){return`<span class="pri pri-${p||'low'}"></span>`}
+
+// ─── DASHBOARD ────────────────────────────────────
+function renderDash(){
+  const approved=expenses.filter(e=>e.status==='approved');
+  const settled=expenses.filter(e=>e.status==='settled');
+  const rejected=expenses.filter(e=>e.status==='rejected');
+  const pendingAmt=approved.reduce((a,e)=>a+e.amount,0);
+  const settledAmt=settled.reduce((a,e)=>a+e.amount,0);
+  const totalAmt=expenses.reduce((a,e)=>a+e.amount,0);
+
+  document.getElementById('nav-pending-badge').textContent=approved.length;
+
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="sc">
+      <div class="sc-ico" style="background:#fef3e2">💰</div>
+      <div class="sc-val">${fmt(pendingAmt)}</div>
+      <div class="sc-lbl">Pending Settlement</div>
+      <div class="sc-trend dn">▲ ${approved.length} expense${approved.length!==1?'s':''}</div>
+    </div>
+    <div class="sc">
+      <div class="sc-ico" style="background:#dcfce7">✅</div>
+      <div class="sc-val">${fmt(settledAmt)}</div>
+      <div class="sc-lbl">Total Settled (MTD)</div>
+      <div class="sc-trend up">▲ ${settled.length} settled</div>
+    </div>
+    <div class="sc">
+      <div class="sc-ico" style="background:#dbeafe">📋</div>
+      <div class="sc-val">${expenses.length}</div>
+      <div class="sc-lbl">Total Expenses</div>
+      <div class="sc-trend up">${fmt(totalAmt)} total value</div>
+    </div>
+    <div class="sc">
+      <div class="sc-ico" style="background:#fee2e2">❌</div>
+      <div class="sc-val">${rejected.length}</div>
+      <div class="sc-lbl">Rejected</div>
+      <div class="sc-trend">${fmt(rejected.reduce((a,e)=>a+e.amount,0))} declined</div>
+    </div>
+  `;
+
+  // Category breakdown
+  const cats=['driver','fuel','maintenance','other'];
+  const catLabels={driver:'Driver',fuel:'Fuel',maintenance:'Maint.',other:'Other'};
+  const catAmounts=cats.map(c=>approved.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0));
+  const maxCat=Math.max(...catAmounts,1);
+  const catBars=cats.map((c,i)=>`
+    <div class="bar-row">
+      <div class="bar-lbl">${catLabels[c]}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(catAmounts[i]/maxCat*100)}%;background:${['#2d7a4f','#2563eb','#d97706','#8b5cf6'][i]}"></div></div>
+      <div class="bar-val">${fmt(catAmounts[i])}</div>
+    </div>
+  `).join('');
+
+  // Role breakdown
+  const roles=[...new Set(approved.map(e=>e.role))];
+  const roleAmounts=roles.map(r=>approved.filter(e=>e.role===r).reduce((a,e)=>a+e.amount,0));
+  const maxRole=Math.max(...roleAmounts,1);
+  const roleBars=roles.map((r,i)=>`
+    <div class="bar-row">
+      <div class="bar-lbl">${r}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(roleAmounts[i]/maxRole*100)}%"></div></div>
+      <div class="bar-val">${fmt(roleAmounts[i])}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('dash-charts').innerHTML=`
+    <div class="sum-bar-wrap">
+      <h4>Pending by Category</h4>
+      ${catBars||'<p style="color:#8fa898;font-size:13px">No pending expenses</p>'}
+    </div>
+    <div class="sum-bar-wrap">
+      <h4>Pending by Role</h4>
+      ${roleBars||'<p style="color:#8fa898;font-size:13px">No pending expenses</p>'}
+    </div>
+  `;
+
+  // Recent activity
+  const recent=[...expenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
+  const actItems=recent.map(e=>{
+    const icons={approved:'🟡',settled:'🟢',rejected:'🔴'};
+    const colors={approved:'#fef3e2',settled:'#dcfce7',rejected:'#fee2e2'};
+    return`<div class="act-item">
+      <div class="act-dot" style="background:${colors[e.status]||'#f0f0f0'}">${icons[e.status]||'⚪'}</div>
+      <div class="act-body">
+        <div class="act-title">${e.description}</div>
+        <div class="act-sub">${e.submittedBy} · ${e.role} · ${fmt(e.amount)}</div>
+        <div class="act-time">${fmtDate(e.date)} · ${statusBadge(e.status)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('dash-activity').innerHTML=`
+    <div class="activity-list">
+      <h4>Recent Activity</h4>
+      ${actItems||'<p style="color:#8fa898;font-size:13px">No expenses yet</p>'}
+    </div>
+  `;
+}
+
+// ─── PENDING TABLE ────────────────────────────────
+function getPendingFiltered(){
+  return expenses.filter(e=>{
+    if(e.status!=='approved') return false;
+    if(pendingFilter!=='all'&&e.category!==pendingFilter) return false;
+    if(pendingSearch){
+      const s=pendingSearch.toLowerCase();
+      if(!e.description.toLowerCase().includes(s)&&!e.submittedBy.toLowerCase().includes(s)&&!e.id.toLowerCase().includes(s)) return false;
+    }
+    return true;
+  });
+}
+
+function renderPending(){
+  const list=getPendingFiltered();
+  document.getElementById('nav-pending-badge').textContent=expenses.filter(e=>e.status==='approved').length;
+  updateBulkBar();
+  let html=`<table class="tbl"><thead><tr>
+    <th><input type="checkbox" id="chk-all" onchange="toggleAll(this)"></th>
+    <th>ID</th><th>Description</th><th>Submitted By</th><th>Category</th><th>Amount</th><th>Date</th><th>Receipt</th><th>Actions</th>
+  </tr></thead><tbody>`;
+  if(!list.length){
+    html+=`<tr><td colspan="9" class="tbl-empty">🎉 No pending expenses – all settled!</td></tr>`;
+  } else {
+    list.forEach(e=>{
+      html+=`<tr>
+        <td><input type="checkbox" class="row-chk" data-id="${e.id}" ${selectedIds.has(e.id)?'checked':''} onchange="toggleSelect('${e.id}',this)"></td>
+        <td><b>${e.id}</b></td>
+        <td>
+          ${priDot(e.priority)}
+          <span style="margin-left:6px">${e.description}</span>
+          ${e.vehicle?`<br><small style="color:#8fa898">${e.vehicle}</small>`:''}
+        </td>
+        <td>
+          <b style="color:#1a2e22">${e.submittedBy}</b>
+          <br><small style="color:#8fa898">${e.role}</small>
+        </td>
+        <td><span class="ctag">${e.category}</span></td>
+        <td><b style="color:#2d7a4f;font-size:14px">${fmt(e.amount)}</b></td>
+        <td>${fmtDate(e.date)}</td>
+        <td>${e.receipt?'<span style="color:#16a34a;font-weight:700">✓ Yes</span>':'<span style="color:#dc2626;font-weight:700">✗ No</span>'}</td>
+        <td>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-secondary btn-sm" onclick="viewExp('${e.id}')">View</button>
+            <button class="btn btn-primary btn-sm" onclick="openSettle('${e.id}')">Settle</button>
+            <button class="btn btn-danger btn-sm" onclick="openReject('${e.id}')">Reject</button>
+          </div>
+        </td>
+      </tr>`;
+    });
+  }
+  html+=`</tbody></table>`;
+  if(list.length){
+    const total=list.reduce((a,e)=>a+e.amount,0);
+    html+=`<div class="pgn"><span>Showing ${list.length} record${list.length!==1?'s':''} · Total: <b style="color:#2d7a4f">${fmt(total)}</b></span></div>`;
+  }
+  document.getElementById('pending-table').innerHTML=html;
+}
+
+function filterPending(el,f){
+  pendingFilter=f;
+  document.querySelectorAll('#pending-pills .pl').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  selectedIds.clear();
+  renderPending();
+}
+function searchPending(v){pendingSearch=v;selectedIds.clear();renderPending()}
+
+// ─── SELECTION ────────────────────────────────────
+function toggleSelect(id,el){
+  if(el.checked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  updateBulkBar();
+  const allChk=document.getElementById('chk-all');
+  if(allChk){
+    const all=document.querySelectorAll('.row-chk');
+    allChk.checked=[...all].every(c=>c.checked);
+  }
+}
+function toggleAll(el){
+  const list=getPendingFiltered();
+  if(el.checked) list.forEach(e=>selectedIds.add(e.id));
+  else selectedIds.clear();
+  updateBulkBar();
+  document.querySelectorAll('.row-chk').forEach(c=>c.checked=el.checked);
+}
+function clearSelection(){selectedIds.clear();renderPending()}
+function updateBulkBar(){
+  const bar=document.getElementById('bulk-bar');
+  if(selectedIds.size>0){bar.classList.add('show');document.getElementById('bulk-count').textContent=selectedIds.size}
+  else bar.classList.remove('show');
+}
+
+// ─── SETTLE single ────────────────────────────────
+let currentSettleId=null;
+function openSettle(id){
+  currentSettleId=id;
+  const e=expenses.find(x=>x.id===id);
+  document.getElementById('settle-sub').textContent=`${e.submittedBy} · ${e.id}`;
+  document.getElementById('settle-exp-detail').innerHTML=expDetailHTML(e);
+  document.getElementById('s-method').value='';
+  document.getElementById('s-ref').value='';
+  document.getElementById('s-amount').value=e.amount;
+  document.getElementById('s-date').value=today();
+  document.getElementById('s-remarks').value='';
+  document.querySelectorAll('#settle-modal .fg').forEach(f=>f.classList.remove('ferr'));
+  openModal('settle-modal');
+}
+function confirmSettle(){
+  let ok=true;
+  const method=document.getElementById('s-method');
+  const amount=document.getElementById('s-amount');
+  const date=document.getElementById('s-date');
+  [method,amount,date].forEach(el=>{
+    const fg=el.closest('.fg');
+    if(!el.value){fg.classList.add('ferr');ok=false}
+    else fg.classList.remove('ferr');
+  });
+  if(!ok) return;
+  const idx=expenses.findIndex(e=>e.id===currentSettleId);
+  expenses[idx]={...expenses[idx],status:'settled',settledOn:document.getElementById('s-date').value,settledVia:document.getElementById('s-method').value,settledRef:document.getElementById('s-ref').value,settledAmount:parseFloat(document.getElementById('s-amount').value),settledRemarks:document.getElementById('s-remarks').value};
+  saveExpenses();
+  closeModal('settle-modal');
+  closeModal('view-modal');
+  renderPending();
+  renderDash();
+  toast(`✅ ${expenses[idx].id} settled via ${expenses[idx].settledVia}`,'s');
+}
+
+// ─── REJECT single ────────────────────────────────
+let currentRejectId=null;
+function openReject(id){
+  currentRejectId=id;
+  const e=expenses.find(x=>x.id===id);
+  document.getElementById('reject-sub').textContent=`${e.submittedBy} · ${e.id}`;
+  document.getElementById('reject-exp-detail').innerHTML=expDetailHTML(e);
+  document.getElementById('r-reason').value='';
+  document.getElementById('r-notes').value='';
+  document.querySelectorAll('#reject-modal .fg').forEach(f=>f.classList.remove('ferr'));
+  openModal('reject-modal');
+}
+function confirmReject(){
+  const reason=document.getElementById('r-reason');
+  const fg=reason.closest('.fg');
+  if(!reason.value){fg.classList.add('ferr');return}
+  fg.classList.remove('ferr');
+  const idx=expenses.findIndex(e=>e.id===currentRejectId);
+  expenses[idx]={...expenses[idx],status:'rejected',rejectedReason:reason.value,rejectedNotes:document.getElementById('r-notes').value,rejectedBy:'Accountant',rejectedOn:today()};
+  saveExpenses();
+  closeModal('reject-modal');
+  closeModal('view-modal');
+  renderPending();
+  renderDash();
+  toast(`❌ ${expenses[idx].id} rejected`,'e');
+}
+
+// ─── SETTLE ALL ───────────────────────────────────
+function settleAll(){
+  const list=expenses.filter(e=>e.status==='approved');
+  if(!list.length){toast('No pending expenses to settle','w');return}
+  const total=list.reduce((a,e)=>a+e.amount,0);
+  document.getElementById('settle-all-total').textContent=fmt(total);
+  document.getElementById('sa-method').value='';
+  document.getElementById('sa-date').value=today();
+  document.getElementById('sa-ref').value='';
+  document.querySelectorAll('#settle-all-modal .fg').forEach(f=>f.classList.remove('ferr'));
+  openModal('settle-all-modal');
+}
+function settleSelected(){
+  if(!selectedIds.size){return}
+  const list=expenses.filter(e=>selectedIds.has(e.id)&&e.status==='approved');
+  if(!list.length){toast('No approved expenses in selection','w');return}
+  const total=list.reduce((a,e)=>a+e.amount,0);
+  document.getElementById('settle-all-total').textContent=fmt(total)+` (${list.length} items)`;
+  document.getElementById('sa-method').value='';
+  document.getElementById('sa-date').value=today();
+  document.getElementById('sa-ref').value='';
+  openModal('settle-all-modal');
+}
+function confirmSettleAll(){
+  let ok=true;
+  const method=document.getElementById('sa-method');
+  const date=document.getElementById('sa-date');
+  [method,date].forEach(el=>{
+    const fg=el.closest('.fg');
+    if(!el.value){fg.classList.add('ferr');ok=false}
+    else fg.classList.remove('ferr');
+  });
+  if(!ok) return;
+  const ref=document.getElementById('sa-ref').value;
+  const via=method.value;
+  const dt=date.value;
+  const toSettle=selectedIds.size>0?[...selectedIds]:expenses.filter(e=>e.status==='approved').map(e=>e.id);
+  let count=0;
+  toSettle.forEach(id=>{
+    const idx=expenses.findIndex(e=>e.id===id&&e.status==='approved');
+    if(idx>=0){expenses[idx]={...expenses[idx],status:'settled',settledOn:dt,settledVia:via,settledRef:ref,settledAmount:expenses[idx].amount};count++;}
+  });
+  saveExpenses();
+  selectedIds.clear();
+  closeModal('settle-all-modal');
+  renderPending();
+  renderDash();
+  toast(`✅ ${count} expense${count!==1?'s':''} settled via ${via}`,'s');
+}
+
+// ─── VIEW ─────────────────────────────────────────
+function viewExp(id){
+  currentViewId=id;
+  const e=expenses.find(x=>x.id===id);
+  document.getElementById('view-sub').textContent=`${e.id} · ${fmtDate(e.date)}`;
+  document.getElementById('view-modal-body').innerHTML=`
+    ${expDetailHTML(e)}
+    ${e.status==='approved'?`<div style="background:#fef3e2;border-radius:9px;padding:12px 14px;font-size:12.5px;color:#d97706;font-weight:600">⏳ This expense is awaiting settlement.</div>`:''}
+    ${e.status==='settled'?`<div style="background:#dcfce7;border-radius:9px;padding:12px 14px;font-size:12.5px;color:#16a34a;font-weight:600">✅ Settled on ${fmtDate(e.settledOn)} via ${e.settledVia}${e.settledRef?` · Ref: ${e.settledRef}`:''}</div>`:''}
+    ${e.status==='rejected'?`<div style="background:#fee2e2;border-radius:9px;padding:12px 14px;font-size:12.5px;color:#dc2626;font-weight:600">❌ Rejected: ${e.rejectedReason||'—'}${e.rejectedNotes?`<br>${e.rejectedNotes}`:''}</div>`:''}
+  `;
+  const sb=document.getElementById('view-settle-btn');
+  const rb=document.getElementById('view-reject-btn');
+  if(e.status==='approved'){sb.style.display='';rb.style.display=''}
+  else{sb.style.display='none';rb.style.display='none'}
+  openModal('view-modal');
+}
+function settleFromView(){closeModal('view-modal');openSettle(currentViewId)}
+function rejectFromView(){closeModal('view-modal');openReject(currentViewId)}
+
+// ─── EXPENSE DETAIL HTML ──────────────────────────
+function expDetailHTML(e){
+  return`<div class="exp-detail">
+    <div class="exp-detail-row"><span class="edl">ID</span><span class="edr">${e.id}</span></div>
+    <div class="exp-detail-row"><span class="edl">Description</span><span class="edr">${e.description}</span></div>
+    <div class="exp-detail-row"><span class="edl">Amount</span><span class="edr amt">${fmt(e.amount)}</span></div>
+    <div class="exp-detail-row"><span class="edl">Submitted By</span><span class="edr">${e.submittedBy} (${e.role})</span></div>
+    <div class="exp-detail-row"><span class="edl">Date</span><span class="edr">${fmtDate(e.date)}</span></div>
+    <div class="exp-detail-row"><span class="edl">Category</span><span class="edr"><span class="ctag">${e.category}</span></span></div>
+    ${e.vehicle?`<div class="exp-detail-row"><span class="edl">Vehicle</span><span class="edr">${e.vehicle}</span></div>`:''}
+    <div class="exp-detail-row"><span class="edl">Receipt</span><span class="edr">${e.receipt?'✅ Attached':'❌ Missing'}</span></div>
+    ${e.notes?`<div class="exp-detail-row"><span class="edl">Notes</span><span class="edr">${e.notes}</span></div>`:''}
+    <div class="exp-detail-row"><span class="edl">Status</span><span class="edr">${statusBadge(e.status)}</span></div>
+  </div>`;
+}
+
+// ─── SETTLED TABLE ────────────────────────────────
+function renderSettled(search){
+  const s=(search!==undefined?search:settledSearch).toLowerCase();
+  const list=expenses.filter(e=>{
+    if(e.status!=='settled') return false;
+    if(s&&!e.description.toLowerCase().includes(s)&&!e.submittedBy.toLowerCase().includes(s)&&!e.id.toLowerCase().includes(s)) return false;
+    return true;
+  });
+  let html=`<table class="tbl"><thead><tr>
+    <th>ID</th><th>Description</th><th>Submitted By</th><th>Amount</th><th>Settled On</th><th>Via</th><th>Reference</th><th>Actions</th>
+  </tr></thead><tbody>`;
+  if(!list.length){html+=`<tr><td colspan="8" class="tbl-empty">No settled expenses found</td></tr>`}
+  else list.forEach(e=>{
+    html+=`<tr>
+      <td><b>${e.id}</b></td>
+      <td>${e.description}<br><small style="color:#8fa898">${e.vehicle||''}</small></td>
+      <td><b>${e.submittedBy}</b><br><small style="color:#8fa898">${e.role}</small></td>
+      <td><b style="color:#2d7a4f">${fmt(e.amount)}</b></td>
+      <td>${fmtDate(e.settledOn)}</td>
+      <td><span class="ctag">${e.settledVia||'—'}</span></td>
+      <td style="color:#8fa898;font-size:12px">${e.settledRef||'—'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="viewExp('${e.id}')">View</button></td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  if(list.length){const total=list.reduce((a,e)=>a+e.amount,0);html+=`<div class="pgn"><span>${list.length} records · ${fmt(total)} settled</span></div>`}
+  document.getElementById('settled-table').innerHTML=html;
+}
+function searchSettled(v){settledSearch=v;renderSettled(v)}
+
+// ─── REJECTED TABLE ───────────────────────────────
+function renderRejected(search){
+  const s=(search!==undefined?search:rejectedSearch).toLowerCase();
+  const list=expenses.filter(e=>{
+    if(e.status!=='rejected') return false;
+    if(s&&!e.description.toLowerCase().includes(s)&&!e.submittedBy.toLowerCase().includes(s)&&!e.id.toLowerCase().includes(s)) return false;
+    return true;
+  });
+  let html=`<table class="tbl"><thead><tr>
+    <th>ID</th><th>Description</th><th>Submitted By</th><th>Amount</th><th>Date</th><th>Reason</th><th>Actions</th>
+  </tr></thead><tbody>`;
+  if(!list.length){html+=`<tr><td colspan="7" class="tbl-empty">No rejected expenses</td></tr>`}
+  else list.forEach(e=>{
+    html+=`<tr>
+      <td><b>${e.id}</b></td>
+      <td>${e.description}</td>
+      <td><b>${e.submittedBy}</b><br><small style="color:#8fa898">${e.role}</small></td>
+      <td style="color:#dc2626"><b>${fmt(e.amount)}</b></td>
+      <td>${fmtDate(e.date)}</td>
+      <td style="color:#dc2626;font-size:12px">${e.rejectedReason||'—'}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-secondary btn-sm" onclick="viewExp('${e.id}')">View</button>
+          <button class="btn btn-warn btn-sm" onclick="reinstateExp('${e.id}')">Reinstate</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  if(list.length) html+=`<div class="pgn"><span>${list.length} records</span></div>`;
+  document.getElementById('rejected-table').innerHTML=html;
+}
+function searchRejected(v){rejectedSearch=v;renderRejected(v)}
+function reinstateExp(id){
+  const idx=expenses.findIndex(e=>e.id===id);
+  expenses[idx]={...expenses[idx],status:'approved',rejectedReason:undefined,rejectedBy:undefined};
+  saveExpenses();
+  renderRejected();
+  renderDash();
+  toast('↩ Expense reinstated to Pending','w');
+}
+
+// ─── ALL TABLE ────────────────────────────────────
+function renderAll(search){
+  const s=(search!==undefined?search:allSearch).toLowerCase();
+  const list=expenses.filter(e=>{
+    if(allFilter!=='all'&&e.status!==allFilter) return false;
+    if(s&&!e.description.toLowerCase().includes(s)&&!e.submittedBy.toLowerCase().includes(s)&&!e.id.toLowerCase().includes(s)) return false;
+    return true;
+  });
+  let html=`<table class="tbl"><thead><tr>
+    <th>ID</th><th>Description</th><th>Submitted By</th><th>Category</th><th>Amount</th><th>Date</th><th>Status</th><th>Actions</th>
+  </tr></thead><tbody>`;
+  if(!list.length){html+=`<tr><td colspan="8" class="tbl-empty">No expenses found</td></tr>`}
+  else list.forEach(e=>{
+    html+=`<tr>
+      <td><b>${e.id}</b></td>
+      <td>${e.description}<br><small style="color:#8fa898">${e.vehicle||''}</small></td>
+      <td><b>${e.submittedBy}</b><br><small style="color:#8fa898">${e.role}</small></td>
+      <td><span class="ctag">${e.category}</span></td>
+      <td><b style="color:#2d7a4f">${fmt(e.amount)}</b></td>
+      <td>${fmtDate(e.date)}</td>
+      <td>${statusBadge(e.status)}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-secondary btn-sm" onclick="viewExp('${e.id}')">View</button>
+          ${e.status==='approved'?`<button class="btn btn-primary btn-sm" onclick="openSettle('${e.id}')">Settle</button>`:``}
+        </div>
+      </td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  if(list.length){const total=list.reduce((a,e)=>a+e.amount,0);html+=`<div class="pgn"><span>${list.length} records · ${fmt(total)}</span></div>`}
+  document.getElementById('all-table').innerHTML=html;
+}
+function filterAll(el,f){
+  allFilter=f;
+  document.querySelectorAll('#pg-all .fbar-pills .pl').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  renderAll();
+}
+function searchAll(v){allSearch=v;renderAll(v)}
+
+// ─── REPORTS ──────────────────────────────────────
+function renderReports(){
+  const cats=['driver','fuel','maintenance','other'];
+  const catLabels={driver:'Driver Expenses',fuel:'Fuel',maintenance:'Maintenance',other:'Other'};
+  const catColors=['#2d7a4f','#2563eb','#d97706','#8b5cf6'];
+  const statuses=['approved','settled','rejected'];
+  const statLabels={approved:'Pending Settlement',settled:'Settled',rejected:'Rejected'};
+
+  const catRows=cats.map((c,i)=>{
+    const total=expenses.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0);
+    const cnt=expenses.filter(e=>e.category===c).length;
+    const maxC=Math.max(...cats.map(cc=>expenses.filter(e=>e.category===cc).reduce((a,e)=>a+e.amount,0)),1);
+    return`<div class="bar-row">
+      <div class="bar-lbl">${catLabels[c]}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(total/maxC*100)}%;background:${catColors[i]}"></div></div>
+      <div class="bar-val">${fmt(total)} <span style="color:#8fa898;font-size:11px">(${cnt})</span></div>
+    </div>`;
+  }).join('');
+
+  const statRows=statuses.map(s=>{
+    const total=expenses.filter(e=>e.status===s).reduce((a,e)=>a+e.amount,0);
+    const cnt=expenses.filter(e=>e.status===s).length;
+    const maxS=Math.max(...statuses.map(ss=>expenses.filter(e=>e.status===ss).reduce((a,e)=>a+e.amount,0)),1);
+    const col=s==='settled'?'#16a34a':s==='rejected'?'#dc2626':'#d97706';
+    return`<div class="bar-row">
+      <div class="bar-lbl">${statLabels[s]}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(total/maxS*100)}%;background:${col}"></div></div>
+      <div class="bar-val">${fmt(total)} <span style="color:#8fa898;font-size:11px">(${cnt})</span></div>
+    </div>`;
+  }).join('');
+
+  // Top submitters
+  const submitters={};
+  expenses.forEach(e=>{submitters[e.submittedBy]=(submitters[e.submittedBy]||0)+e.amount});
+  const topSub=Object.entries(submitters).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxSub=Math.max(...topSub.map(s=>s[1]),1);
+  const subRows=topSub.map(([name,amt])=>`
+    <div class="bar-row">
+      <div class="bar-lbl" style="width:100px">${name.split(' ')[0]}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(amt/maxSub*100)}%"></div></div>
+      <div class="bar-val">${fmt(amt)}</div>
+    </div>`).join('');
+
+  document.getElementById('reports-content').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+      <div class="sum-bar-wrap"><h4>By Category</h4>${catRows}</div>
+      <div class="sum-bar-wrap"><h4>By Status</h4>${statRows}</div>
+    </div>
+    <div class="sum-bar-wrap">
+      <h4>Top Submitters</h4>
+      ${subRows}
+    </div>
+    <div class="tbl-wrap" style="margin-top:18px">
+      <table class="tbl">
+        <thead><tr><th>Metric</th><th>Count</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Total Expenses</td><td>${expenses.length}</td><td><b>${fmt(expenses.reduce((a,e)=>a+e.amount,0))}</b></td></tr>
+          <tr><td>Pending Settlement</td><td>${expenses.filter(e=>e.status==='approved').length}</td><td style="color:#d97706"><b>${fmt(expenses.filter(e=>e.status==='approved').reduce((a,e)=>a+e.amount,0))}</b></td></tr>
+          <tr><td>Settled</td><td>${expenses.filter(e=>e.status==='settled').length}</td><td style="color:#16a34a"><b>${fmt(expenses.filter(e=>e.status==='settled').reduce((a,e)=>a+e.amount,0))}</b></td></tr>
+          <tr><td>Rejected</td><td>${expenses.filter(e=>e.status==='rejected').length}</td><td style="color:#dc2626"><b>${fmt(expenses.filter(e=>e.status==='rejected').reduce((a,e)=>a+e.amount,0))}</b></td></tr>
+          <tr><td>Receipt Coverage</td><td colspan="2">${Math.round(expenses.filter(e=>e.receipt).length/expenses.length*100)}% expenses have receipts</td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ─── BUDGET ───────────────────────────────────────
+function renderBudget(){
+  const budgets=[
+    {cat:'Driver Expenses',key:'driver',budget:15000},
+    {cat:'Fuel',key:'fuel',budget:25000},
+    {cat:'Maintenance',key:'maintenance',budget:20000},
+    {cat:'Other',key:'other',budget:8000},
+  ];
+  const rows=budgets.map(b=>{
+    const spent=expenses.filter(e=>e.category===b.key&&(e.status==='approved'||e.status==='settled')).reduce((a,e)=>a+e.amount,0);
+    const pct=Math.min(Math.round(spent/b.budget*100),100);
+    const color=pct>90?'#dc2626':pct>70?'#d97706':'#2d7a4f';
+    return`<tr>
+      <td><b>${b.cat}</b></td>
+      <td><b style="color:#2d7a4f">${fmt(b.budget)}</b></td>
+      <td><b>${fmt(spent)}</b></td>
+      <td><b style="color:${color}">${fmt(b.budget-spent)}</b></td>
+      <td style="min-width:140px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="bar-bg" style="flex:1"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+          <span style="font-size:12px;font-weight:700;color:${color}">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('budget-content').innerHTML=`
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Category</th><th>Budget (Month)</th><th>Spent</th><th>Remaining</th><th>Utilisation</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="pgn">
+        <span>Budget period: March 2026 · <b style="color:#2d7a4f">Update budgets in settings</b></span>
+      </div>
+    </div>
+  `;
+}
+
+// ─── CSV EXPORT ───────────────────────────────────
+function exportCSV(filter){
+  const list=filter==='all'?expenses:expenses.filter(e=>e.status===filter);
+  if(!list.length){toast('No data to export','w');return}
+  const headers=['ID','Description','Submitted By','Role','Category','Amount','Date','Status','Vehicle','Receipt','Notes','Settled On','Settled Via','Ref','Rejected Reason'];
+  const rows=list.map(e=>[
+    e.id,e.description,e.submittedBy,e.role,e.category,e.amount,e.date,e.status,e.vehicle||'',e.receipt?'Yes':'No',e.notes||'',e.settledOn||'',e.settledVia||'',e.settledRef||'',e.rejectedReason||''
+  ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv=[headers.join(','),...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`expenses-${filter}-${today()}.csv`;a.click();
+  URL.revokeObjectURL(url);
+  toast(`📥 Exported ${list.length} records as CSV`,'s');
+}
+
+// ─── INIT ─────────────────────────────────────────
+document.getElementById('tbDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+renderDash();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+[
+  {"id":"CAT-A1B2C","categoryId":"CAT-001","name":"Housekeeping","description":"All linen, cleaning and room maintenance supplies","itemCount":8,"status":"Active"},
+  {"id":"CAT-B2C3D","categoryId":"CAT-002","name":"Room Service","description":"In-room amenities, toiletries and minibar items","itemCount":6,"status":"Active"},
+  {"id":"CAT-C3D4E","categoryId":"CAT-003","name":"Spa & Wellness","description":"Oils, lotions, therapy products and wellness consumables","itemCount":5,"status":"Active"},
+  {"id":"CAT-D4E5F","categoryId":"CAT-004","name":"Restaurant","description":"Kitchen supplies, condiments, beverages and food ingredients","itemCount":7,"status":"Active"},
+  {"id":"CAT-E5F6G","categoryId":"CAT-005","name":"Maintenance","description":"Electrical, plumbing and general repair materials","itemCount":6,"status":"Active"},
+  {"id":"CAT-F6G7H","categoryId":"CAT-006","name":"Events","description":"Decoration, AV equipment and event setup materials","itemCount":4,"status":"Active"}
+]

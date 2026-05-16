@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Security Supervisor – SmartGate 360</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#1a3d2b,#2d7a4f);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.device{background:#0d1f16;border-radius:56px;padding:13px;box-shadow:0 50px 100px rgba(0,0,0,.55),0 0 0 1px #2d7a4f40;width:390px;position:relative;flex-shrink:0}
+.notch{position:absolute;top:13px;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#0d1f16;border-radius:0 0 22px 22px;z-index:20;display:flex;align-items:center;justify-content:center;padding-top:6px}
+.notch::after{content:'';width:13px;height:13px;background:#111;border-radius:50%;border:2.5px solid #1a1a2e}
+.screen{background:#f4f7f5;border-radius:44px;overflow:hidden;height:820px;display:flex;flex-direction:column;position:relative}
+.sbar{background:#1a3d2b;padding:16px 22px 8px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.stime{color:#fff;font-size:15px;font-weight:700}
+.sicons{display:flex;gap:5px;align-items:center}
+.sicons svg{width:15px;height:15px}
+/* Alert strip */
+.astrip{background:#dc2626;padding:7px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.astrip-dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:blink 1s infinite;flex-shrink:0}
+.astrip span{color:#fff;font-size:10.5px;font-weight:700;line-height:1.3}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.hdr{background:#1a3d2b;padding:5px 14px 13px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hbtn{width:32px;height:32px;background:rgba(255,255,255,.12);border-radius:9px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative}
+.hbtn svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2.5}
+.reddot{position:absolute;top:3px;right:3px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:1.5px solid #1a3d2b;animation:blink 1.5s infinite}
+.htitle{flex:1;color:#fff;font-size:17px;font-weight:700}
+.hsub{color:rgba(255,255,255,.55);font-size:9px}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.content::-webkit-scrollbar{display:none}
+.pane{display:none;padding:13px}
+.pane.active{display:block}
+.bnav{background:#fff;border-top:1.5px solid #deeae2;display:flex;flex-shrink:0;padding:7px 0 10px}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;padding:2px 0}
+.ni svg{width:21px;height:21px;fill:none;stroke:#b0c9bc;stroke-width:2}
+.ni span{font-size:9.5px;color:#b0c9bc;font-weight:600}
+.ni.on svg{stroke:#2d7a4f}.ni.on span{color:#2d7a4f}
+.toast{position:absolute;bottom:80px;left:14px;right:14px;padding:11px 15px;border-radius:11px;font-size:11.5px;font-weight:700;color:#fff;text-align:center;z-index:999;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-s{background:#2d7a4f}.toast-e{background:#ef4444}.toast-w{background:#e67e22}
+.card{background:#fff;border-radius:13px;padding:13px;margin-bottom:11px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.chead{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.ct{font-size:13px;font-weight:700;color:#1a2e22}
+/* Stats grid */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.sc{background:#fff;border-radius:13px;padding:13px 11px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.sl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#8fa898}
+.sv{font-size:28px;font-weight:800;margin:2px 0}
+.ss{font-size:9.5px;color:#8fa898}
+/* Live badge */
+.live{display:inline-flex;align-items:center;gap:5px;background:#fdecea;padding:3px 8px;border-radius:20px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#ef4444;animation:blink 1s infinite}
+.live-txt{font-size:9.5px;font-weight:700;color:#ef4444}
+/* Visitor rows */
+.vrow{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #f0f4f2}
+.vrow:last-child{border-bottom:none}
+.vav{width:34px;height:34px;border-radius:9px;background:#e8f5ee;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#2d7a4f;flex-shrink:0}
+.vav-r{background:#fdecea;color:#ef4444}
+/* Gate card */
+.gcard{background:#fff;border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.gtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.gname{font-size:13px;font-weight:700;color:#1a2e22}
+.gsub{font-size:9.5px;color:#8fa898}
+/* Toggle */
+.tgl-wrap{display:flex;align-items:center;gap:7px;cursor:pointer}
+.tgl{width:44px;height:24px;border-radius:12px;background:#d4e6db;position:relative;transition:background .2s;flex-shrink:0}
+.tgl.on{background:#2d7a4f}
+.tgl-knob{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tgl.on .tgl-knob{transform:translateX(20px)}
+.tgl-lbl{font-size:11px;font-weight:700;width:36px}
+.gstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:9px}
+.gs{background:#f4f7f5;border-radius:8px;padding:7px;text-align:center}
+.gs-v{font-size:17px;font-weight:800;color:#2d7a4f}
+.gs-l{font-size:8.5px;color:#8fa898}
+/* Search box */
+.search{background:#fff;border-radius:11px;padding:9px 12px;display:flex;align-items:center;gap:9px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.search svg{width:15px;height:15px;fill:none;stroke:#a8c5b4;stroke-width:2;flex-shrink:0}
+.search input{border:none;outline:none;font-size:13px;color:#1a2e22;flex:1;background:transparent;font-family:inherit}
+.search input::placeholder{color:#a8c5b4}
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:9.5px;font-weight:700;white-space:nowrap}
+.ba{background:#e8f5ee;color:#2d7a4f}
+.bi{background:#fef3e2;color:#d97706}
+.br{background:#fdecea;color:#ef4444}
+.bg{background:#f0f0f0;color:#6b7280}
+/* Alert cards */
+.acard{border-radius:13px;padding:13px;margin-bottom:9px}
+.ac-r{background:#fef2f2;border:1.5px solid #fca5a5}
+.ac-o{background:#fffbeb;border:1.5px solid #fde68a}
+.ac-y{background:#fefce8;border:1.5px solid #fef08a}
+.ac-top{display:flex;gap:9px;align-items:flex-start;margin-bottom:9px}
+.ac-icon{font-size:20px;flex-shrink:0}
+.ac-t{font-size:11.5px;font-weight:700}
+.ac-r .ac-t{color:#991b1b}
+.ac-o .ac-t{color:#92400e}
+.ac-y .ac-t{color:#713f12}
+.ac-s{font-size:9.5px;margin-top:2px}
+.ac-r .ac-s{color:#dc2626}
+.ac-o .ac-s{color:#d97706}
+.ac-y .ac-s{color:#ca8a04}
+.ac-btns{display:flex;gap:7px;flex-wrap:wrap}
+/* Buttons */
+.btn{padding:6px 11px;border-radius:8px;font-size:10.5px;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:#2d7a4f;color:#fff}
+.btn-d{background:#ef4444;color:#fff}
+.btn-o{background:transparent;border:1.5px solid currentColor}
+.btn-r{color:#ef4444}.btn-r:hover{background:#fdecea}
+.btn-o-o{color:#d97706}.btn-o-o:hover{background:#fef3e2}
+.btn-g{background:#f4f7f5;color:#5a7a65}
+.btn-w{width:100%;justify-content:center;padding:11px;font-size:12.5px}
+/* Pills */
+.pills{display:flex;gap:7px;margin-bottom:11px;overflow-x:auto;padding-bottom:2px}
+.pills::-webkit-scrollbar{display:none}
+.pl{padding:5px 12px;border-radius:20px;font-size:10.5px;font-weight:700;border:none;cursor:pointer;flex-shrink:0}
+.pl-on{background:#2d7a4f;color:#fff}.pl-off{background:#f0f4f2;color:#5a7a65}
+/* Info rows */
+.ir{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0f4f2}
+.ir:last-child{border-bottom:none}
+.il{font-size:12px;color:#8fa898}
+.iv{font-size:12px;color:#1a2e22;font-weight:600}
+/* Profile */
+.ph{background:linear-gradient(135deg,#1a3d2b,#2d7a4f);border-radius:17px;padding:18px;margin-bottom:11px;display:flex;align-items:center;gap:13px}
+.pav{width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff}
+.pn{color:#fff;font-size:15px;font-weight:800}
+.pr{color:rgba(255,255,255,.6);font-size:9.5px}
+.ps{color:rgba(255,255,255,.85);font-size:10.5px;font-weight:600;margin-top:4px}
+/* Quick status cards */
+.qstatus{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.qs{border-radius:11px;padding:10px;display:flex;align-items:center;gap:8px}
+.qs-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.qs-g{background:#e8f5ee} .qs-g .qs-dot{background:#2d7a4f}
+.qs-r{background:#fdecea} .qs-r .qs-dot{background:#ef4444}
+.qs-n{font-size:11px;font-weight:700}
+.qs-g .qs-n{color:#2d7a4f}
+.qs-r .qs-n{color:#ef4444}
+.qs-s{font-size:9px;color:#8fa898}
+/* ── Mobile Auth Screen ── */
+.mob-auth{position:absolute;inset:0;z-index:200;background:linear-gradient(160deg,#0a2016,#1a3d2b,#2a6a42);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 22px;border-radius:44px}
+.auth-app-icon{font-size:52px;margin-bottom:8px;line-height:1}
+.auth-app-name{color:#fff;font-size:19px;font-weight:800;text-align:center}
+.auth-app-sub{color:rgba(255,255,255,.45);font-size:9.5px;text-align:center;margin-top:3px;margin-bottom:20px}
+.auth-uid-inp{width:100%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:11px;padding:10px 13px;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:14px;text-align:center;letter-spacing:.5px}
+.auth-uid-inp::placeholder{color:rgba(255,255,255,.3)}
+.auth-uid-inp:focus{border-color:rgba(74,222,128,.5);background:rgba(255,255,255,.15)}
+.auth-pin-row{display:flex;gap:14px;justify-content:center;margin-bottom:16px}
+.auth-pd{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.3);transition:all .12s}
+.auth-pd.on{background:#4ade80;border-color:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.2)}
+.auth-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:226px}
+.auth-k{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.12);color:#fff;font-size:18px;font-weight:700;border-radius:13px;padding:13px 0;cursor:pointer;transition:all .12s;font-family:inherit;user-select:none}
+.auth-k:active{background:rgba(74,222,128,.25);border-color:rgba(74,222,128,.4);transform:scale(.93)}
+.auth-k.k-del{font-size:15px}
+.auth-k.k-ok{background:rgba(74,222,128,.18);border-color:rgba(74,222,128,.3);color:#4ade80}
+.auth-k.k-ok:active{background:rgba(74,222,128,.38)}
+.auth-err{color:#fca5a5;font-size:10.5px;font-weight:700;text-align:center;min-height:15px;margin-top:8px}
+.auth-hint{color:rgba(255,255,255,.22);font-size:9.5px;text-align:center;margin-top:10px;line-height:1.6}
+@keyframes authShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+</style>
+</head>
+<body>
+<div class="device">
+  <div class="notch"></div>
+  <div class="screen">
+    <!-- ── AUTH SCREEN ── -->
+    <div class="mob-auth" id="mob-auth">
+      <div class="auth-app-icon">🛡️</div>
+      <div class="auth-app-name">Security Supervisor</div>
+      <div class="auth-app-sub">Oleander Farms · SmartGate 360</div>
+      <input class="auth-uid-inp" id="auth-uid" placeholder="Employee ID (e.g. SS001)" autocomplete="off" autocapitalize="characters" />
+      <div class="auth-pin-row">
+        <div class="auth-pd" id="ap0"></div>
+        <div class="auth-pd" id="ap1"></div>
+        <div class="auth-pd" id="ap2"></div>
+        <div class="auth-pd" id="ap3"></div>
+      </div>
+      <div class="auth-pad">
+        <button class="auth-k" onclick="authKey('1')">1</button>
+        <button class="auth-k" onclick="authKey('2')">2</button>
+        <button class="auth-k" onclick="authKey('3')">3</button>
+        <button class="auth-k" onclick="authKey('4')">4</button>
+        <button class="auth-k" onclick="authKey('5')">5</button>
+        <button class="auth-k" onclick="authKey('6')">6</button>
+        <button class="auth-k" onclick="authKey('7')">7</button>
+        <button class="auth-k" onclick="authKey('8')">8</button>
+        <button class="auth-k" onclick="authKey('9')">9</button>
+        <button class="auth-k k-del" onclick="authDel()">⌫</button>
+        <button class="auth-k" onclick="authKey('0')">0</button>
+        <button class="auth-k k-ok" onclick="authGo()">✓</button>
+      </div>
+      <div class="auth-err" id="auth-err"></div>
+      <div class="auth-hint">Demo credentials<br>Employee ID: <strong style="color:rgba(255,255,255,.5)">SS001</strong> · PIN: <strong style="color:rgba(255,255,255,.5)">1234</strong></div>
+    </div>
+    <div class="sbar">
+      <span class="stime" id="stime">9:41</span>
+      <div class="sicons">
+        <svg viewBox="0 0 24 24" fill="#fff"><rect x="2" y="14" width="3" height="8"/><rect x="7" y="10" width="3" height="12"/><rect x="12" y="6" width="3" height="16"/><rect x="17" y="2" width="3" height="20" opacity=".3"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M20 11h2v4h-2"/><rect x="4" y="9" width="13" height="7" rx="1" fill="#fff"/></svg>
+      </div>
+    </div>
+    <div id="alert-strip" class="astrip">
+      <div class="astrip-dot"></div>
+      <span id="alert-strip-txt">🚨 Blacklisted visitor at Main Gate — action required</span>
+    </div>
+    <div class="hdr">
+      <a href="../index.html" class="hbtn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
+      <div style="flex:1"><div class="htitle">Security Supervisor</div><div class="hsub">Gate Control · Oleander Farms</div></div>
+      <button class="hbtn" onclick="switchTab('alerts')">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <div class="reddot" id="alert-badge"></div>
+      </button>
+      <button class="hbtn" onclick="authLock()" title="Lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+    </div>
+    <div class="content">
+
+      <!-- HOME -->
+      <div class="pane active" id="pane-home">
+        <div class="sgrid">
+          <div class="sc"><div class="sl">Visitors Inside</div><div class="sv" style="color:#2d7a4f" id="stat-vis">23</div><div class="ss">active passes</div></div>
+          <div class="sc"><div class="sl">Vehicles Inside</div><div class="sv" style="color:#3b82f6" id="stat-veh">8</div><div class="ss">on premises</div></div>
+          <div class="sc"><div class="sl">Today's Entries</div><div class="sv" style="color:#2d7a4f" id="stat-entries">67</div><div class="ss">total check-ins</div></div>
+          <div class="sc"><div class="sl">Active Alerts</div><div class="sv" style="color:#ef4444" id="stat-alerts">3</div><div class="ss">need attention</div></div>
+        </div>
+        <!-- Alert cards inline -->
+        <div id="home-alert-card"></div>
+        <!-- Quick gate status -->
+        <div class="card">
+          <div class="chead"><span class="ct">Gate Status</span><button style="font-size:10.5px;font-weight:700;color:#2d7a4f;background:none;border:none;cursor:pointer" onclick="switchTab('gates')">Manage →</button></div>
+          <div class="qstatus" id="gate-quick"></div>
+        </div>
+        <!-- Recent entries -->
+        <div class="card">
+          <div class="chead"><span class="ct">Recent Entries</span><div class="live"><div class="live-dot"></div><span class="live-txt">Live</span></div></div>
+          <div id="recent-entries"></div>
+        </div>
+      </div>
+
+      <!-- GATES -->
+      <div class="pane" id="pane-gates">
+        <div id="gates-list"></div>
+      </div>
+
+      <!-- VISITORS -->
+      <div class="pane" id="pane-visitors">
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="vis-search" placeholder="Search by name, pass ID or vehicle…" oninput="searchVisitors()">
+        </div>
+        <div class="pills">
+          <button class="pl pl-on" onclick="filterVis(this,'all')">All (67)</button>
+          <button class="pl pl-off" onclick="filterVis(this,'Inside')">Inside (23)</button>
+          <button class="pl pl-off" onclick="filterVis(this,'Exited')">Exited (44)</button>
+          <button class="pl pl-off" onclick="filterVis(this,'Denied')">Flagged (1)</button>
+        </div>
+        <div class="card" style="padding:0">
+          <div id="vis-list" style="padding:0 13px"></div>
+        </div>
+      </div>
+
+      <!-- ALERTS -->
+      <div class="pane" id="pane-alerts">
+        <div style="font-size:10.5px;font-weight:700;color:#8fa898;text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px">Active Alerts (<span id="alert-count">3</span>)</div>
+        <div id="alerts-list"></div>
+        <div id="resolved-msg" style="display:none;text-align:center;padding:18px;color:#8fa898;font-size:12px;background:#fff;border-radius:13px;box-shadow:0 2px 8px rgba(0,0,0,.05)">✓ All alerts resolved — station is clear</div>
+      </div>
+
+      <!-- ME -->
+      <div class="pane" id="pane-me">
+        <div class="ph"><div class="pav">DS</div><div><div class="pn">Deepak Sawant</div><div class="pr">Security Supervisor · Day Shift</div><div class="ps">4 gates · 8 guards on duty</div></div></div>
+        <div class="card">
+          <div class="chead"><span class="ct">Shift Details</span></div>
+          <div class="ir"><span class="il">Shift Started</span><span class="iv">7:00 AM today</span></div>
+          <div class="ir"><span class="il">Shift Ends</span><span class="iv">7:00 PM today</span></div>
+          <div class="ir"><span class="il">Team on Duty</span><span class="iv">8 guards</span></div>
+          <div class="ir"><span class="il">Incidents Logged</span><span class="iv" style="color:#ef4444" id="me-incidents">3</span></div>
+        </div>
+        <div class="card">
+          <div class="chead"><span class="ct">Today's Stats</span></div>
+          <div class="ir"><span class="il">Total Check-ins</span><span class="iv" id="me-checkins">67</span></div>
+          <div class="ir"><span class="il">Visitors Inside</span><span class="iv" id="me-vis">23</span></div>
+          <div class="ir"><span class="il">Vehicles Inside</span><span class="iv" id="me-veh">8</span></div>
+          <div class="ir"><span class="il">Entry Denials</span><span class="iv" style="color:#ef4444" id="me-denials">1</span></div>
+        </div>
+        <button class="btn btn-g btn-w" style="margin-top:4px" onclick="guiConfirm('Sign Out','Are you sure you want to sign out?',()=>window.location='../index.html','danger')">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="bnav">
+      <button class="ni on" id="nav-home" onclick="switchTab('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
+      <button class="ni" id="nav-gates" onclick="switchTab('gates')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18"/></svg><span>Gates</span></button>
+      <button class="ni" id="nav-visitors" onclick="switchTab('visitors')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span>Visitors</span></button>
+      <button class="ni" id="nav-alerts" onclick="switchTab('alerts')"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Alerts</span></button>
+      <button class="ni" id="nav-me" onclick="switchTab('me')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Me</span></button>
+    </div>
+    <div class="toast" id="toast"></div>
+    <!-- GUI Confirm Sheet -->
+    <div id="gc-modal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;flex-direction:column;justify-content:flex-end">
+      <div style="background:#fff;border-radius:22px 22px 0 0;padding:22px 16px 26px;width:100%;animation:slideUp .25s ease">
+        <div style="width:36px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 18px"></div>
+        <div style="font-size:15px;font-weight:800;color:#1a2e22;margin-bottom:7px" id="gc-title">Confirm</div>
+        <div style="font-size:12.5px;color:#5a7a65;line-height:1.55;margin-bottom:18px" id="gc-msg"></div>
+        <button id="gc-yes" class="btn btn-d btn-w" style="margin-bottom:8px;padding:12px;font-size:13px"></button>
+        <button class="btn btn-g btn-w" style="padding:12px;font-size:13px" onclick="closeGC()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MOBILE AUTH ──────────────────────────────────────────────────────────
+const MOB_AUTH_KEY='mob_ss_auth';
+let _authPin='';
+(function(){if(sessionStorage.getItem(MOB_AUTH_KEY)==='ok')document.getElementById('mob-auth').style.display='none'})();
+function authLock(){const el=document.getElementById('mob-auth');el.style.display='flex';_authPin='';_authUpdDots();document.getElementById('auth-err').textContent='';document.getElementById('auth-uid').value=''}
+function authKey(d){if(_authPin.length>=4)return;_authPin+=d;_authUpdDots();if(_authPin.length===4)setTimeout(authGo,180)}
+function authDel(){_authPin=_authPin.slice(0,-1);_authUpdDots();document.getElementById('auth-err').textContent=''}
+function _authUpdDots(){for(let i=0;i<4;i++)document.getElementById('ap'+i).classList.toggle('on',i<_authPin.length)}
+function authGo(){
+  const uid=(document.getElementById('auth-uid').value||'').trim().toUpperCase();
+  if(['SS001','SS002','SECURITY','ARJUN'].includes(uid)&&_authPin==='1234'){
+    sessionStorage.setItem(MOB_AUTH_KEY,'ok');
+    document.getElementById('mob-auth').style.display='none';
+  } else {
+    document.getElementById('auth-err').textContent='Invalid Employee ID or PIN';
+    _authPin='';_authUpdDots();
+    const el=document.getElementById('mob-auth');
+    el.style.animation='authShake .35s';setTimeout(()=>el.style.animation='',350);
+  }
+}
+const DB={get:(k,d)=>JSON.parse(localStorage.getItem('ss_'+k)||JSON.stringify(d)),set:(k,v)=>localStorage.setItem('ss_'+k,JSON.stringify(v))};
+
+const GATES_DEF=[
+  {id:'G1',name:'🚪 Main Gate',desc:'Primary entrance · Staffed 24/7',open:true,inToday:38,outToday:29,insideNow:9,lastEntry:'Arjun Mehta · 9:40 AM'},
+  {id:'G2',name:'🚛 Service Gate',desc:'Vendor & delivery access',open:true,inToday:15,outToday:12,insideNow:3,lastEntry:'Priya Kulkarni · 9:35 AM'},
+  {id:'G3',name:'👤 Staff Entrance',desc:'Employee badge access',open:true,inToday:10,outToday:2,insideNow:8,lastEntry:'Vijay Rao · 9:28 AM'},
+  {id:'G4',name:'⭐ VIP Gate',desc:'Restricted premium access',open:false,inToday:4,outToday:4,insideNow:0,lastEntry:'Last used 8:30 AM'},
+];
+const VISITORS_DEF=[
+  {id:'V1',initials:'RS',name:'Rakesh Sharma',type:'Visitor',purpose:'Attempted entry',gate:'Main Gate',time:'9:38 AM',status:'Denied',flag:'BLACKLISTED'},
+  {id:'V2',initials:'AM',name:'Arjun Mehta',type:'Guest',purpose:'Rooms & Villas · GP-ARJ001',gate:'Main Gate',time:'9:40 AM',status:'Inside',flag:''},
+  {id:'V3',initials:'PK',name:'Priya Kulkarni',type:'Vendor',purpose:'Saltt Restaurant · GP-PKU002',gate:'Service Gate',time:'9:35 AM',status:'Inside',flag:''},
+  {id:'V4',initials:'VR',name:'Vijay Rao',type:'Staff',purpose:'Admin Block · GP-VR003',gate:'Staff Entrance',time:'9:28 AM',status:'Inside',flag:''},
+  {id:'V5',initials:'SN',name:'Sunita Nair',type:'Guest',purpose:'Spa & Wellness · GP-SN004',gate:'VIP Gate',time:'8:50 AM',status:'Exited',flag:''},
+  {id:'V6',initials:'MK',name:'Manish Kapoor',type:'Event Guest',purpose:'Wedding Venue · GP-MK005',gate:'Main Gate',time:'8:30 AM',status:'Inside',flag:''},
+  {id:'V7',initials:'RT',name:'Rahul Thakur',type:'Vendor',purpose:'Kitchen Supply · GP-RT006',gate:'Service Gate',time:'8:00 AM',status:'Exited',flag:''},
+];
+const ALERTS_DEF=[
+  {id:'A1',cls:'ac-r',icon:'🚨',title:'Blacklisted Visitor — Main Gate',sub:'Rakesh Sharma (ID: AA-4521) attempted entry at 9:38 AM. Previously banned on 14 Jan 2026.',resolved:false,actions:[{lbl:'Deny & Log',cls:'btn-d',fn:'denyLog("A1")'},
+  {lbl:'Escalate',cls:'btn-o btn-r',fn:'escalate("A1")'}]},
+  {id:'A2',cls:'ac-o',icon:'⚠️',title:'Overstay Alert — VIP Guest',sub:'Ananya Singh (GP-AS018) checked in 3 days ago. Pass expired yesterday. Still on premises.',resolved:false,actions:[{lbl:'Extend Pass',cls:'btn-p',fn:'extendPass("A2")'},{lbl:'Dismiss',cls:'btn-g',fn:'resolveAlert("A2","Dismissed")'}]},
+  {id:'A3',cls:'ac-y',icon:'📍',title:'Unregistered Vehicle',sub:'Vehicle MH12XY9999 near Padel Courts. Not in system. Entered via Service Gate.',resolved:false,actions:[{lbl:'Register',cls:'btn-p',fn:'registerVeh("A3")'},{lbl:'Investigate',cls:'btn-g',fn:'resolveAlert("A3","Under investigation")'}]},
+];
+
+let gates=DB.get('gates',GATES_DEF);
+let visitors=DB.get('visitors',VISITORS_DEF);
+let alerts=DB.get('alerts',ALERTS_DEF);
+let denials=DB.get('denials',1);
+let visFilter='all';
+
+function toast(msg,type='s'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast toast-'+type+' show';setTimeout(()=>t.classList.remove('show'),2800)}
+function switchTab(t){document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));document.getElementById('pane-'+t).classList.add('active');document.getElementById('nav-'+t).classList.add('on');if(t==='home')renderHome();if(t==='gates')renderGates();if(t==='visitors')renderVisitors('all');if(t==='alerts')renderAlerts();if(t==='me')renderMe()}
+function save(){DB.set('gates',gates);DB.set('visitors',visitors);DB.set('alerts',alerts);DB.set('denials',denials)}
+function updateTime(){const now=new Date();document.getElementById('stime').textContent=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false}).replace(/^0/,'')}
+setInterval(updateTime,60000);updateTime();
+
+const activeAlerts=()=>alerts.filter(a=>!a.resolved);
+
+function renderHome(){
+  const vis=visitors.filter(v=>v.status==='Inside').length;
+  const activeA=activeAlerts().length;
+  document.getElementById('stat-vis').textContent=vis;
+  document.getElementById('stat-alerts').textContent=activeA;
+  document.getElementById('alert-badge').style.display=activeA>0?'block':'none';
+  document.getElementById('alert-count').textContent=activeA;
+  document.getElementById('stat-alerts').style.color=activeA>0?'#ef4444':'#2d7a4f';
+
+  // Alert strip
+  const bl=visitors.find(v=>v.flag==='BLACKLISTED'&&v.status==='Denied');
+  const strip=document.getElementById('alert-strip');
+  if(activeA>0){strip.style.display='flex';document.getElementById('alert-strip-txt').textContent=bl?'🚨 Blacklisted visitor at Main Gate — action required':`${activeA} active alert${activeA>1?'s':''} need attention`}
+  else{strip.style.display='none'}
+
+  // Home alert card
+  const bl2=activeAlerts().find(a=>a.cls==='ac-r');
+  const hac=document.getElementById('home-alert-card');
+  if(bl2&&!bl2.resolved){
+    hac.innerHTML=`<div class="acard ${bl2.cls}" style="margin-bottom:11px">
+      <div class="ac-top"><div class="ac-icon">${bl2.icon}</div><div><div class="ac-t">${bl2.title}</div><div class="ac-s">${bl2.sub}</div></div></div>
+      <div class="ac-btns">
+        <button class="btn btn-d" onclick="denyLog('${bl2.id}')">Deny &amp; Log</button>
+        <button class="btn btn-o btn-r" onclick="escalate('${bl2.id}')">Escalate</button>
+      </div>
+    </div>`;
+  } else { hac.innerHTML=''; }
+
+  // Gate quick view
+  const gq=document.getElementById('gate-quick');
+  gq.innerHTML=gates.slice(0,4).map(g=>`
+    <div class="qs ${g.open?'qs-g':'qs-r'}">
+      <div class="qs-dot"></div>
+      <div><div class="qs-n">${g.name.replace(/^[^ ]+ /,'')}</div><div class="qs-s">${g.open?'Open':'Locked'} · ${g.inToday} today</div></div>
+    </div>`).join('');
+
+  // Recent entries
+  const re=document.getElementById('recent-entries');
+  re.innerHTML=visitors.slice(0,4).map(v=>{
+    const flagRow=v.flag?`<span style="font-size:9px;font-weight:700;color:#ef4444">⚠ ${v.flag}</span>`:''
+    const statusBadge=v.status==='Inside'?'ba':v.status==='Denied'?'br':'bg';
+    return `<div class="vrow">
+      <div class="vav ${v.flag?'vav-r':''}">${v.initials}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:11.5px;font-weight:700;color:${v.flag?'#ef4444':'#1a2e22'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.name} ${flagRow}</div><div style="font-size:9.5px;color:#8fa898">${v.type} · ${v.gate}</div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-size:9.5px;color:#5a7a65;font-weight:600">${v.time}</div><span class="badge ${statusBadge}">${v.status}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderGates(){
+  document.getElementById('gates-list').innerHTML=gates.map(g=>`
+    <div class="gcard" id="gcard-${g.id}" ${!g.open?'style="border:1.5px solid #fca5a5"':''}>
+      <div class="gtop">
+        <div><div class="gname">${g.name}</div><div class="gsub">${g.desc}</div></div>
+        <div class="tgl-wrap" onclick="toggleGate('${g.id}')">
+          <div class="tgl ${g.open?'on':''}" id="tgl-${g.id}"><div class="tgl-knob"></div></div>
+          <span class="tgl-lbl" id="tgl-lbl-${g.id}" style="color:${g.open?'#2d7a4f':'#ef4444'}">${g.open?'Open':'Locked'}</span>
+        </div>
+      </div>
+      <div class="gstats">
+        <div class="gs"><div class="gs-v">${g.inToday}</div><div class="gs-l">In Today</div></div>
+        <div class="gs"><div class="gs-v">${g.outToday}</div><div class="gs-l">Out Today</div></div>
+        <div class="gs"><div class="gs-v" style="color:${g.open?'#2d7a4f':'#6b7280'}">${g.insideNow}</div><div class="gs-l">Inside Now</div></div>
+      </div>
+      <div style="font-size:9.5px;color:#8fa898;margin-top:7px">Last: ${g.lastEntry}</div>
+    </div>`).join('');
+}
+
+function _doToggleGate(id){
+  const g=gates.find(x=>x.id===id);
+  if(!g)return;
+  g.open=!g.open; save();
+  document.getElementById('tgl-'+id).classList.toggle('on',g.open);
+  document.getElementById('tgl-lbl-'+id).textContent=g.open?'Open':'Locked';
+  document.getElementById('tgl-lbl-'+id).style.color=g.open?'#2d7a4f':'#ef4444';
+  document.getElementById('gcard-'+id).style.border=g.open?'':'1.5px solid #fca5a5';
+  renderHome();
+  toast(`${g.name.replace(/^[^ ]+ /,'')} ${g.open?'opened':'locked'}`);
+}
+function toggleGate(id){
+  const g=gates.find(x=>x.id===id);
+  if(!g)return;
+  if(g.open&&g.insideNow>0){
+    guiConfirm('Lock Gate',`${g.insideNow} visitor${g.insideNow!==1?'s are':' is'} still inside. Lock ${g.name} anyway?`,()=>_doToggleGate(id),'warn');
+    return;
+  }
+  _doToggleGate(id);
+}
+
+function renderVisitors(filter){
+  visFilter=filter;
+  const search=document.getElementById('vis-search')?.value?.toLowerCase()||'';
+  let shown=visitors;
+  if(filter!=='all')shown=shown.filter(v=>v.status===filter);
+  if(search)shown=shown.filter(v=>v.name.toLowerCase().includes(search)||v.purpose.toLowerCase().includes(search));
+  const el=document.getElementById('vis-list');
+  if(shown.length===0){el.innerHTML='<div style="text-align:center;padding:18px;color:#8fa898;font-size:11.5px">No visitors found</div>';return}
+  el.innerHTML=shown.map(v=>{
+    const sbc=v.status==='Inside'?'ba':v.status==='Denied'?'br':'bg';
+    const flagRow=v.flag?`<span style="font-size:9px;font-weight:700;color:#ef4444"> ⚠ ${v.flag}</span>`:''
+    const verBtn=v.status==='Inside'?`<button class="btn btn-o" style="color:#2d7a4f;margin-top:4px;width:100%;padding:5px;font-size:9.5px" onclick="verifyVisitor('${v.id}')">Verify &amp; Checkout</button>`:'';
+    return `<div class="vrow" style="flex-wrap:wrap">
+      <div class="vav ${v.flag?'vav-r':''}">${v.initials}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:11.5px;font-weight:700;color:${v.flag?'#ef4444':'#1a2e22'}">${v.name}${flagRow}</div><div style="font-size:9.5px;color:#8fa898">${v.type} · ${v.purpose}</div><div style="font-size:9.5px;color:#8fa898">${v.gate} · ${v.time}</div>${verBtn}</div>
+      <span class="badge ${sbc}" style="align-self:flex-start">${v.status}</span>
+    </div>`;
+  }).join('');
+}
+function filterVis(btn,filter){
+  btn.closest('.pills').querySelectorAll('.pl').forEach(p=>{p.className='pl pl-off'});
+  btn.className='pl pl-on';
+  renderVisitors(filter);
+}
+function searchVisitors(){renderVisitors(visFilter)}
+function verifyVisitor(id){
+  const v=visitors.find(x=>x.id===id);
+  if(!v)return;
+  v.status='Exited'; save(); renderVisitors(visFilter); renderHome();
+  toast(`✓ ${v.name} checked out`);
+}
+
+function renderAlerts(){
+  const active=activeAlerts();
+  document.getElementById('alert-count').textContent=active.length;
+  document.getElementById('resolved-msg').style.display=active.length===0?'block':'none';
+  const el=document.getElementById('alerts-list');
+  el.innerHTML=active.map(a=>`
+    <div class="acard ${a.cls}" id="acard-${a.id}">
+      <div class="ac-top"><div class="ac-icon">${a.icon}</div><div style="flex:1"><div class="ac-t">${a.title}</div><div class="ac-s">${a.sub}</div></div></div>
+      <div class="ac-btns">${a.actions.map(b=>`<button class="btn ${b.cls}" onclick="${b.fn}">${b.lbl}</button>`).join('')}</div>
+    </div>`).join('');
+}
+
+function resolveAlert(id,msg){
+  const a=alerts.find(x=>x.id===id); if(!a)return;
+  a.resolved=true; save(); renderAlerts(); renderHome();
+  toast('✓ Alert resolved — '+msg);
+}
+function denyLog(id){const a=alerts.find(x=>x.id===id);if(a){a.resolved=true;save();renderAlerts();renderHome();toast('Visitor denied & incident logged','e');denials++;DB.set('denials',denials)}}
+function escalate(id){resolveAlert(id,'Escalated to manager')}
+function extendPass(id){resolveAlert(id,'Pass extended by 1 day')}
+function registerVeh(id){resolveAlert(id,'Vehicle registered in system')}
+
+function renderMe(){
+  const vis=visitors.filter(v=>v.status==='Inside').length;
+  document.getElementById('me-vis').textContent=vis;
+  document.getElementById('me-incidents').textContent=activeAlerts().length;
+  document.getElementById('me-denials').textContent=denials;
+}
+
+// ── GUI CONFIRM ───────────────────────────────
+function guiConfirm(title,msg,onYes,type='danger'){
+  const m=document.getElementById('gc-modal');
+  document.getElementById('gc-title').textContent=title;
+  document.getElementById('gc-msg').textContent=msg;
+  const yBtn=document.getElementById('gc-yes');
+  yBtn.textContent=title;
+  yBtn.className='btn btn-w '+(type==='danger'?'btn-d':type==='warn'?'btn-g':'btn-p');
+  yBtn.style.cssText='margin-bottom:8px;padding:12px;font-size:13px';
+  yBtn.onclick=()=>{closeGC();onYes()};
+  m.style.display='flex';
+}
+function closeGC(){document.getElementById('gc-modal').style.display='none'}
+document.getElementById('gc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('gc-modal'))closeGC()});
+
+renderHome();
+</script>
+</body>
+</html>

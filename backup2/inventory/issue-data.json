@@ -1,0 +1,69 @@
+[
+  {
+    "id": "ISS2603001",
+    "date": "2026-03-11",
+    "department": "Housekeeping",
+    "issuedTo": "Sunita Devi",
+    "purpose": "Room Turnovers",
+    "items": [
+      { "itemId": "INV001", "itemName": "Bath Towels", "qty": 20, "unit": "pcs" },
+      { "itemId": "INV004", "itemName": "Bedsheets (King Size)", "qty": 15, "unit": "pcs" },
+      { "itemId": "INV005", "itemName": "Pillow Covers", "qty": 30, "unit": "pcs" }
+    ],
+    "issuedBy": "Store Manager",
+    "status": "Issued"
+  },
+  {
+    "id": "ISS2603002",
+    "date": "2026-03-12",
+    "department": "Restaurant",
+    "issuedTo": "Chef Ganesh Rao",
+    "purpose": "Kitchen Operations",
+    "items": [
+      { "itemId": "INV008", "itemName": "Olive Oil (1L)", "qty": 6, "unit": "bottle" },
+      { "itemId": "INV009", "itemName": "Coffee Pods", "qty": 100, "unit": "pcs" },
+      { "itemId": "INV012", "itemName": "Mineral Water Bottles (1L)", "qty": 50, "unit": "pcs" }
+    ],
+    "issuedBy": "Store Manager",
+    "status": "Issued"
+  },
+  {
+    "id": "ISS2603003",
+    "date": "2026-03-12",
+    "department": "Spa & Wellness",
+    "issuedTo": "Anita Singh",
+    "purpose": "Guest Therapy Sessions",
+    "items": [
+      { "itemId": "INV006", "itemName": "Aromatherapy Oil (Lavender)", "qty": 8, "unit": "bottle" },
+      { "itemId": "INV007", "itemName": "Massage Candles", "qty": 15, "unit": "pcs" }
+    ],
+    "issuedBy": "Store Manager",
+    "status": "Issued"
+  },
+  {
+    "id": "ISS2603004",
+    "date": "2026-03-13",
+    "department": "Maintenance",
+    "issuedTo": "Raju Patil",
+    "purpose": "Facility Cleaning",
+    "items": [
+      { "itemId": "INV010", "itemName": "Cleaning Liquid (5L)", "qty": 4, "unit": "box" }
+    ],
+    "issuedBy": "Store Manager",
+    "status": "Issued"
+  },
+  {
+    "id": "ISS2603005",
+    "date": "2026-03-13",
+    "department": "Room Service",
+    "issuedTo": "Meena Joshi",
+    "purpose": "Guest Room Amenities",
+    "items": [
+      { "itemId": "INV002", "itemName": "Hand Soap (Bar)", "qty": 40, "unit": "pcs" },
+      { "itemId": "INV003", "itemName": "Shampoo (200ml)", "qty": 30, "unit": "bottle" },
+      { "itemId": "INV011", "itemName": "Toilet Paper Roll", "qty": 60, "unit": "pcs" }
+    ],
+    "issuedBy": "Store Manager",
+    "status": "Issued"
+  }
+]

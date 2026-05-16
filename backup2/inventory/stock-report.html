@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Reports – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>(function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();</script>
+  <style>
+    .report-tabs { display:flex; gap:4px; background:#f1f5f9; border-radius:10px; padding:4px; margin-bottom:24px; flex-wrap:wrap; }
+    .rtab { flex:1; min-width:140px; padding:9px 14px; border:none; border-radius:7px; font-size:13px; font-weight:600; color:#64748b; cursor:pointer; background:transparent; transition:.15s; text-align:center; }
+    .rtab.active { background:#fff; color:#1a3d2b; box-shadow:0 1px 4px rgba(0,0,0,.1); }
+    .report-section { display:none; }
+    .report-section.active { display:block; }
+    .dept-dist-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-bottom:20px; }
+    .dept-dist-card { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; }
+    .dept-dist-card .ddc-name { font-size:14px; font-weight:700; color:#1e293b; margin-bottom:10px; border-bottom:2px solid currentColor; padding-bottom:6px; }
+    .dept-dist-card .ddc-item { display:flex; justify-content:space-between; font-size:12px; padding:3px 0; border-bottom:1px solid #f1f5f9; }
+    .dept-dist-card .ddc-item:last-child { border:none; }
+    .dept-dist-card .ddc-total { margin-top:8px; font-size:13px; font-weight:700; color:#1a3d2b; text-align:right; }
+    .move-type { display:inline-block; padding:1px 8px; border-radius:12px; font-size:11px; font-weight:600; }
+    .move-in  { background:#dcfce7; color:#16a34a; }
+    .move-out { background:#fee2e2; color:#dc2626; }
+    .move-con { background:#fef3c7; color:#b45309; }
+    .reorder-high { color:#dc2626; font-weight:700; }
+    .reorder-med  { color:#d97706; font-weight:600; }
+    .progress-bar { height:8px; background:#f1f5f9; border-radius:4px; overflow:hidden; margin-top:4px; }
+    .progress-fill { height:100%; border-radius:4px; }
+    .cat-summary { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
+    .cat-card { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px; }
+    .cat-card .cc-name { font-size:13px; font-weight:700; color:#1e293b; margin-bottom:6px; }
+    .cat-card .cc-stat { font-size:22px; font-weight:800; }
+    .cat-card .cc-sub  { font-size:12px; color:#64748b; margin-top:2px; }
+  </style>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Inventory / <span>Reports</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header" style="margin-bottom:20px;">
+        <div class="page-header-left">
+          <div class="page-title">Inventory Reports</div>
+          <div class="page-subtitle">Department-wise distribution, category stock, movement history and reorder list</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="report-tabs">
+        <button class="rtab active" onclick="switchTab('dept')">Department Distribution</button>
+        <button class="rtab" onclick="switchTab('cat')">Category Overview</button>
+        <button class="rtab" onclick="switchTab('movement')">Movement History</button>
+        <button class="rtab" onclick="switchTab('reorder')">Reorder List</button>
+      </div>
+
+      <!-- TAB: DEPARTMENT DISTRIBUTION -->
+      <div class="report-section active" id="tab-dept">
+        <div class="section-card" style="margin-bottom:16px;">
+          <div class="section-header"><h2>Department-wise Issue Distribution</h2></div>
+          <div class="dept-dist-row" id="dept-dist-cards"></div>
+        </div>
+        <div class="section-card">
+          <div class="section-header"><h2>Department Issue Summary Table</h2></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Department</th>
+                  <th>Issue Slips</th>
+                  <th>Total Items</th>
+                  <th>Total Units Issued</th>
+                  <th>Last Issue Date</th>
+                </tr>
+              </thead>
+              <tbody id="dept-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: CATEGORY OVERVIEW -->
+      <div class="report-section" id="tab-cat">
+        <div class="cat-summary" id="cat-summary-cards"></div>
+        <div class="section-card">
+          <div class="section-header"><h2>Stock by Category</h2></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Item Name</th>
+                  <th>Category</th>
+                  <th>Current Stock</th>
+                  <th>Min Stock</th>
+                  <th>Unit</th>
+                  <th>Stock Level</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="cat-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: MOVEMENT HISTORY -->
+      <div class="report-section" id="tab-movement">
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Stock Movement History</h2>
+            <div class="section-actions" style="display:flex;gap:8px;">
+              <select class="filter-select" id="mov-item-filter" style="min-width:180px;">
+                <option value="">All Items</option>
+              </select>
+              <select class="filter-select" id="mov-type-filter">
+                <option value="">All Types</option>
+                <option value="in">Purchase In</option>
+                <option value="out">Stock Issue</option>
+                <option value="con">Consumption</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Reference</th>
+                  <th>Department / Vendor</th>
+                </tr>
+              </thead>
+              <tbody id="mov-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: REORDER LIST -->
+      <div class="report-section" id="tab-reorder">
+        <div class="section-card">
+          <div class="section-header"><h2>Items Requiring Reorder</h2><span id="reorder-count" style="font-size:13px;color:#ef4444;font-weight:600;"></span></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Item Name</th>
+                  <th>Category</th>
+                  <th>Current Stock</th>
+                  <th>Min Stock</th>
+                  <th>Shortfall</th>
+                  <th>Unit</th>
+                  <th>Priority</th>
+                  <th>Stock Level</th>
+                </tr>
+              </thead>
+              <tbody id="reorder-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+const KEY_PUR = 'sg360_purchases';
+const KEY_ISS = 'sg360_inv_issues';
+const KEY_CON = 'sg360_inv_consumption';
+
+let inventory = [], purchases = [], issues = [], consumption = [];
+let movements = [];
+
+const DEPT_COLORS = {
+  'Housekeeping':  '#16a34a',
+  'Restaurant':    '#b45309',
+  'Spa & Wellness':'#7c3aed',
+  'Maintenance':   '#dc2626',
+  'Room Service':  '#0284c7',
+  'Events':        '#be185d'
+};
+const CAT_COLORS = {
+  'Housekeeping': '#2d7a4f',
+  'Room Service': '#0284c7',
+  'Spa':          '#7c3aed',
+  'Restaurant':   '#b45309',
+  'Maintenance':  '#dc2626'
+};
+
+(async function init() {
+  renderAppSidebar('stock-report');
+  requireAuth('../index.html');
+  initAuthUI('../index.html');
+  initMobileMenu();
+  renderTopbarDate();
+
+  await Promise.all([
+    seedIfEmpty(KEYS.inventory, '../inventory/inventory-data.json'),
+    seedIfEmpty(KEY_PUR, '../inventory/purchase-data.json'),
+    seedIfEmpty(KEY_ISS, '../inventory/issue-data.json'),
+    seedIfEmpty(KEY_CON, '../inventory/consumption-data.json')
+  ]);
+
+  inventory   = getData(KEYS.inventory);
+  purchases   = getData(KEY_PUR);
+  issues      = getData(KEY_ISS);
+  consumption = getData(KEY_CON);
+
+  buildMovements();
+  renderDeptTab();
+  renderCatTab();
+  renderMovementTab();
+  renderReorderTab();
+})();
+
+function switchTab(tab) {
+  document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.report-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Build unified movement list
+function buildMovements() {
+  movements = [];
+
+  // Purchases → stock in
+  purchases.filter(p => p.status === 'Received').forEach(p => {
+    p.items.forEach(it => {
+      movements.push({ date: p.date, type: 'in', itemId: it.itemId, itemName: it.itemName, qty: it.qty, ref: p.id, source: p.vendor });
+    });
+  });
+
+  // Issues → stock out
+  issues.forEach(iss => {
+    iss.items.forEach(it => {
+      movements.push({ date: iss.date, type: 'out', itemId: it.itemId, itemName: it.itemName, qty: it.qty, ref: iss.id, source: iss.department });
+    });
+  });
+
+  // Consumption → stock out (consumption)
+  consumption.forEach(c => {
+    movements.push({ date: c.date, type: 'con', itemId: c.itemId, itemName: c.itemName, qty: c.qty, ref: c.id, source: c.department });
+  });
+
+  movements.sort((a, b) => b.date.localeCompare(a.date));
+}
+
+// ── DEPARTMENT TAB ──────────────────────────────────────
+function renderDeptTab() {
+  const deptMap = {};
+  issues.forEach(iss => {
+    const d = iss.department;
+    if (!deptMap[d]) deptMap[d] = { slips: 0, items: {}, totalUnits: 0, lastDate: '' };
+    deptMap[d].slips++;
+    if (iss.date > deptMap[d].lastDate) deptMap[d].lastDate = iss.date;
+    iss.items.forEach(it => {
+      if (!deptMap[d].items[it.itemName]) deptMap[d].items[it.itemName] = 0;
+      deptMap[d].items[it.itemName] += it.qty;
+      deptMap[d].totalUnits += it.qty;
+    });
+  });
+
+  const depts = Object.keys(deptMap);
+
+  // Cards
+  document.getElementById('dept-dist-cards').innerHTML = depts.map(d => {
+    const color = DEPT_COLORS[d] || '#64748b';
+    const topItems = Object.entries(deptMap[d].items).sort((a,b) => b[1]-a[1]).slice(0, 4);
+    return `
+      <div class="dept-dist-card">
+        <div class="ddc-name" style="color:${color};">${d}</div>
+        ${topItems.map(([name, qty]) => `<div class="ddc-item"><span>${name}</span><strong>${qty}</strong></div>`).join('')}
+        <div class="ddc-total">${deptMap[d].totalUnits} units total · ${deptMap[d].slips} slips</div>
+      </div>`;
+  }).join('') || '<p style="color:#64748b;font-size:14px;">No issue data available.</p>';
+
+  // Table
+  document.getElementById('dept-table-body').innerHTML = depts.sort((a,b) => deptMap[b].totalUnits - deptMap[a].totalUnits).map(d => {
+    const color = DEPT_COLORS[d] || '#64748b';
+    return `
+      <tr>
+        <td><span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;background:${color}18;color:${color};">${d}</span></td>
+        <td>${deptMap[d].slips}</td>
+        <td>${Object.keys(deptMap[d].items).length}</td>
+        <td><strong>${deptMap[d].totalUnits}</strong></td>
+        <td style="color:#64748b">${formatDate(deptMap[d].lastDate)}</td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="5" class="table-empty">No data.</td></tr>';
+}
+
+// ── CATEGORY TAB ──────────────────────────────────────
+function renderCatTab() {
+  const catMap = {};
+  inventory.forEach(item => {
+    if (!catMap[item.category]) catMap[item.category] = { items: [], lowCount: 0, totalQty: 0 };
+    catMap[item.category].items.push(item);
+    catMap[item.category].totalQty += item.quantity;
+    if (item.quantity < item.minStock) catMap[item.category].lowCount++;
+  });
+
+  // Summary cards
+  document.getElementById('cat-summary-cards').innerHTML = Object.entries(catMap).map(([cat, data]) => {
+    const color = CAT_COLORS[cat] || '#64748b';
+    return `
+      <div class="cat-card" style="border-top:3px solid ${color};">
+        <div class="cc-name">${cat}</div>
+        <div class="cc-stat" style="color:${color};">${data.items.length}</div>
+        <div class="cc-sub">${data.items.length} items · ${data.totalQty} total units</div>
+        ${data.lowCount > 0 ? `<div style="font-size:11px;color:#ef4444;margin-top:4px;font-weight:600;">${data.lowCount} low stock</div>` : ''}
+      </div>`;
+  }).join('');
+
+  // Full table sorted by category then name
+  const sorted = [...inventory].sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+  document.getElementById('cat-table-body').innerHTML = sorted.map(item => {
+    const isLow = item.quantity < item.minStock;
+    const pct   = item.minStock > 0 ? Math.min((item.quantity / (item.minStock * 2)) * 100, 100) : 100;
+    const fillColor = isLow ? '#ef4444' : pct < 65 ? '#f59e0b' : '#16a34a';
+    const color = CAT_COLORS[item.category] || '#64748b';
+    return `
+      <tr>
+        <td><strong>${item.name}</strong></td>
+        <td><span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:${color}18;color:${color};">${item.category}</span></td>
+        <td><strong style="color:${isLow?'#ef4444':'#1e293b'}">${item.quantity}</strong></td>
+        <td>${item.minStock}</td>
+        <td>${item.unit}</td>
+        <td style="min-width:120px;">
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${fillColor};"></div></div>
+        </td>
+        <td>${isLow ? '<span style="color:#ef4444;font-weight:600;font-size:12px;">LOW</span>' : '<span style="color:#16a34a;font-weight:600;font-size:12px;">OK</span>'}</td>
+      </tr>`;
+  }).join('');
+}
+
+// ── MOVEMENT TAB ──────────────────────────────────────
+function renderMovementTab() {
+  const itemFilter = document.getElementById('mov-item-filter');
+  const uniqueItems = [...new Set(movements.map(m => m.itemName))].sort();
+  itemFilter.innerHTML = '<option value="">All Items</option>' + uniqueItems.map(n => `<option value="${n}">${n}</option>`).join('');
+
+  const applyMovFilter = () => {
+    const iName = itemFilter.value;
+    const tType = document.getElementById('mov-type-filter').value;
+    const filtered = movements.filter(m => {
+      return (!iName || m.itemName === iName) && (!tType || m.type === tType);
+    });
+    renderMovTable(filtered);
+  };
+
+  [itemFilter, document.getElementById('mov-type-filter')].forEach(el => el.addEventListener('input', applyMovFilter));
+  renderMovTable(movements);
+}
+
+function renderMovTable(data) {
+  const TYPE_LABELS = { in: ['Purchase In', 'move-in'], out: ['Issue Out', 'move-out'], con: ['Consumption', 'move-con'] };
+  document.getElementById('mov-body').innerHTML = data.slice(0, 100).map(m => {
+    const [label, cls] = TYPE_LABELS[m.type] || ['—', ''];
+    const qty = m.type === 'in' ? `+${m.qty}` : `-${m.qty}`;
+    const qColor = m.type === 'in' ? '#16a34a' : '#ef4444';
+    return `
+      <tr>
+        <td>${formatDate(m.date)}</td>
+        <td><span class="move-type ${cls}">${label}</span></td>
+        <td><strong>${m.itemName}</strong></td>
+        <td style="font-weight:700;color:${qColor};">${qty}</td>
+        <td style="color:#64748b;font-size:12px;">${m.ref}</td>
+        <td>${m.source}</td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="6" class="table-empty">No movements found.</td></tr>';
+}
+
+// ── REORDER TAB ──────────────────────────────────────
+function renderReorderTab() {
+  const low = inventory.filter(i => i.quantity < i.minStock).sort((a,b) => {
+    const pctA = a.quantity / a.minStock;
+    const pctB = b.quantity / b.minStock;
+    return pctA - pctB;
+  });
+
+  document.getElementById('reorder-count').textContent = low.length + ' items need attention';
+
+  document.getElementById('reorder-body').innerHTML = low.map(item => {
+    const pct      = Math.round((item.quantity / item.minStock) * 100);
+    const shortfall = item.minStock - item.quantity;
+    const priority  = pct <= 20 ? 'Critical' : pct <= 50 ? 'High' : 'Medium';
+    const pColor    = priority === 'Critical' ? '#dc2626' : priority === 'High' ? '#d97706' : '#b45309';
+    const fillColor = pct <= 20 ? '#dc2626' : '#f59e0b';
+    return `
+      <tr>
+        <td><strong>${item.name}</strong></td>
+        <td><span style="font-size:11px;font-weight:600;color:${CAT_COLORS[item.category]||'#64748b'};background:${CAT_COLORS[item.category]||'#64748b'}18;padding:2px 8px;border-radius:12px;">${item.category}</span></td>
+        <td class="${pct <= 20 ? 'reorder-high' : 'reorder-med'}">${item.quantity}</td>
+        <td>${item.minStock}</td>
+        <td style="color:#dc2626;font-weight:700;">-${shortfall}</td>
+        <td>${item.unit}</td>
+        <td><span style="font-size:11px;font-weight:700;color:${pColor};background:${pColor}18;padding:2px 8px;border-radius:12px;">${priority}</span></td>
+        <td style="min-width:100px;">
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${fillColor};"></div></div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">${pct}% stocked</div>
+        </td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="8" class="table-empty" style="color:#16a34a;">All items are sufficiently stocked!</td></tr>';
+}
+</script>
+</body>
+</html>

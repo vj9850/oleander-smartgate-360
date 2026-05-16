@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driver Management – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>(function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();</script>
+</head>
+<body>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Masters / <span>Driver Management</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="page-content" id="page-content"></div>
+  </div>
+</div>
+<script src="../js/app.js"></script>
+<script src="../js/masters.js"></script>
+<script>
+new MasterPage({
+  key:          'sg360_drivers',
+  dataFile:     '../data/drivers.json',
+  activeModule: 'driver',
+  title:        'Driver Management',
+  subtitle:     'Manage resort drivers, licence details and vehicle assignments',
+  itemLabel:    'Driver',
+  idPrefix:     'DRV',
+  idField:      'driverId',
+  pageSize:     10,
+
+  stats: [
+    { label: 'Total Drivers', color: 'green' },
+    { label: 'Active',        color: 'teal',   filterKey: 'status', filterValue: 'Active' },
+    { label: 'Inactive',      color: 'red',    filterKey: 'status', filterValue: 'Inactive' },
+    { label: 'On Duty',       color: 'orange', countFn: all => all.filter(d => d.status === 'Active').length }
+  ],
+
+  columns: [
+    { key: 'driverId',       label: 'Driver ID',       type: 'id' },
+    { key: 'name',           label: 'Full Name',       type: 'bold' },
+    { key: 'mobile',         label: 'Mobile',          type: 'mono' },
+    { key: 'licenseNumber',  label: 'Licence No.',     type: 'mono' },
+    { key: 'licenseExpiry',  label: 'Licence Expiry',  type: 'date' },
+    { key: 'assignedVehicle',label: 'Assigned Vehicle',type: 'muted' }
+  ],
+
+  searchKeys: ['name', 'driverId', 'mobile', 'licenseNumber', 'assignedVehicle'],
+
+  filters: [
+    { field: 'status', label: 'Status', options: ['Active', 'Inactive'] }
+  ],
+
+  fields: [
+    { name: 'name',           label: 'Full Name',       type: 'text', required: true,  placeholder: 'Driver full name' },
+    { name: 'mobile',         label: 'Mobile',          type: 'tel',  required: true,  placeholder: '10-digit mobile' },
+    { name: 'licenseNumber',  label: 'Licence Number',  type: 'text', required: true,  placeholder: 'e.g. MH04-20150056789' },
+    { name: 'licenseExpiry',  label: 'Licence Expiry',  type: 'date', required: true  },
+    { name: 'assignedVehicle',label: 'Assigned Vehicle', type: 'text', required: false, placeholder: 'Vehicle reg. + name' },
+    { name: 'idProofType',    label: 'ID Proof Type',   type: 'select', required: false, options: ['Aadhar Card', 'Passport', 'Driving Licence', 'Voter ID'] },
+    { name: 'idNumber',       label: 'ID Number',       type: 'text', required: false, placeholder: 'ID proof number' },
+    { name: 'address',        label: 'Address',         type: 'textarea', required: false, full: true, placeholder: 'Residential address' }
+  ]
+}).init();
+</script>
+</body>
+</html>

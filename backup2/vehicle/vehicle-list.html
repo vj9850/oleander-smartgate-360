@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehicle Management – SmartGate 360</title>
+  <link rel="icon" type="image/webp" href="../assets/icons/logo.webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){
+      const s = sessionStorage.getItem('sg360_session');
+      if (!s) window.location.replace('../index.html');
+    })();
+  </script>
+  <style>
+    /* ── Vehicle List Page Styles ── */
+    .veh-stats {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .veh-table-filters {
+      display: flex;
+      gap: 8px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .veh-table-filters .search-box {
+      flex: 1;
+      min-width: 180px;
+      max-width: none;
+    }
+    .veh-table-filters .btn-clear {
+      white-space: nowrap;
+    }
+    /* Assign modal: show/hide fields */
+    #assign-inuse-fields { display: none; }
+    #assign-inuse-fields.show { display: block; }
+
+    @media (max-width: 1100px) {
+      .veh-stats { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .veh-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .veh-table-filters { flex-direction: column; }
+      .veh-table-filters .search-box,
+      .veh-table-filters select,
+      .veh-table-filters .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <!-- Sidebar Backdrop -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Operations / <span>Vehicle Management</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Vehicle Management</div>
+          <div class="page-subtitle">Fleet tracking, assignments and pickup/drop management</div>
+        </div>
+        <a href="vehicle-form.html" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Vehicle
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="veh-stats" id="veh-stats"></div>
+
+      <!-- Table Card -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Fleet Overview</h2>
+          <div class="section-actions">
+            <span id="veh-count" style="font-size:13px;color:var(--text-muted);"></span>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="veh-table-filters">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="veh-search" placeholder="Search vehicle, driver, guest…" />
+          </div>
+          <select class="filter-select" id="veh-type-filter">
+            <option value="">All Types</option>
+            <option>Owned</option>
+            <option>Rental</option>
+          </select>
+          <select class="filter-select" id="veh-status-filter">
+            <option value="">All Status</option>
+            <option>Available</option>
+            <option>In Use</option>
+            <option>Maintenance</option>
+          </select>
+          <button class="btn btn-ghost btn-sm btn-clear" id="veh-clear-btn">Clear</button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper mobile-card">
+          <table id="vehicle-table">
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th class="tbl-hide-mobile">Driver</th>
+                <th>Category</th>
+                <th>Type</th>
+                <th class="tbl-hide-mobile">Fuel</th>
+                <th class="tbl-hide-tablet">Purpose / Guest</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="vehicle-body">
+              <tr><td colspan="8" class="table-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<!-- Assign / Update Status Modal -->
+<div class="modal-overlay" id="assign-modal">
+  <div class="modal">
+    <h3>Update Vehicle Status</h3>
+    <p>Change the status for <strong id="assign-veh-name"></strong></p>
+
+    <div style="margin-bottom:14px;">
+      <label class="form-label" style="margin-bottom:5px;display:block;">New Status</label>
+      <select class="form-input" id="assign-status-sel">
+        <option>Available</option>
+        <option>In Use</option>
+        <option>Maintenance</option>
+      </select>
+    </div>
+
+    <!-- In-Use fields — shown/hidden by JS -->
+    <div id="assign-inuse-fields">
+      <div style="margin-bottom:12px;">
+        <label class="form-label" style="margin-bottom:5px;display:block;">Guest Name</label>
+        <input type="text" class="form-input" id="assign-guest-input" placeholder="Guest name" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label class="form-label" style="margin-bottom:5px;display:block;">Pickup Location</label>
+        <input type="text" class="form-input" id="assign-pickup-input" placeholder="e.g. Main Gate" />
+      </div>
+      <div style="margin-bottom:14px;">
+        <label class="form-label" style="margin-bottom:5px;display:block;">Destination</label>
+        <input type="text" class="form-input" id="assign-destination-input" placeholder="e.g. Rooms & Villas" />
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('assign-modal')">Cancel</button>
+      <button class="btn btn-primary" id="confirm-assign-btn">Update</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+let allVehicles  = [];
+let editingVehId = null;
+
+(async function init() {
+  renderAppSidebar('vehicle-list');
+  requireAuth('../index.html');
+  initAuthUI('../index.html');
+  initMobileMenu();
+  renderTopbarDate();
+
+  await seedIfEmpty(KEYS.vehicles, '../vehicle/vehicle-data.json');
+  allVehicles = getData(KEYS.vehicles);
+
+  renderStats();
+  renderTable(allVehicles);
+  initFilters();
+})();
+
+/* ── Stats ─────────────────────────────────────────── */
+function renderStats() {
+  const available   = allVehicles.filter(v => v.status === 'Available').length;
+  const inUse       = allVehicles.filter(v => v.status === 'In Use').length;
+  const maintenance = allVehicles.filter(v => v.status === 'Maintenance').length;
+  const owned       = allVehicles.filter(v => v.type === 'Owned').length;
+  const suvs        = allVehicles.filter(v => v.category === 'SUV').length;
+
+  document.getElementById('veh-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${allVehicles.length}</div><div class="stat-label">Total Fleet</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${available}</div><div class="stat-label">Available</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${inUse}</div><div class="stat-label">In Use</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${maintenance}</div><div class="stat-label">Maintenance</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${owned}</div><div class="stat-label">Owned</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+      <div class="stat-body"><div class="stat-value">${suvs}</div><div class="stat-label">SUVs</div></div>
+    </div>
+  `;
+}
+
+/* ── Table ──────────────────────────────────────────── */
+function renderTable(data) {
+  const body = document.getElementById('vehicle-body');
+  document.getElementById('veh-count').textContent = `${data.length} vehicle${data.length !== 1 ? 's' : ''}`;
+
+  if (!data.length) {
+    body.innerHTML = '<tr><td colspan="8" class="table-empty">No vehicles found.</td></tr>';
+    return;
+  }
+
+  // vehicle type badge — Owned=green(staff), Rental=orange(vendor)
+  function vTypeBadge(type) {
+    const cls = type === 'Owned' ? 'type-staff' : 'type-vendor';
+    return `<span class="type-badge ${cls}" style="font-size:11px;">${type}</span>`;
+  }
+
+  function vCatBadge(cat) {
+    const map = { 'SUV': 'type-guest', 'Car': 'type-staff', 'Van': 'type-vendor', 'Truck': 'type-event' };
+    const cls = map[cat] || '';
+    return `<span class="type-badge ${cls}" style="font-size:11px;">${cat || '—'}</span>`;
+  }
+
+  body.innerHTML = data.map(v => `
+    <tr>
+      <td data-label="Vehicle">
+        <div style="font-weight:700;font-size:13px;">${v.name}</div>
+        <div style="font-size:11px;color:var(--text-muted);font-family:monospace;">${v.vehicleNumber}</div>
+      </td>
+      <td data-label="Driver" class="tbl-hide-mobile">
+        <div style="font-size:13px;">${v.driverName || '—'}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${v.driverPhone || ''}</div>
+      </td>
+      <td data-label="Category">${vCatBadge(v.category)}</td>
+      <td data-label="Type">${vTypeBadge(v.type)}</td>
+      <td data-label="Fuel" class="tbl-hide-mobile">
+        <span style="font-size:12px;">${v.fuelType || '—'}</span>
+      </td>
+      <td data-label="Assigned To" class="tbl-hide-tablet">
+        <span style="font-size:12px;">${v.assignedGuest || v.purpose || '—'}</span>
+      </td>
+      <td data-label="Status">${statusBadge(v.status)}</td>
+      <td data-label="Actions">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-ghost" style="padding:4px 10px;font-size:12px;" onclick="openAssign('${v.id}')">Assign</button>
+          <a class="btn btn-sm btn-outline" style="padding:4px 10px;font-size:12px;" href="driver-shift.html?vehicle=${v.id}">Shift</a>
+          ${v.status === 'In Use' ? `<button class="btn btn-sm btn-outline" style="padding:4px 10px;font-size:12px;" onclick="markAvailable('${v.id}')">Return</button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+/* ── Filters ────────────────────────────────────────── */
+function initFilters() {
+  const searchInput  = document.getElementById('veh-search');
+  const typeFilter   = document.getElementById('veh-type-filter');
+  const statusFilter = document.getElementById('veh-status-filter');
+  const clearBtn     = document.getElementById('veh-clear-btn');
+
+  function applyFilters() {
+    const q      = searchInput.value.toLowerCase();
+    const type   = typeFilter.value;
+    const status = statusFilter.value;
+
+    const filtered = allVehicles.filter(v => {
+      const matchQ = !q || [v.name, v.vehicleNumber, v.driverName, v.assignedGuest, v.id]
+                            .join(' ').toLowerCase().includes(q);
+      const matchT = !type   || v.type   === type;
+      const matchS = !status || v.status === status;
+      return matchQ && matchT && matchS;
+    });
+    renderTable(filtered);
+  }
+
+  [searchInput, typeFilter, statusFilter].forEach(el => el.addEventListener('input', applyFilters));
+
+  clearBtn && clearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    typeFilter.value  = '';
+    statusFilter.value = '';
+    renderTable(allVehicles);
+  });
+}
+
+/* ── Assign Modal ───────────────────────────────────── */
+function openAssign(id) {
+  editingVehId = id;
+  const v = allVehicles.find(x => x.id === id);
+  if (!v) return;
+
+  document.getElementById('assign-veh-name').textContent = `${v.name} (${v.vehicleNumber})`;
+  document.getElementById('assign-status-sel').value     = v.status;
+  document.getElementById('assign-guest-input').value    = v.assignedGuest  || '';
+  document.getElementById('assign-pickup-input').value   = v.pickupLocation || '';
+  document.getElementById('assign-destination-input').value = v.destination || '';
+
+  // Show/hide in-use fields based on current status
+  toggleInUseFields(v.status);
+  openModal('assign-modal');
+}
+
+function toggleInUseFields(status) {
+  const wrap = document.getElementById('assign-inuse-fields');
+  if (status === 'In Use') {
+    wrap.classList.add('show');
+  } else {
+    wrap.classList.remove('show');
+  }
+}
+
+// Listen to status select change inside modal
+document.getElementById('assign-status-sel').addEventListener('change', function () {
+  toggleInUseFields(this.value);
+});
+
+document.getElementById('confirm-assign-btn').addEventListener('click', () => {
+  if (!editingVehId) return;
+
+  const vehicles  = getData(KEYS.vehicles);
+  const idx       = vehicles.findIndex(v => v.id === editingVehId);
+  if (idx === -1) return;
+
+  const newStatus = document.getElementById('assign-status-sel').value;
+  const newGuest  = document.getElementById('assign-guest-input').value.trim();
+  const newPickup = document.getElementById('assign-pickup-input').value.trim();
+  const newDest   = document.getElementById('assign-destination-input').value.trim();
+
+  vehicles[idx].status = newStatus;
+
+  if (newStatus === 'In Use') {
+    vehicles[idx].assignedGuest  = newGuest;
+    vehicles[idx].pickupLocation = newPickup;
+    vehicles[idx].destination    = newDest;
+  } else {
+    vehicles[idx].assignedGuest  = '';
+    vehicles[idx].pickupLocation = '';
+    vehicles[idx].destination    = '';
+  }
+
+  saveData(KEYS.vehicles, vehicles);
+  allVehicles = vehicles;
+  closeModal('assign-modal');
+  renderStats();
+  renderTable(allVehicles);
+  showToast(`Vehicle status updated to ${newStatus}`);
+  editingVehId = null;
+});
+
+/* ── Mark Available (Return) ────────────────────────── */
+function markAvailable(id) {
+  const vehicles = getData(KEYS.vehicles);
+  const idx = vehicles.findIndex(v => v.id === id);
+  if (idx === -1) return;
+
+  vehicles[idx].status        = 'Available';
+  vehicles[idx].assignedGuest = '';
+  vehicles[idx].pickupLocation = '';
+  vehicles[idx].destination   = '';
+
+  saveData(KEYS.vehicles, vehicles);
+  allVehicles = vehicles;
+  renderStats();
+  renderTable(allVehicles);
+  showToast('Vehicle marked as Available');
+}
+</script>
+</body>
+</html>

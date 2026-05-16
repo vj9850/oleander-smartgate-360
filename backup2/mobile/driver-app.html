@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Driver / Valet App – SmartGate 360</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#1a3d2b,#2d7a4f);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.device{background:#0d1f16;border-radius:56px;padding:13px;box-shadow:0 50px 100px rgba(0,0,0,.55),0 0 0 1px #2d7a4f40;width:390px;position:relative;flex-shrink:0}
+.notch{position:absolute;top:13px;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#0d1f16;border-radius:0 0 22px 22px;z-index:20;display:flex;align-items:center;justify-content:center;padding-top:6px}
+.notch::after{content:'';width:13px;height:13px;background:#111;border-radius:50%;border:2.5px solid #1a1a2e}
+.screen{background:#f4f7f5;border-radius:44px;overflow:hidden;height:820px;display:flex;flex-direction:column;position:relative}
+.sbar{background:#1a3d2b;padding:16px 22px 8px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.stime{color:#fff;font-size:15px;font-weight:700}
+.sicons{display:flex;gap:5px;align-items:center}
+.sicons svg{width:15px;height:15px}
+/* Shift hero */
+.shift-hdr{background:linear-gradient(160deg,#0d4a30,#2d7a4f);padding:8px 14px 14px;flex-shrink:0}
+.sh-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.hbtn{width:32px;height:32px;background:rgba(255,255,255,.12);border-radius:9px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.hbtn svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2.5}
+.htitle{color:#fff;font-size:17px;font-weight:700;flex:1}
+.shift-card{background:rgba(255,255,255,.15);border-radius:13px;padding:11px 13px;display:flex;align-items:center;gap:11px}
+.sdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.sdot-on{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.3);animation:pulse 2s infinite}
+.sdot-off{background:#6b7280}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(74,222,128,.3)}50%{box-shadow:0 0 0 7px rgba(74,222,128,.1)}}
+.shift-name{color:#fff;font-size:13.5px;font-weight:700}
+.shift-sub{color:rgba(255,255,255,.6);font-size:9.5px;margin-top:1px}
+.shift-timer{color:#fff;font-size:13px;font-weight:800;background:rgba(0,0,0,.2);padding:5px 10px;border-radius:8px;margin-left:auto;flex-shrink:0}
+/* Content */
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.content::-webkit-scrollbar{display:none}
+.pane{display:none;padding:13px}
+.pane.active{display:block}
+/* Bottom nav */
+.bnav{background:#fff;border-top:1.5px solid #deeae2;display:flex;flex-shrink:0;padding:7px 0 10px}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;padding:2px 0}
+.ni svg{width:21px;height:21px;fill:none;stroke:#b0c9bc;stroke-width:2;transition:stroke .15s}
+.ni span{font-size:9.5px;color:#b0c9bc;font-weight:600}
+.ni.on svg{stroke:#2d7a4f}.ni.on span{color:#2d7a4f}
+/* Toast */
+.toast{position:absolute;bottom:80px;left:14px;right:14px;padding:11px 15px;border-radius:11px;font-size:11.5px;font-weight:700;color:#fff;text-align:center;z-index:999;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-s{background:#2d7a4f}.toast-e{background:#ef4444}.toast-w{background:#e67e22}
+/* Cards */
+.card{background:#fff;border-radius:13px;padding:13px;margin-bottom:11px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.chead{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.ct{font-size:13px;font-weight:700;color:#1a2e22}
+/* Stats row */
+.srow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:11px}
+.smini{background:#fff;border-radius:11px;padding:11px 9px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.smv{font-size:22px;font-weight:800;color:#2d7a4f}
+.sml{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#8fa898;margin-top:2px}
+/* Vehicle card */
+.vcard{background:#fff;border-radius:13px;padding:13px;margin-bottom:11px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.vct{display:flex;align-items:center;gap:11px;margin-bottom:11px}
+.vicon{width:44px;height:44px;border-radius:12px;background:#e8f5ee;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.vicon svg{width:20px;height:20px;fill:none;stroke:#2d7a4f;stroke-width:2}
+.fbar{height:5px;background:#e0ece5;border-radius:3px;margin-top:2px}
+.ff{height:100%;border-radius:3px;background:#2d7a4f}
+/* Active trip */
+.atrip{background:linear-gradient(135deg,#0d4a30,#2d7a4f);border-radius:15px;padding:15px;margin-bottom:11px}
+.at-lbl{color:rgba(255,255,255,.7);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.at-dest{color:#fff;font-size:16px;font-weight:800;margin-bottom:9px}
+.at-stats{display:flex;gap:9px}
+.atm{background:rgba(255,255,255,.15);border-radius:9px;padding:7px 10px;text-align:center}
+.atm-v{color:#fff;font-size:14px;font-weight:800}
+.atm-l{color:rgba(255,255,255,.6);font-size:8.5px}
+/* Quick actions */
+.qacts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:11px}
+.qa{background:#fff;border-radius:12px;padding:12px 7px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.05);border:none;cursor:pointer;transition:transform .1s}
+.qa:active{transform:scale(.96)}
+.qa-i{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px}
+.qa-i svg{width:16px;height:16px;fill:none;stroke-width:2}
+.qa-g{background:#e8f5ee}.qa-g svg{stroke:#2d7a4f}
+.qa-o{background:#fef3e2}.qa-o svg{stroke:#e67e22}
+.qa-b{background:#e8f4fd}.qa-b svg{stroke:#3b82f6}
+.qa-l{font-size:9.5px;font-weight:700;color:#1a2e22}
+/* Trip history */
+.th{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #f0f4f2}
+.th:last-child{border-bottom:none}
+.th-icon{width:30px;height:30px;border-radius:9px;background:#e8f5ee;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+/* Form */
+.fgrp{margin-bottom:11px}
+.flbl{font-size:10.5px;font-weight:700;color:#5a7a65;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;display:block}
+.finp{width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #d4e6db;font-size:13px;color:#1a2e22;outline:none;font-family:inherit;background:#fff;transition:border-color .15s}
+.finp:focus{border-color:#2d7a4f}
+select.finp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238fa898' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.ferr{font-size:10px;color:#ef4444;margin-top:3px;display:none}
+/* Expense items */
+.ei{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #f0f4f2}
+.ei:last-child{border-bottom:none}
+.ei-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+/* Shift toggle */
+.shift-tog{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}
+.stg{border-radius:13px;padding:15px;text-align:center;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.stg:active{transform:scale(.98)}
+.stg-s{background:#e8f5ee;border-color:#2d7a4f}
+.stg-e{background:#fdecea;border-color:#ef4444}
+.stg-icon{font-size:24px;margin-bottom:5px}
+.stg-title{font-size:12.5px;font-weight:700}
+.stg-s .stg-title{color:#2d7a4f}
+.stg-e .stg-title{color:#ef4444}
+.stg-sub{font-size:9.5px;color:#8fa898;margin-top:2px}
+/* Checklist */
+.chk-item{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #f0f4f2;cursor:pointer;user-select:none}
+.chk-item:last-child{border-bottom:none}
+.chk-box{width:21px;height:21px;border-radius:6px;border:2px solid #d4e6db;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.chk-box.on{background:#2d7a4f;border-color:#2d7a4f}
+.chk-tick{display:none;color:#fff;font-size:11.5px;font-weight:800}
+.chk-box.on .chk-tick{display:block}
+/* Photo grid */
+.pgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:9px}
+.photo-slot{aspect-ratio:1;border-radius:9px;border:2px dashed #d4e6db;background:#f8fbf9;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:3px;transition:all .2s}
+.photo-slot:active{transform:scale(.97)}
+.photo-slot.done{border:2px solid #2d7a4f;background:#e8f5ee}
+.photo-slot.done .ps-icon{display:none}
+.photo-slot.done::after{content:'✓';font-size:22px;color:#2d7a4f;font-weight:800}
+.ps-icon svg{width:18px;height:18px;fill:none;stroke:#a8c5b4;stroke-width:2}
+.ps-lbl{font-size:9px;color:#a8c5b4;font-weight:700}
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:9.5px;font-weight:700}
+.ba{background:#e8f5ee;color:#2d7a4f}
+.bi{background:#fef3e2;color:#d97706}
+.bg{background:#f0f0f0;color:#6b7280}
+.br{background:#fdecea;color:#ef4444}
+/* Buttons */
+.btn{padding:7px 12px;border-radius:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:#2d7a4f;color:#fff}
+.btn-o{background:transparent;color:#2d7a4f;border:1.5px solid #2d7a4f}
+.btn-d{background:#fdecea;color:#ef4444}
+.btn-g{background:#f4f7f5;color:#5a7a65}
+.btn-w{width:100%;padding:11px}
+/* Info rows */
+.ir{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0f4f2}
+.ir:last-child{border-bottom:none}
+.il{font-size:12px;color:#8fa898}
+.iv{font-size:12px;color:#1a2e22;font-weight:600}
+/* Profile */
+.ph{background:linear-gradient(135deg,#1a3d2b,#2d7a4f);border-radius:17px;padding:18px;margin-bottom:11px;display:flex;align-items:center;gap:13px}
+.pav{width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff}
+.pn{color:#fff;font-size:15px;font-weight:800}
+.pr{color:rgba(255,255,255,.6);font-size:9.5px}
+.ps{color:rgba(255,255,255,.85);font-size:10.5px;font-weight:600;margin-top:4px}
+/* Receipt capture */
+.capture-zone{border:2px dashed #d4e6db;border-radius:10px;padding:16px;text-align:center;background:#f8fbf9;cursor:pointer;transition:all .2s}
+.capture-zone:active{transform:scale(.98)}
+.capture-zone.done{border:2px solid #2d7a4f;background:#e8f5ee}
+/* GPS card */
+.gps-live-card{background:linear-gradient(135deg,#0d2b1a,#1a3d2b);border-radius:13px;padding:13px;margin-bottom:11px}
+.gps-live-card .ct{color:#fff}
+.gps-live-dot{width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.3);animation:pulse 1.5s infinite;display:inline-block;margin-right:6px;vertical-align:middle;flex-shrink:0}
+.gps-live-dot.off{background:#6b7280;box-shadow:none;animation:none}
+.gps-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.gps-stat{background:rgba(255,255,255,.1);border-radius:9px;padding:9px 10px}
+.gps-stat-v{font-size:13px;font-weight:800;color:#fff}
+.gps-stat-l{font-size:9px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.gps-map-link{display:block;padding:8px;background:rgba(255,255,255,.12);border-radius:8px;text-align:center;font-size:10.5px;font-weight:700;color:#7dcea0;text-decoration:none;margin-top:8px;transition:background .15s}
+.gps-map-link:hover{background:rgba(255,255,255,.2)}
+/* GUI Confirm modal */
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+/* 360° Video capture */
+.vcap-modal{position:absolute;inset:0;background:#000;z-index:200;display:none;flex-direction:column;border-radius:44px;overflow:hidden}
+.vcap-modal.show{display:flex}
+#vcap-preview{flex:1;object-fit:cover;width:100%;height:100%}
+.vcap-overlay-top{position:absolute;top:0;left:0;right:0;padding:18px 14px 24px;background:linear-gradient(to bottom,rgba(0,0,0,.65),transparent);display:flex;align-items:center;gap:9px}
+.vcap-overlay-btm{position:absolute;bottom:0;left:0;right:0;padding:20px 14px 30px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;flex-direction:column;align-items:center;gap:10px}
+.vcap-rec-btn{width:66px;height:66px;border-radius:50%;border:4px solid #fff;background:#ef4444;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.vcap-rec-btn.recording{animation:recpulse 1s infinite}
+.vcap-rec-btn.done-btn{background:#2d7a4f}
+@keyframes recpulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}50%{box-shadow:0 0 0 10px rgba(239,68,68,0)}}
+.vcap-timer{color:#fff;font-size:28px;font-weight:900;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+.vcap-hint{color:rgba(255,255,255,.8);font-size:11px;font-weight:600;text-align:center;max-width:220px;line-height:1.4}
+.vcap-rec-dot{width:11px;height:11px;border-radius:50%;background:#ef4444;display:inline-block;margin-right:5px;animation:recpulse 1s infinite}
+/* Video verified badge */
+.vid-badge{display:none;align-items:center;gap:5px;background:#e8f5ee;border:1.5px solid #2d7a4f;border-radius:9px;padding:8px 12px;margin-bottom:10px;font-size:11.5px;font-weight:700;color:#2d7a4f}
+/* ── Mobile Auth Screen ── */
+.mob-auth{position:absolute;inset:0;z-index:200;background:linear-gradient(160deg,#0a2016,#1a3d2b,#2a6a42);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 22px;border-radius:44px}
+.auth-app-icon{font-size:52px;margin-bottom:8px;line-height:1}
+.auth-app-name{color:#fff;font-size:19px;font-weight:800;text-align:center}
+.auth-app-sub{color:rgba(255,255,255,.45);font-size:9.5px;text-align:center;margin-top:3px;margin-bottom:20px}
+.auth-uid-inp{width:100%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:11px;padding:10px 13px;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:14px;text-align:center;letter-spacing:.5px}
+.auth-uid-inp::placeholder{color:rgba(255,255,255,.3)}
+.auth-uid-inp:focus{border-color:rgba(74,222,128,.5);background:rgba(255,255,255,.15)}
+.auth-pin-row{display:flex;gap:14px;justify-content:center;margin-bottom:16px}
+.auth-pd{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.3);transition:all .12s}
+.auth-pd.on{background:#4ade80;border-color:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.2)}
+.auth-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:226px}
+.auth-k{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.12);color:#fff;font-size:18px;font-weight:700;border-radius:13px;padding:13px 0;cursor:pointer;transition:all .12s;font-family:inherit;user-select:none}
+.auth-k:active{background:rgba(74,222,128,.25);border-color:rgba(74,222,128,.4);transform:scale(.93)}
+.auth-k.k-del{font-size:15px}
+.auth-k.k-ok{background:rgba(74,222,128,.18);border-color:rgba(74,222,128,.3);color:#4ade80}
+.auth-k.k-ok:active{background:rgba(74,222,128,.38)}
+.auth-err{color:#fca5a5;font-size:10.5px;font-weight:700;text-align:center;min-height:15px;margin-top:8px}
+.auth-hint{color:rgba(255,255,255,.22);font-size:9.5px;text-align:center;margin-top:10px;line-height:1.6}
+@keyframes authShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+/* ── Shift Wizard ── */
+.wizard{position:absolute;inset:0;z-index:150;background:#f4f7f5;display:none;flex-direction:column;border-radius:44px;overflow:hidden}
+.wizard.show{display:flex}
+.wiz-hdr{background:linear-gradient(160deg,#0d4a30,#2d7a4f);padding:14px 16px 12px;flex-shrink:0}
+.wiz-hdr-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.wiz-title{color:#fff;font-size:15px;font-weight:800;flex:1}
+.wiz-close{width:30px;height:30px;background:rgba(255,255,255,.15);border-radius:9px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.wiz-close svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2.5}
+.wiz-steps-bar{display:flex;gap:6px;justify-content:center}
+.wiz-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .2s;flex-shrink:0}
+.wiz-dot.active{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25)}
+.wiz-dot.done{background:rgba(74,222,128,.6)}
+.wiz-step-label{color:rgba(255,255,255,.6);font-size:9px;font-weight:700;text-align:center;margin-top:5px;text-transform:uppercase;letter-spacing:.4px}
+.wiz-body{flex:1;overflow-y:auto;padding:14px}
+.wiz-body::-webkit-scrollbar{display:none}
+.wiz-step{display:none}
+.wiz-step.active{display:block}
+.wiz-step-title{font-size:14px;font-weight:800;color:#1a2e22;margin-bottom:4px}
+.wiz-step-sub{font-size:10.5px;color:#8fa898;margin-bottom:13px;line-height:1.4}
+.wiz-footer{background:#fff;border-top:1.5px solid #deeae2;padding:11px 14px 13px;display:flex;gap:9px;flex-shrink:0}
+.wiz-btn-back{flex:1;padding:11px;border-radius:10px;border:1.5px solid #d4e6db;background:#f4f7f5;color:#5a7a65;font-size:12px;font-weight:700;cursor:pointer}
+.wiz-btn-next{flex:2;padding:11px;border-radius:10px;border:none;background:#2d7a4f;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s}
+.wiz-btn-next:active{transform:scale(.97)}
+.wiz-warn{background:#fef3e2;border:1.5px solid #fbbf24;border-radius:9px;padding:9px 12px;margin-top:10px;font-size:11px;color:#92400e;display:none}
+.wiz-info-box{background:#f4f7f5;border-radius:11px;padding:16px;text-align:center;margin-bottom:13px}
+.wiz-veh-banner{background:#e8f5ee;border:1.5px solid #2d7a4f;border-radius:11px;padding:12px;margin-bottom:13px;display:flex;align-items:center;gap:10px}
+.wsumm{background:#f4f7f5;border-radius:11px;padding:2px 12px;margin-bottom:10px}
+.wsumm-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e8f0eb}
+.wsumm-row:last-child{border-bottom:none}
+.wsumm-lbl{font-size:11px;color:#8fa898}
+.wsumm-val{font-size:11px;font-weight:700;color:#1a2e22}
+</style>
+</head>
+<body>
+<div class="device">
+  <div class="notch"></div>
+  <div class="screen">
+    <!-- ── AUTH SCREEN ── -->
+    <div class="mob-auth" id="mob-auth">
+      <div class="auth-app-icon">🧑‍✈️</div>
+      <div class="auth-app-name">Driver / Valet</div>
+      <div class="auth-app-sub">Oleander Farms · SmartGate 360</div>
+      <input class="auth-uid-inp" id="auth-uid" placeholder="Driver ID or Phone (e.g. D001)" autocomplete="off" autocapitalize="characters" />
+      <div class="auth-pin-row">
+        <div class="auth-pd" id="ap0"></div>
+        <div class="auth-pd" id="ap1"></div>
+        <div class="auth-pd" id="ap2"></div>
+        <div class="auth-pd" id="ap3"></div>
+      </div>
+      <div class="auth-pad">
+        <button class="auth-k" onclick="authKey('1')">1</button>
+        <button class="auth-k" onclick="authKey('2')">2</button>
+        <button class="auth-k" onclick="authKey('3')">3</button>
+        <button class="auth-k" onclick="authKey('4')">4</button>
+        <button class="auth-k" onclick="authKey('5')">5</button>
+        <button class="auth-k" onclick="authKey('6')">6</button>
+        <button class="auth-k" onclick="authKey('7')">7</button>
+        <button class="auth-k" onclick="authKey('8')">8</button>
+        <button class="auth-k" onclick="authKey('9')">9</button>
+        <button class="auth-k k-del" onclick="authDel()">⌫</button>
+        <button class="auth-k" onclick="authKey('0')">0</button>
+        <button class="auth-k k-ok" onclick="authGo()">✓</button>
+      </div>
+      <div class="auth-err" id="auth-err"></div>
+      <div class="auth-hint">Use your Driver ID + PIN 1234<br>e.g. <strong style="color:rgba(255,255,255,.5)">D001</strong> through <strong style="color:rgba(255,255,255,.5)">D007</strong> · PIN: <strong style="color:rgba(255,255,255,.5)">1234</strong></div>
+    </div>
+    <div class="sbar">
+      <span class="stime" id="stime">9:41</span>
+      <div class="sicons">
+        <svg viewBox="0 0 24 24" fill="#fff"><rect x="2" y="14" width="3" height="8"/><rect x="7" y="10" width="3" height="12"/><rect x="12" y="6" width="3" height="16"/><rect x="17" y="2" width="3" height="20" opacity=".3"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M20 11h2v4h-2"/><rect x="4" y="9" width="13" height="7" rx="1" fill="#fff"/></svg>
+      </div>
+    </div>
+    <!-- Shift hero always visible -->
+    <div class="shift-hdr">
+      <div class="sh-top">
+        <a href="../index.html" class="hbtn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <div class="htitle">Driver App</div>
+        <button class="hbtn" onclick="switchTab('shift')"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+        <button class="hbtn" onclick="authLock()" title="Lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+      </div>
+      <div class="shift-card" id="shift-card">
+        <div class="sdot sdot-on" id="shift-dot"></div>
+        <div>
+          <div class="shift-name" id="shift-name-txt">Suresh Patel — Shift Active</div>
+          <div class="shift-sub" id="shift-sub-txt">Started 7:00 AM · Mahindra Scorpio · MH04OLF001</div>
+        </div>
+        <div class="shift-timer" id="shift-elapsed">2h 41m</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- HOME -->
+      <div class="pane active" id="pane-home">
+        <div class="srow">
+          <div class="smini"><div class="smv" id="home-trips">3</div><div class="sml">Trips Done</div></div>
+          <div class="smini"><div class="smv" id="home-km">42</div><div class="sml">KM Today</div></div>
+          <div class="smini"><div class="smv" style="color:#e67e22" id="home-exp">₹0</div><div class="sml">Expenses</div></div>
+        </div>
+        <!-- Assigned vehicle -->
+        <div class="vcard">
+          <div class="vct">
+            <div class="vicon"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+            <div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:#1a2e22">Mahindra Scorpio</div><div style="font-size:9.5px;color:#8fa898">MH04OLF001 · SUV · Diesel · 7 seats</div></div>
+            <span class="badge bi">Assigned</span>
+          </div>
+          <div class="fbar"><div class="ff" style="width:68%" id="veh-fuel-bar"></div></div>
+          <div style="font-size:9.5px;color:#8fa898;margin-top:3px">Fuel: <span id="veh-fuel-pct">68</span>% · Odo: <span id="veh-odo">24,580</span> km</div>
+        </div>
+        <!-- GPS Live Location -->
+        <div class="gps-live-card" id="gps-card">
+          <div class="chead" style="margin-bottom:8px">
+            <span class="ct">📍 Live Location</span>
+            <span id="gps-badge" style="font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(239,68,68,.2);color:#fca5a5">Off</span>
+          </div>
+          <div id="gps-body" style="color:rgba(255,255,255,.5);font-size:11px;text-align:center;padding:6px 0">Location sharing is disabled</div>
+          <button class="btn btn-p btn-w" id="gps-toggle-btn" onclick="toggleGPS()" style="margin-top:8px;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.2)">
+            📡 Enable Live Tracking
+          </button>
+        </div>
+        <!-- Quick actions -->
+        <div class="qacts">
+          <button class="qa" onclick="switchTab('trip')">
+            <div class="qa-i qa-g"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></div>
+            <div class="qa-l">Start Trip</div>
+          </button>
+          <button class="qa" onclick="switchTab('expenses')">
+            <div class="qa-i qa-o"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+            <div class="qa-l">Log Expense</div>
+          </button>
+          <button class="qa" onclick="switchTab('shift')">
+            <div class="qa-i qa-b"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></div>
+            <div class="qa-l">End Shift</div>
+          </button>
+        </div>
+        <!-- Active trip -->
+        <div id="active-trip-home"></div>
+        <!-- Recent trips -->
+        <div class="card">
+          <div class="chead"><span class="ct">Today's Trips</span><span class="badge ba" id="trip-count-badge">0 done</span></div>
+          <div id="trip-history-home"></div>
+        </div>
+      </div>
+
+      <!-- TRIP -->
+      <div class="pane" id="pane-trip">
+        <div id="active-trip-panel"></div>
+        <div class="card">
+          <div class="chead"><span class="ct">Start New Trip</span></div>
+          <div class="fgrp">
+            <label class="flbl">Guest Name / Purpose</label>
+            <input class="finp" id="trip-guest" placeholder="e.g. Arjun Mehta – Resort Stay">
+            <div class="ferr" id="trip-guest-err">Required</div>
+          </div>
+          <div class="fgrp">
+            <label class="flbl">Destination</label>
+            <select class="finp" id="trip-dest">
+              <option value="">Select destination</option>
+              <option>Rooms &amp; Villas</option>
+              <option>Spa &amp; Wellness</option>
+              <option>Saltt Restaurant</option>
+              <option>Airport Transfer</option>
+              <option>Main Gate</option>
+              <option>Service Gate</option>
+              <option>Coffee House</option>
+              <option>Padel Courts</option>
+              <option>Other</option>
+            </select>
+            <div class="ferr" id="trip-dest-err">Required</div>
+          </div>
+          <div class="frow">
+            <div class="fgrp">
+              <label class="flbl">Start Odometer (km)</label>
+              <input class="finp" id="trip-odo" placeholder="e.g. 24580" type="number">
+              <div class="ferr" id="trip-odo-err">Required</div>
+            </div>
+            <div class="fgrp">
+              <label class="flbl">Fuel Level (%)</label>
+              <input class="finp" id="trip-fuel" placeholder="e.g. 68" type="number" min="0" max="100">
+            </div>
+          </div>
+          <div class="fgrp">
+            <label class="flbl">Trip Type</label>
+            <select class="finp" id="trip-type">
+              <option>Guest Transfer</option>
+              <option>Airport Pickup</option>
+              <option>Airport Drop</option>
+              <option>Internal Tour</option>
+              <option>Vendor/Supply</option>
+              <option>Staff Transport</option>
+            </select>
+          </div>
+          <!-- 360° video requirement -->
+          <div style="background:#fef3e2;border:1.5px solid #fbbf24;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11.5px;color:#92400e">
+            <strong>📹 Required:</strong> Record a 360° walk-around video before starting trip
+          </div>
+          <div class="vid-badge" id="video-verified-badge">✅ 360° Video Recorded — Ready to go!</div>
+          <button class="btn btn-o btn-w" style="margin-bottom:8px" onclick="openVideoCapture()" id="record-video-btn">📹 Record 360° Vehicle Video</button>
+          <button class="btn btn-p btn-w" id="start-trip-btn" onclick="startTrip()">Start Trip</button>
+        </div>
+      </div>
+
+      <!-- EXPENSES -->
+      <div class="pane" id="pane-expenses">
+        <div class="card">
+          <div class="chead"><span class="ct">Log Expense</span></div>
+          <div class="fgrp">
+            <label class="flbl">Expense Type</label>
+            <select class="finp" id="exp-type">
+              <option>Fuel</option><option>Toll</option><option>Parking</option><option>Repair</option><option>Cleaning</option><option>Other</option>
+            </select>
+          </div>
+          <div class="frow">
+            <div class="fgrp">
+              <label class="flbl">Amount (₹)</label>
+              <input class="finp" id="exp-amount" placeholder="0.00" type="number" min="1">
+              <div class="ferr" id="exp-amount-err">Enter valid amount</div>
+            </div>
+            <div class="fgrp">
+              <label class="flbl">Trip</label>
+              <select class="finp" id="exp-trip">
+                <option value="">No Trip</option>
+              </select>
+            </div>
+          </div>
+          <div class="fgrp">
+            <label class="flbl">Details / Notes</label>
+            <input class="finp" id="exp-notes" placeholder="e.g. BPCL pump, 32L diesel @ ₹75/L">
+          </div>
+          <div class="fgrp">
+            <label class="flbl">Receipt Photo</label>
+            <div class="capture-zone" id="receipt-zone" onclick="captureReceipt()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#a8c5b4" stroke-width="2" width="24" height="24" style="display:block;margin:0 auto 6px"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <div style="font-size:11px;color:#a8c5b4;font-weight:700">Tap to capture receipt</div>
+            </div>
+          </div>
+          <button class="btn btn-p btn-w" onclick="submitExpense()">Submit for Approval</button>
+        </div>
+        <div class="card">
+          <div class="chead"><span class="ct">Today's Expenses</span><span id="exp-total" style="font-size:12.5px;font-weight:800;color:#e67e22">₹0</span></div>
+          <div id="exp-list"></div>
+        </div>
+      </div>
+
+      <!-- SHIFT -->
+      <div class="pane" id="pane-shift">
+        <!-- Hidden legacy elements used by doEndShift() / startShift() internals -->
+        <div style="display:none">
+          <button id="shift-start-vid-btn">📹 Start-of-Shift</button>
+          <button id="shift-end-vid-btn">📹 End-of-Shift</button>
+          <div id="shift-start-vid-badge"></div>
+          <div id="shift-end-vid-badge"></div>
+        </div>
+        <!-- Status card -->
+        <div class="card" style="margin-bottom:10px">
+          <div class="chead">
+            <span class="ct">Shift Management</span>
+            <span id="wiz-shift-badge" class="badge ba">Active</span>
+          </div>
+          <div id="wiz-shift-info" style="font-size:11.5px;color:#5a7a65;margin-bottom:13px;line-height:1.5">Use the guided wizards below to start or end your shift. Each step ensures all formalities are completed.</div>
+          <div class="shift-tog">
+            <div class="stg stg-s" id="start-shift-card" onclick="openStartWizard()">
+              <div class="stg-icon" id="ss-icon">🟢</div>
+              <div class="stg-title" id="ss-title">Start Shift</div>
+              <div class="stg-sub" id="ss-sub">Begin your duty day</div>
+            </div>
+            <div class="stg stg-e" id="end-shift-card" onclick="openEndWizard()">
+              <div class="stg-icon" id="es-icon">🔴</div>
+              <div class="stg-title" id="es-title">End Shift</div>
+              <div class="stg-sub" id="es-sub">Complete your duty</div>
+            </div>
+          </div>
+        </div>
+        <!-- Checklist quick view -->
+        <div class="card">
+          <div class="chead"><span class="ct">Pre-Trip Checklist</span><span id="chk-progress" style="font-size:11px;color:#2d7a4f;font-weight:700">0/6</span></div>
+          <div id="checklist"></div>
+        </div>
+      </div>
+
+      <!-- ME -->
+      <div class="pane" id="pane-me">
+        <div class="ph"><div class="pav">SP</div><div><div class="pn">Suresh Patel</div><div class="pr">Driver / Valet · Oleander Farms</div><div class="ps" id="me-shift-status">Shift Active · elapsed time</div></div></div>
+        <div class="card">
+          <div class="chead"><span class="ct">Licence Details</span></div>
+          <div class="ir"><span class="il">DL Number</span><span class="iv">MH-0423456789</span></div>
+          <div class="ir"><span class="il">Valid Until</span><span class="iv">Mar 2028</span></div>
+          <div class="ir"><span class="il">Experience</span><span class="iv">8 years</span></div>
+          <div class="ir"><span class="il">Assigned Vehicle</span><span class="iv" style="color:#2d7a4f">MH04OLF001</span></div>
+        </div>
+        <div class="card">
+          <div class="chead"><span class="ct">Today's Summary</span></div>
+          <div class="ir"><span class="il">Trips Completed</span><span class="iv" id="me-trips">0</span></div>
+          <div class="ir"><span class="il">Total Distance</span><span class="iv" id="me-km">0 km</span></div>
+          <div class="ir"><span class="il">Expenses Submitted</span><span class="iv" style="color:#e67e22" id="me-expamt">₹0</span></div>
+        </div>
+        <button class="btn btn-d btn-w" style="margin-top:4px" onclick="guiConfirm('Sign Out','Are you sure you want to sign out?',()=>window.location='../index.html','danger')">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="bnav">
+      <button class="ni on" id="nav-home" onclick="switchTab('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
+      <button class="ni" id="nav-trip" onclick="switchTab('trip')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg><span>Trip</span></button>
+      <button class="ni" id="nav-expenses" onclick="switchTab('expenses')"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span>Expenses</span></button>
+      <button class="ni" id="nav-shift" onclick="switchTab('shift')"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>Shift</span></button>
+      <button class="ni" id="nav-me" onclick="switchTab('me')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Me</span></button>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <!-- 360° VIDEO CAPTURE MODAL -->
+    <div class="vcap-modal" id="vcap-modal">
+      <video id="vcap-preview" autoplay playsinline muted></video>
+      <div class="vcap-overlay-top">
+        <button onclick="closeVideoCapture()" style="background:rgba(0,0,0,.45);border:none;border-radius:9px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div>
+          <div style="color:#fff;font-size:14px;font-weight:800">360° Vehicle Inspection</div>
+          <div style="color:rgba(255,255,255,.65);font-size:10px" id="vcap-status">Tap Record to start walk-around video</div>
+        </div>
+        <div id="vcap-rec-indicator" style="display:none;align-items:center;margin-left:auto">
+          <span class="vcap-rec-dot"></span>
+          <span style="color:#fff;font-size:10px;font-weight:700">REC</span>
+        </div>
+      </div>
+      <div class="vcap-overlay-btm">
+        <div class="vcap-timer" id="vcap-timer" style="display:none">0s</div>
+        <div class="vcap-hint" id="vcap-hint">Walk slowly around the vehicle. Record all 4 sides.<br><strong style="color:#fbbf24">Min. 30 seconds required</strong></div>
+        <div id="vcap-rec-btn-wrap">
+          <button class="vcap-rec-btn" id="vcap-rec-btn" onclick="startRecording()">
+            <svg viewBox="0 0 24 24" fill="#fff" width="22" height="22"><circle cx="12" cy="12" r="8"/></svg>
+          </button>
+        </div>
+        <button id="vcap-done-btn" class="btn btn-p btn-w" style="display:none;font-size:13px;padding:13px" onclick="stopRecordingAndDone()">✓ Done — Save Video</button>
+        <p style="color:rgba(255,255,255,.45);font-size:9.5px;margin-top:4px">📵 Gallery upload is disabled — live camera only</p>
+      </div>
+    </div>
+
+    <!-- GUI Confirm Sheet -->
+    <div id="gc-modal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:998;align-items:flex-end;flex-direction:column;justify-content:flex-end">
+      <div style="background:#fff;border-radius:22px 22px 0 0;padding:22px 16px 26px;width:100%;animation:slideUp .25s ease">
+        <div style="width:36px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 18px"></div>
+        <div style="font-size:15px;font-weight:800;color:#1a2e22;margin-bottom:7px" id="gc-title">Confirm</div>
+        <div style="font-size:12.5px;color:#5a7a65;line-height:1.55;margin-bottom:18px" id="gc-msg"></div>
+        <button id="gc-yes" class="btn btn-d btn-w" style="margin-bottom:8px;padding:12px;font-size:13px"></button>
+        <button class="btn btn-g btn-w" style="padding:12px;font-size:13px" onclick="closeGC()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- ── START SHIFT WIZARD ── -->
+    <div class="wizard" id="start-wizard">
+      <div class="wiz-hdr">
+        <div class="wiz-hdr-top">
+          <div class="wiz-title">🟢 Start Shift</div>
+          <button class="wiz-close" onclick="closeWizard('start')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="wiz-steps-bar" id="sw-dots"></div>
+        <div class="wiz-step-label" id="sw-label">Step 1 of 5</div>
+      </div>
+      <div class="wiz-body">
+        <!-- Step 1: Vehicle & Odometer -->
+        <div class="wiz-step active" id="sw-step-0">
+          <div class="wiz-step-title">Vehicle Details</div>
+          <div class="wiz-step-sub">Confirm your assigned vehicle and enter the starting odometer reading</div>
+          <div class="wiz-veh-banner">
+            <div style="font-size:24px">🚗</div>
+            <div><div style="font-size:13px;font-weight:700;color:#2d7a4f" id="wiz-veh-name">Mahindra Scorpio</div><div style="font-size:9.5px;color:#8fa898" id="wiz-veh-reg">MH04OLF001</div></div>
+          </div>
+          <div class="fgrp">
+            <label class="flbl">Starting Odometer (km)</label>
+            <input class="finp" id="wiz-start-odo" type="number" placeholder="e.g. 24580">
+            <div class="ferr" id="wiz-odo-err">Please enter starting odometer reading</div>
+          </div>
+          <div class="fgrp">
+            <label class="flbl">Current Fuel Level (%)</label>
+            <input class="finp" id="wiz-fuel" type="number" min="0" max="100" placeholder="e.g. 68">
+          </div>
+        </div>
+        <!-- Step 2: Checklist -->
+        <div class="wiz-step" id="sw-step-1">
+          <div class="wiz-step-title">Pre-Shift Checklist</div>
+          <div class="wiz-step-sub">All items must be checked before you can proceed</div>
+          <div class="card" style="padding:10px;margin-bottom:0"><div id="wiz-checklist"></div></div>
+          <div class="wiz-warn" id="wiz-chk-warn">⚠️ Complete all checklist items to continue</div>
+        </div>
+        <!-- Step 3: Photos -->
+        <div class="wiz-step" id="sw-step-2">
+          <div class="wiz-step-title">Vehicle Photos</div>
+          <div class="wiz-step-sub">Capture at least 4 photos — Front, Rear, Interior and Odometer are required</div>
+          <div class="pgrid">
+            <div class="photo-slot" id="wph-front" onclick="wizCapturePhoto('wph-front','Front View')"><div class="ps-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8c5b4" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div><span class="ps-lbl">Front</span></div>
+            <div class="photo-slot" id="wph-rear" onclick="wizCapturePhoto('wph-rear','Rear View')"><div class="ps-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8c5b4" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div><span class="ps-lbl">Rear</span></div>
+            <div class="photo-slot" id="wph-int" onclick="wizCapturePhoto('wph-int','Interior')"><div class="ps-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8c5b4" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div><span class="ps-lbl">Interior</span></div>
+            <div class="photo-slot" id="wph-odo" onclick="wizCapturePhoto('wph-odo','Odometer')"><div class="ps-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8c5b4" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div><span class="ps-lbl">Odometer</span></div>
+            <div class="photo-slot" id="wph-fuel" onclick="wizCapturePhoto('wph-fuel','Fuel Gauge')"><div class="ps-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8c5b4" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div><span class="ps-lbl">Fuel</span></div>
+            <div class="photo-slot" id="wph-tyre" onclick="wizCapturePhoto('wph-tyre','Tyres')"><div class="ps-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8c5b4" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div><span class="ps-lbl">Tyres</span></div>
+          </div>
+          <div id="wiz-photo-progress" style="text-align:center;margin-top:10px;font-size:11px;color:#8fa898">0 / 6 photos captured</div>
+          <div class="wiz-warn" id="wiz-photo-warn">⚠️ Capture at least 4 photos to continue</div>
+        </div>
+        <!-- Step 4: 360° Video -->
+        <div class="wiz-step" id="sw-step-3">
+          <div class="wiz-step-title">360° Inspection Video</div>
+          <div class="wiz-step-sub">Walk around all 4 sides of the vehicle — minimum 30 seconds required</div>
+          <div class="wiz-info-box" id="wiz-svid-status">
+            <div style="font-size:32px;margin-bottom:7px">📹</div>
+            <div style="font-size:12px;color:#8fa898;font-weight:600">No video recorded yet</div>
+          </div>
+          <button class="btn btn-o btn-w" id="wiz-rec-start-btn" onclick="openVideoCapture('shiftStart')">📹 Record Start-of-Shift Video</button>
+          <div class="wiz-warn" id="wiz-svid-warn">⚠️ A minimum 30-second video is required</div>
+        </div>
+        <!-- Step 5: Confirm & Start -->
+        <div class="wiz-step" id="sw-step-4">
+          <div class="wiz-step-title">Ready to Start</div>
+          <div class="wiz-step-sub">Review your details then tap Start Shift</div>
+          <div class="wsumm" id="wiz-start-summary"></div>
+          <div style="background:#e8f5ee;border:1.5px solid #2d7a4f;border-radius:11px;padding:12px;font-size:11.5px;color:#2d7a4f;font-weight:600;text-align:center">✅ All checks completed — ready to begin shift</div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="wiz-btn-back" id="sw-back" onclick="wizNav('start',-1)">← Back</button>
+        <button class="wiz-btn-next" id="sw-next" onclick="wizNav('start',1)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ── END SHIFT WIZARD ── -->
+    <div class="wizard" id="end-wizard">
+      <div class="wiz-hdr">
+        <div class="wiz-hdr-top">
+          <div class="wiz-title">🔴 End Shift</div>
+          <button class="wiz-close" onclick="closeWizard('end')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="wiz-steps-bar" id="ew-dots"></div>
+        <div class="wiz-step-label" id="ew-label">Step 1 of 5</div>
+      </div>
+      <div class="wiz-body">
+        <!-- Step 1: End Video -->
+        <div class="wiz-step active" id="ew-step-0">
+          <div class="wiz-step-title">End-of-Shift Video</div>
+          <div class="wiz-step-sub">Record a final 360° walk-around video before clocking out</div>
+          <div class="wiz-info-box" id="wiz-evid-status">
+            <div style="font-size:32px;margin-bottom:7px">📹</div>
+            <div style="font-size:12px;color:#8fa898;font-weight:600">No video recorded yet</div>
+          </div>
+          <button class="btn btn-o btn-w" id="wiz-rec-end-btn" onclick="openVideoCapture('shiftEnd')">📹 Record End-of-Shift Video</button>
+          <div class="wiz-warn" id="wiz-evid-warn">⚠️ A minimum 30-second video is required</div>
+        </div>
+        <!-- Step 2: End Odometer -->
+        <div class="wiz-step" id="ew-step-1">
+          <div class="wiz-step-title">End Odometer</div>
+          <div class="wiz-step-sub">Enter the current reading to log kilometres driven this shift</div>
+          <div class="fgrp">
+            <label class="flbl">End Odometer (km)</label>
+            <input class="finp" id="wiz-end-odo" type="number" placeholder="e.g. 24750">
+            <div class="ferr" id="wiz-end-odo-err">Please enter the end odometer reading</div>
+          </div>
+          <div id="wiz-odo-dist-box" style="display:none;background:#e8f5ee;border-radius:10px;padding:11px 13px;font-size:12px;color:#2d7a4f;font-weight:700">
+            Distance this shift: <span id="wiz-odo-dist">0 km</span>
+          </div>
+        </div>
+        <!-- Step 3: Post-shift checks -->
+        <div class="wiz-step" id="ew-step-2">
+          <div class="wiz-step-title">Post-Shift Checks</div>
+          <div class="wiz-step-sub">Confirm handover — check each item before parking</div>
+          <div class="card" style="padding:10px;margin-bottom:0"><div id="wiz-end-checklist"></div></div>
+        </div>
+        <!-- Step 4: GPS Parking Verify -->
+        <div class="wiz-step" id="ew-step-3">
+          <div class="wiz-step-title">Parking Verification</div>
+          <div class="wiz-step-sub">GPS is checking the vehicle is at the designated parking bay</div>
+          <div class="wiz-info-box" id="wiz-gps-status">
+            <div style="font-size:32px;margin-bottom:7px">📍</div>
+            <div id="wiz-gps-msg" style="font-size:12px;color:#8fa898;font-weight:600">Checking location…</div>
+          </div>
+          <div id="wiz-gps-proceed" style="display:none;font-size:10.5px;color:#8fa898;text-align:center">You may proceed — GPS result noted in the shift log</div>
+        </div>
+        <!-- Step 5: Confirm End -->
+        <div class="wiz-step" id="ew-step-4">
+          <div class="wiz-step-title">Confirm End Shift</div>
+          <div class="wiz-step-sub">Your shift summary — review and tap End Shift</div>
+          <div class="wsumm" id="wiz-end-summary"></div>
+          <div style="background:#fdecea;border:1.5px solid #ef4444;border-radius:11px;padding:12px;font-size:11.5px;color:#ef4444;font-weight:600;text-align:center">Tapping End Shift will stop GPS tracking and close your duty log</div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="wiz-btn-back" id="ew-back" onclick="wizNav('end',-1)">← Back</button>
+        <button class="wiz-btn-next" id="ew-next" onclick="wizNav('end',1)">Continue →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MOBILE AUTH ──────────────────────────────────────────────────────────
+const MOB_AUTH_KEY='mob_dr_auth';
+let _authPin='';
+(function(){if(sessionStorage.getItem(MOB_AUTH_KEY)==='ok')document.getElementById('mob-auth').style.display='none'})();
+function authLock(){const el=document.getElementById('mob-auth');el.style.display='flex';_authPin='';_authUpdDots();document.getElementById('auth-err').textContent='';document.getElementById('auth-uid').value=''}
+function authKey(d){if(_authPin.length>=4)return;_authPin+=d;_authUpdDots();if(_authPin.length===4)setTimeout(authGo,180)}
+function authDel(){_authPin=_authPin.slice(0,-1);_authUpdDots();document.getElementById('auth-err').textContent=''}
+function _authUpdDots(){for(let i=0;i<4;i++)document.getElementById('ap'+i).classList.toggle('on',i<_authPin.length)}
+function authGo(){
+  const uid=(document.getElementById('auth-uid').value||'').trim().toUpperCase();
+  const pin=_authPin;
+  if(pin!=='1234'){document.getElementById('auth-err').textContent='Invalid Employee ID or PIN';_authPin='';_authUpdDots();const el=document.getElementById('mob-auth');el.style.animation='authShake .35s';setTimeout(()=>el.style.animation='',350);return}
+  // Check fixed IDs + sg_drivers lookup
+  const fixed=['D001','D002','D003','D004','D005','D006','D007','DRIVER'];
+  let ok=fixed.includes(uid);
+  if(!ok){try{const drvs=JSON.parse(localStorage.getItem('sg_drivers')||'[]');ok=drvs.some(d=>d.id.toUpperCase()===uid||d.phone===uid);}catch(_){}}
+  if(ok){
+    sessionStorage.setItem(MOB_AUTH_KEY,'ok');
+    document.getElementById('mob-auth').style.display='none';
+  } else {
+    document.getElementById('auth-err').textContent='Invalid Employee ID or PIN';
+    _authPin='';_authUpdDots();
+    const el=document.getElementById('mob-auth');
+    el.style.animation='authShake .35s';setTimeout(()=>el.style.animation='',350);
+  }
+}
+const DB={get:(k,d)=>JSON.parse(localStorage.getItem('da_'+k)||JSON.stringify(d)),set:(k,v)=>localStorage.setItem('da_'+k,JSON.stringify(v))};
+
+const CHKLIST=['Vehicle exterior — no damage','Tyre pressure & condition OK','Fuel level checked','Lights & wipers functional','Interior clean & sanitised','First aid kit present'];
+const typeIcons={Fuel:'⛽',Toll:'🛣️',Parking:'🅿️',Repair:'🔧',Cleaning:'🧹',Other:'💼'};
+
+let trips=DB.get('trips',[]);
+let expenses=DB.get('expenses',[]);
+let shift=DB.get('shift',{active:true,start:Date.now()-9660000,name:'Suresh Patel',vehicle:'Mahindra Scorpio · MH04OLF001'});
+let checklist=DB.get('checklist',{});
+let photos=DB.get('photos',{});
+let receiptCaptured=false;
+let totalKm=42;
+
+function toast(msg,type='s'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast toast-'+type+' show';setTimeout(()=>t.classList.remove('show'),2800)}
+function switchTab(t){document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));document.getElementById('pane-'+t).classList.add('active');document.getElementById('nav-'+t).classList.add('on');if(t==='expenses')populateTripSelect();if(t==='home')renderHome();if(t==='me')renderMe()}
+function save(){DB.set('trips',trips);DB.set('expenses',expenses);DB.set('shift',shift);DB.set('checklist',checklist);DB.set('photos',photos)}
+function fmt(ms){const h=Math.floor(ms/3600000);const m=Math.floor((ms%3600000)/60000);return h>0?`${h}h ${m}m`:`${m}m`}
+function timeStr(){return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}
+
+// Shift timer
+function updateShiftTimer(){
+  if(!shift.active)return;
+  const elapsed=Date.now()-shift.start;
+  const el=document.getElementById('shift-elapsed');
+  if(el)el.textContent=fmt(elapsed);
+  document.getElementById('me-shift-status').textContent='Shift Active · '+fmt(elapsed)+' elapsed';
+}
+setInterval(updateShiftTimer,30000); updateShiftTimer();
+
+function updateTime(){const now=new Date();document.getElementById('stime').textContent=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false}).replace(/^0/,'')}
+setInterval(updateTime,60000); updateTime();
+
+// ── RENDER HOME ──────────────────────────────
+function renderHome(){
+  const done=trips.filter(t=>t.status==='Done');
+  const active=trips.find(t=>t.status==='Active');
+  const expAmt=expenses.reduce((s,e)=>s+e.amount,0);
+  document.getElementById('home-trips').textContent=done.length;
+  const km=done.reduce((s,t)=>s+(t.endOdo||t.startOdo)-(t.startOdo||0),totalKm);
+  document.getElementById('home-km').textContent=km;
+  document.getElementById('home-exp').textContent='₹'+expAmt.toLocaleString();
+  document.getElementById('trip-count-badge').textContent=done.length+' done';
+
+  // Active trip
+  const atEl=document.getElementById('active-trip-home');
+  if(active){
+    const elapsed=fmt(Date.now()-active.startTime);
+    atEl.innerHTML=`<div class="atrip">
+      <div class="at-lbl">Current Trip</div>
+      <div class="at-dest">${active.dest}</div>
+      <div class="at-stats">
+        <div class="atm"><div class="atm-v">${elapsed}</div><div class="atm-l">Elapsed</div></div>
+        <div class="atm"><div class="atm-v">${active.startOdo}</div><div class="atm-l">Start Odo</div></div>
+        <div class="atm"><div class="atm-v">${active.type}</div><div class="atm-l">Type</div></div>
+      </div>
+      <button class="btn" style="background:rgba(255,255,255,.2);color:#fff;width:100%;margin-top:11px;padding:10px;justify-content:center" onclick="endTripAction('${active.id}')">End This Trip</button>
+    </div>`;
+  } else { atEl.innerHTML=''; }
+
+  // Trip history
+  const hist=document.getElementById('trip-history-home');
+  if(done.length===0){hist.innerHTML='<div style="text-align:center;padding:14px;color:#8fa898;font-size:11.5px">No completed trips yet today</div>';return}
+  hist.innerHTML=done.slice(-3).reverse().map(t=>`
+    <div class="th">
+      <div class="th-icon">🚗</div>
+      <div style="flex:1"><div style="font-size:11.5px;font-weight:700;color:#1a2e22">${t.dest}</div><div style="font-size:9.5px;color:#8fa898">${t.guest} · ${t.startTimeStr}</div></div>
+      <span class="badge ba">Done</span>
+    </div>`).join('');
+}
+
+// ── START TRIP ────────────────────────────────
+function startTrip(){
+  const guest=document.getElementById('trip-guest').value.trim();
+  const dest=document.getElementById('trip-dest').value;
+  const odo=parseInt(document.getElementById('trip-odo').value);
+  const fuel=parseInt(document.getElementById('trip-fuel').value)||68;
+  let ok=true;
+  document.querySelectorAll('.ferr').forEach(e=>e.style.display='none');
+  if(!guest){document.getElementById('trip-guest-err').style.display='block';ok=false}
+  if(!dest){document.getElementById('trip-dest-err').style.display='block';ok=false}
+  if(!odo||isNaN(odo)){document.getElementById('trip-odo-err').style.display='block';ok=false}
+  if(!ok)return;
+  if(!videoVerified){toast('📹 Record 360° video first — tap the button above','e');document.getElementById('record-video-btn').style.animation='none';setTimeout(()=>document.getElementById('record-video-btn').style.animation='',100);return}
+  if(trips.find(t=>t.status==='Active')){toast('End the current trip first','e');return}
+  const trip={id:'T'+Date.now(),guest,dest,type:document.getElementById('trip-type').value,startOdo:odo,fuelStart:fuel,startTimeStr:timeStr(),startTime:Date.now(),status:'Active'};
+  trips.push(trip); save();
+  // Reset video verification for next trip
+  videoVerified=false;
+  document.getElementById('video-verified-badge').style.display='none';
+  document.getElementById('record-video-btn').textContent='📹 Record 360° Vehicle Video';
+  document.getElementById('record-video-btn').style.cssText='margin-bottom:8px';
+  document.getElementById('trip-guest').value='';
+  document.getElementById('trip-dest').value='';
+  document.getElementById('trip-odo').value='';
+  document.getElementById('trip-fuel').value='';
+  document.getElementById('veh-odo').textContent=odo.toLocaleString();
+  document.getElementById('veh-fuel-pct').textContent=fuel;
+  document.getElementById('veh-fuel-bar').style.width=fuel+'%';
+  renderActiveTrip(); renderHome();
+  toast('✓ Trip started — '+dest);
+  switchTab('home');
+}
+function renderActiveTrip(){
+  const active=trips.find(t=>t.status==='Active');
+  const el=document.getElementById('active-trip-panel');
+  if(!active){el.innerHTML='';return}
+  const elapsed=fmt(Date.now()-active.startTime);
+  el.innerHTML=`<div class="atrip" style="margin-bottom:12px">
+    <div class="at-lbl">Active Trip</div>
+    <div class="at-dest">${active.dest}</div>
+    <div class="at-stats">
+      <div class="atm"><div class="atm-v">${elapsed}</div><div class="atm-l">Elapsed</div></div>
+      <div class="atm"><div class="atm-v">${active.startOdo}</div><div class="atm-l">Start Odo</div></div>
+      <div class="atm"><div class="atm-v">${active.type}</div><div class="atm-l">Type</div></div>
+    </div>
+    <div style="margin-top:11px;display:flex;gap:8px">
+      <input class="finp" id="end-odo" type="number" placeholder="End odometer (km)" style="flex:1;padding:8px 10px">
+      <button class="btn btn-d" style="flex-shrink:0" onclick="endTripAction('${active.id}')">End Trip</button>
+    </div>
+  </div>`;
+}
+function endTripAction(id){
+  const t=trips.find(x=>x.id===id);
+  if(!t)return;
+  const odoEl=document.getElementById('end-odo');
+  const endOdo=odoEl?parseInt(odoEl.value):t.startOdo+10;
+  t.endOdo=endOdo||t.startOdo; t.status='Done'; t.endTimeStr=timeStr(); t.endTime=Date.now();
+  const dist=t.endOdo-t.startOdo;
+  save(); renderActiveTrip(); renderHome();
+  toast(`✓ Trip ended — ${dist>0?dist+' km covered':''}`);
+}
+
+// ── EXPENSES ──────────────────────────────────
+function populateTripSelect(){
+  const sel=document.getElementById('exp-trip');
+  sel.innerHTML='<option value="">No Trip</option>'+trips.filter(t=>t.status!=='Done'||true).slice(-5).reverse().map(t=>`<option value="${t.id}">${t.dest} (${t.startTimeStr})</option>`).join('');
+}
+function captureReceipt(){
+  receiptCaptured=true;
+  const z=document.getElementById('receipt-zone');
+  z.classList.add('done');
+  z.innerHTML='<div style="font-size:22px">✓</div><div style="font-size:11px;color:#2d7a4f;font-weight:700">Receipt Captured</div>';
+  toast('Receipt photo saved');
+}
+function submitExpense(){
+  const type=document.getElementById('exp-type').value;
+  const amount=parseFloat(document.getElementById('exp-amount').value);
+  const notes=document.getElementById('exp-notes').value;
+  document.getElementById('exp-amount-err').style.display='none';
+  if(!amount||isNaN(amount)||amount<=0){document.getElementById('exp-amount-err').style.display='block';return}
+  const exp={id:'EX'+Date.now(),type,amount,notes,receipt:receiptCaptured,time:timeStr(),status:'Pending'};
+  expenses.push(exp); save();
+  document.getElementById('exp-amount').value='';
+  document.getElementById('exp-notes').value='';
+  receiptCaptured=false;
+  const z=document.getElementById('receipt-zone');
+  z.classList.remove('done');
+  z.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#a8c5b4" stroke-width="2" width="24" height="24" style="display:block;margin:0 auto 6px"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg><div style="font-size:11px;color:#a8c5b4;font-weight:700">Tap to capture receipt</div>';
+  renderExpensesList();
+  toast('✓ Expense submitted for fleet manager approval');
+}
+function renderExpensesList(){
+  const total=expenses.reduce((s,e)=>s+e.amount,0);
+  document.getElementById('exp-total').textContent='₹'+total.toLocaleString();
+  const list=document.getElementById('exp-list');
+  if(expenses.length===0){list.innerHTML='<div style="text-align:center;padding:14px;color:#8fa898;font-size:11.5px">No expenses logged today</div>';return}
+  list.innerHTML=expenses.slice().reverse().map(e=>`
+    <div class="ei">
+      <div class="ei-icon" style="background:${e.type==='Fuel'?'#fef3e2':'#f0f4f2'}">${typeIcons[e.type]||'💼'}</div>
+      <div style="flex:1"><div style="font-size:11.5px;font-weight:700;color:#1a2e22">${e.type}</div><div style="font-size:9.5px;color:#8fa898">${e.notes||'No notes'} · ${e.time}</div></div>
+      <div style="text-align:right"><div style="font-size:13.5px;font-weight:800;color:#1a2e22">₹${e.amount.toLocaleString()}</div><span class="badge" style="font-size:9px;padding:2px 7px;background:#fef9e7;color:#d97706">${e.status}</span></div>
+    </div>`).join('');
+  document.getElementById('me-expamt').textContent='₹'+total.toLocaleString();
+}
+
+// ── SHIFT ─────────────────────────────────────
+function startShift(){
+  if(shift.active){toast('Shift already active','w');return}
+  if(!shiftStartVideoVerified){toast('📹 Record start-of-shift video first','e');switchTab('shift');return}
+  shift={active:true,start:Date.now(),name:'Suresh Patel',vehicle:'Mahindra Scorpio · MH04OLF001'};
+  shiftStartVideoVerified=false;
+  document.getElementById('shift-start-vid-badge').style.display='none';
+  document.getElementById('shift-start-vid-btn').textContent='📹 Start-of-Shift';
+  document.getElementById('shift-start-vid-btn').style.cssText='flex:1;font-size:10.5px';
+  save();
+  document.getElementById('ss-icon').textContent='✓';
+  document.getElementById('ss-title').textContent='Shift Started';
+  document.getElementById('ss-sub').textContent=timeStr();
+  document.getElementById('shift-dot').className='sdot sdot-on';
+  updateShiftTimer();
+  startShiftGPS(); // force-start GPS + watchdog for the duration of shift
+  // Lock the manual toggle button while shift is active
+  const gpsBtn=document.getElementById('gps-toggle-btn');
+  gpsBtn.innerHTML='🔒 Tracking Active (Shift)';
+  gpsBtn.style.cssText='margin-top:8px;background:rgba(74,222,128,.15);color:#86efac;border:1.5px solid rgba(74,222,128,.3);width:100%;padding:11px;border-radius:8px;font-size:11px;font-weight:700;cursor:not-allowed';
+  toast('✓ Shift started — Location tracking is ON');
+}
+function endShift(){
+  if(!shift.active){toast('No active shift','w');return}
+  if(trips.find(t=>t.status==='Active')){toast('End your current trip first','e');return}
+  verifyParkingAndEndShift();
+}
+
+// Checklist
+function renderChecklist(){
+  const el=document.getElementById('checklist');
+  el.innerHTML=CHKLIST.map((item,i)=>`
+    <div class="chk-item" onclick="toggleChk(${i})">
+      <div class="chk-box ${checklist[i]?'on':''}" id="chkbox-${i}"><span class="chk-tick">✓</span></div>
+      <span style="font-size:12px;color:#1a2e22">${item}</span>
+    </div>`).join('');
+  updateChkProgress();
+}
+function toggleChk(i){
+  checklist[i]=!checklist[i]; save();
+  const box=document.getElementById('chkbox-'+i);
+  box.classList.toggle('on',checklist[i]);
+  updateChkProgress();
+}
+function updateChkProgress(){
+  const done=Object.values(checklist).filter(Boolean).length;
+  document.getElementById('chk-progress').textContent=done+'/'+CHKLIST.length;
+  if(done===CHKLIST.length)toast('✓ All checks passed — safe to go!');
+}
+
+// Photos
+function capturePhoto(id, label){
+  const slot=document.getElementById(id);
+  slot.classList.add('done');
+  photos[id]=true; save();
+  toast('✓ '+label+' photo captured');
+}
+
+// Restore photo state
+function restorePhotos(){
+  Object.keys(photos).forEach(id=>{
+    const slot=document.getElementById(id);
+    if(slot&&photos[id])slot.classList.add('done');
+  });
+}
+
+// Me
+function renderMe(){
+  const done=trips.filter(t=>t.status==='Done');
+  document.getElementById('me-trips').textContent=done.length;
+  const km=done.reduce((s,t)=>s+(t.endOdo||t.startOdo)-(t.startOdo||0),totalKm);
+  document.getElementById('me-km').textContent=km+' km';
+}
+
+// ── GUI CONFIRM ───────────────────────────────
+function guiConfirm(title, msg, onYes, type='danger'){
+  const m=document.getElementById('gc-modal');
+  document.getElementById('gc-title').textContent=title;
+  document.getElementById('gc-msg').textContent=msg;
+  const yBtn=document.getElementById('gc-yes');
+  yBtn.textContent=title;
+  yBtn.className='btn btn-w '+(type==='danger'?'btn-d':type==='warn'?'btn-g':'btn-p');
+  yBtn.style.cssText='margin-bottom:8px;padding:12px;font-size:13px';
+  yBtn.onclick=()=>{closeGC();onYes()};
+  m.style.display='flex';
+}
+function closeGC(){document.getElementById('gc-modal').style.display='none'}
+document.getElementById('gc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('gc-modal'))closeGC()});
+
+// ── 360° VIDEO CAPTURE ────────────────────────
+let videoStream=null,videoRecording=false,videoVerified=false,shiftStartVideoVerified=false,shiftEndVideoVerified=false,recTimer=null,recSeconds=0,videoCaptureMode='trip';
+const MIN_REC_SECS=30;
+function openVideoCapture(mode='trip'){
+  videoCaptureMode=mode;
+  const modal=document.getElementById('vcap-modal');
+  modal.classList.add('show');
+  document.getElementById('vcap-timer').style.display='none';
+  document.getElementById('vcap-rec-indicator').style.display='none';
+  document.getElementById('vcap-done-btn').style.display='none';
+  document.getElementById('vcap-rec-btn').className='vcap-rec-btn';
+  document.getElementById('vcap-status').textContent='Starting camera…';
+  recSeconds=0;videoRecording=false;
+  const modeLabels={trip:'Trip Inspection',shiftStart:'Start-of-Shift Inspection',shiftEnd:'End-of-Shift Inspection'};
+  document.getElementById('vcap-status').textContent=(modeLabels[videoCaptureMode]||'Inspection')+' — starting camera…';
+  document.querySelector('.vcap-overlay-top div div:first-child').textContent='360° '+((modeLabels[videoCaptureMode])||'Inspection');
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}},audio:false})
+    .then(stream=>{
+      videoStream=stream;
+      const vid=document.getElementById('vcap-preview');
+      vid.srcObject=stream;vid.play();
+      document.getElementById('vcap-status').textContent='Point camera around all 4 sides of the vehicle';
+    })
+    .catch(()=>{
+      // Fallback: front camera
+      navigator.mediaDevices.getUserMedia({video:true,audio:false})
+        .then(stream=>{
+          videoStream=stream;
+          document.getElementById('vcap-preview').srcObject=stream;
+          document.getElementById('vcap-preview').play();
+          document.getElementById('vcap-status').textContent='Camera ready — walk around the vehicle';
+        })
+        .catch(()=>{
+          toast('Camera access denied — please allow camera permission','e');
+          closeVideoCapture();
+        });
+    });
+}
+function startRecording(){
+  if(!videoStream){toast('Camera not ready','e');return}
+  videoRecording=true;recSeconds=0;
+  document.getElementById('vcap-rec-btn').className='vcap-rec-btn recording';
+  document.getElementById('vcap-rec-btn').onclick=()=>{}; // disable re-click while recording
+  document.getElementById('vcap-timer').style.display='block';
+  document.getElementById('vcap-rec-indicator').style.display='flex';
+  document.getElementById('vcap-hint').textContent='Walk slowly around the vehicle — all 4 sides';
+  document.getElementById('vcap-status').textContent='Recording…';
+  recTimer=setInterval(()=>{
+    recSeconds++;
+    document.getElementById('vcap-timer').textContent=recSeconds+'s';
+    if(recSeconds>=MIN_REC_SECS){
+      document.getElementById('vcap-done-btn').style.display='block';
+      document.getElementById('vcap-hint').innerHTML='<span style="color:#86efac;font-weight:800">✓ 30s recorded!</span><br>Keep going or tap Done';
+    }
+  },1000);
+}
+function stopRecordingAndDone(){
+  clearInterval(recTimer);videoRecording=false;
+  closeVideoCapture();
+  if(videoCaptureMode==='shiftStart'){
+    shiftStartVideoVerified=true;
+    wizStartVideoVerified=true;
+    // Update wizard UI
+    document.getElementById('wiz-svid-status').innerHTML='<div style="font-size:32px;margin-bottom:7px">✅</div><div style="font-size:13px;color:#2d7a4f;font-weight:700">Start-of-Shift Video Recorded</div><div style="font-size:9.5px;color:#8fa898;margin-top:4px">'+recSeconds+'s · Walk-around complete</div>';
+    document.getElementById('wiz-rec-start-btn').textContent='📹 Re-record Video';
+    document.getElementById('wiz-rec-start-btn').style.cssText='background:#e8f5ee;color:#2d7a4f;border-color:#2d7a4f;width:100%;padding:11px;border-radius:8px;font-size:11px;font-weight:700;border:1.5px solid #2d7a4f;cursor:pointer';
+    document.getElementById('wiz-svid-warn').style.display='none';
+    toast('✓ Start-of-shift video recorded');
+  } else if(videoCaptureMode==='shiftEnd'){
+    shiftEndVideoVerified=true;
+    wizEndVideoVerified=true;
+    // Update wizard UI
+    document.getElementById('wiz-evid-status').innerHTML='<div style="font-size:32px;margin-bottom:7px">✅</div><div style="font-size:13px;color:#2d7a4f;font-weight:700">End-of-Shift Video Recorded</div><div style="font-size:9.5px;color:#8fa898;margin-top:4px">'+recSeconds+'s · Walk-around complete</div>';
+    document.getElementById('wiz-rec-end-btn').textContent='📹 Re-record Video';
+    document.getElementById('wiz-rec-end-btn').style.cssText='background:#e8f5ee;color:#2d7a4f;border-color:#2d7a4f;width:100%;padding:11px;border-radius:8px;font-size:11px;font-weight:700;border:1.5px solid #2d7a4f;cursor:pointer';
+    document.getElementById('wiz-evid-warn').style.display='none';
+    toast('✓ End-of-shift video recorded');
+  } else {
+    videoVerified=true;
+    document.getElementById('video-verified-badge').style.display='flex';
+    document.getElementById('record-video-btn').textContent='📹 Re-record Video';
+    document.getElementById('record-video-btn').style.cssText='margin-bottom:8px;background:#e8f5ee;color:#2d7a4f;border-color:#2d7a4f';
+    toast('✓ 360° video captured — ready to start trip!');
+  }
+}
+function closeVideoCapture(){
+  if(videoStream){videoStream.getTracks().forEach(t=>t.stop());videoStream=null}
+  document.getElementById('vcap-modal').classList.remove('show');
+  clearInterval(recTimer);videoRecording=false;
+}
+
+// ── PARKING GPS VERIFY ────────────────────────
+const PARK_LAT=18.9148367,PARK_LNG=73.2966273; // default parking bay
+function haversineM(lat1,lng1,lat2,lng2){
+  const R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function verifyParkingAndEndShift(){
+  if(!shiftEndVideoVerified){toast('📹 Record end-of-shift video first','e');switchTab('shift');return}
+  if(!navigator.geolocation){doEndShift();return}
+  toast('📍 Verifying parking location…','w');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const dist=Math.round(haversineM(pos.coords.latitude,pos.coords.longitude,PARK_LAT,PARK_LNG));
+    if(dist<=10){
+      guiConfirm('End Shift','✅ GPS verified — you are at the parking bay. Shift hours will be logged.',doEndShift,'warn');
+    } else {
+      guiConfirm('⚠️ Not at Parking','You are '+dist+'m from the designated parking spot (max 10m allowed). Please park the vehicle first — or proceed to force end shift.',doEndShift,'danger');
+    }
+  },()=>{
+    guiConfirm('End Shift','Could not verify parking location. This will log your total hours and stop location sharing.',doEndShift,'warn');
+  },{enableHighAccuracy:true,timeout:8000});
+}
+function doEndShift(){
+  const dur=fmt(Date.now()-shift.start);
+  shift.active=false;
+  shiftEndVideoVerified=false;
+  document.getElementById('shift-end-vid-badge').style.display='none';
+  document.getElementById('shift-end-vid-btn').textContent='📹 End-of-Shift';
+  document.getElementById('shift-end-vid-btn').style.cssText='flex:1;font-size:10.5px';
+  save();
+  document.getElementById('es-icon').textContent='✓';
+  document.getElementById('es-title').textContent='Shift Ended';
+  document.getElementById('es-sub').textContent='Duration: '+dur;
+  document.getElementById('shift-dot').className='sdot sdot-off';
+  document.getElementById('shift-elapsed').textContent='--';
+  stopGPS(true); // force stop — bypasses shift-active guard
+  // Restore manual GPS toggle button
+  const gpsBtn=document.getElementById('gps-toggle-btn');
+  gpsBtn.innerHTML='📡 Enable Live Tracking';
+  gpsBtn.style.cssText='margin-top:8px;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.2);width:100%;padding:11px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer';
+  toast('✓ Shift ended. Duration: '+dur);
+}
+
+// ── SHIFT WIZARD ──────────────────────────────
+const SW_LABELS=['Vehicle Details','Pre-Shift Checks','Photos','Inspection Video','Confirm & Start'];
+const EW_LABELS=['End Video','Odometer','Post Checks','GPS Verify','Confirm End'];
+const END_CHKLIST=['Fuel level noted & reported','Vehicle keys handed over','Interior cleaned','Exterior checked for new damage','Documents in glovebox','A/C & windows off, vehicle locked'];
+let swStep=0,ewStep=0;
+let wizPhotos={};
+let wizStartVideoVerified=false,wizEndVideoVerified=false;
+let wizGpsDone=false,wizGpsOk=false;
+const endChecklist={};
+
+function openStartWizard(){
+  if(shift.active){toast('Shift already active — use End Shift to finish it','w');return}
+  swStep=0; wizPhotos={}; wizStartVideoVerified=false;
+  // Reset video status
+  document.getElementById('wiz-svid-status').innerHTML='<div style="font-size:32px;margin-bottom:7px">📹</div><div style="font-size:12px;color:#8fa898;font-weight:600">No video recorded yet</div>';
+  document.getElementById('wiz-rec-start-btn').textContent='📹 Record Start-of-Shift Video';
+  document.getElementById('wiz-rec-start-btn').style.cssText='';
+  document.getElementById('wiz-svid-warn').style.display='none';
+  // Reset photos
+  document.querySelectorAll('[id^="wph-"]').forEach(s=>s.classList.remove('done'));
+  document.getElementById('wiz-photo-progress').textContent='0 / 6 photos captured';
+  document.getElementById('wiz-photo-warn').style.display='none';
+  // Reset odo fields
+  document.getElementById('wiz-start-odo').value='';
+  document.getElementById('wiz-fuel').value='';
+  document.getElementById('wiz-odo-err').style.display='none';
+  // Render checklist
+  renderWizChecklist();
+  document.getElementById('wiz-chk-warn').style.display='none';
+  // Vehicle info
+  const parts=(shift.vehicle||'Mahindra Scorpio · MH04OLF001').split('·');
+  document.getElementById('wiz-veh-name').textContent=(parts[0]||'').trim();
+  document.getElementById('wiz-veh-reg').textContent=(parts[1]||'').trim();
+  // Open
+  wizShowStep('sw',0);
+  wizRenderDots('sw',SW_LABELS.length,0);
+  document.getElementById('sw-back').style.visibility='hidden';
+  document.getElementById('sw-next').textContent='Continue →';
+  document.getElementById('start-wizard').classList.add('show');
+}
+
+function openEndWizard(){
+  if(!shift.active){toast('No active shift to end','w');return}
+  if(trips.find(t=>t.status==='Active')){toast('End your current trip first','e');return}
+  ewStep=0; wizEndVideoVerified=false; wizGpsDone=false; wizGpsOk=false;
+  // Reset end video
+  document.getElementById('wiz-evid-status').innerHTML='<div style="font-size:32px;margin-bottom:7px">📹</div><div style="font-size:12px;color:#8fa898;font-weight:600">No video recorded yet</div>';
+  document.getElementById('wiz-rec-end-btn').textContent='📹 Record End-of-Shift Video';
+  document.getElementById('wiz-rec-end-btn').style.cssText='';
+  document.getElementById('wiz-evid-warn').style.display='none';
+  // Reset odo
+  document.getElementById('wiz-end-odo').value='';
+  document.getElementById('wiz-end-odo-err').style.display='none';
+  document.getElementById('wiz-odo-dist-box').style.display='none';
+  // Reset GPS status
+  document.getElementById('wiz-gps-status').innerHTML='<div style="font-size:32px;margin-bottom:7px">📍</div><div id="wiz-gps-msg" style="font-size:12px;color:#8fa898;font-weight:600">Tap Continue to verify parking location</div>';
+  document.getElementById('wiz-gps-proceed').style.display='none';
+  // Render post-shift checklist
+  renderWizEndChecklist();
+  // Open
+  wizShowStep('ew',0);
+  wizRenderDots('ew',EW_LABELS.length,0);
+  document.getElementById('ew-back').style.visibility='hidden';
+  document.getElementById('ew-next').textContent='Continue →';
+  document.getElementById('end-wizard').classList.add('show');
+}
+
+function closeWizard(type){
+  document.getElementById(type+'-wizard').classList.remove('show');
+}
+
+function wizRenderDots(prefix,count,current){
+  const el=document.getElementById(prefix+'-dots');
+  el.innerHTML=Array.from({length:count},(_,i)=>`<div class="wiz-dot ${i===current?'active':i<current?'done':''}"></div>`).join('');
+  document.getElementById(prefix+'-label').textContent='Step '+(current+1)+' of '+count+' — '+(prefix==='sw'?SW_LABELS:EW_LABELS)[current];
+}
+
+function wizShowStep(prefix,idx){
+  document.querySelectorAll('#'+prefix+'-wizard .wiz-step').forEach((s,i)=>s.classList.toggle('active',i===idx));
+}
+
+function wizNav(type,dir){
+  if(type==='start'){
+    if(dir===1&&!wizValidateStart(swStep)) return;
+    swStep+=dir;
+    if(swStep<0){closeWizard('start');return}
+    if(swStep>=SW_LABELS.length){wizConfirmStartShift();return}
+    wizShowStep('sw',swStep);
+    wizRenderDots('sw',SW_LABELS.length,swStep);
+    document.getElementById('sw-back').style.visibility=swStep===0?'hidden':'visible';
+    document.getElementById('sw-next').textContent=swStep===SW_LABELS.length-1?'🟢 Start Shift':'Continue →';
+    if(swStep===SW_LABELS.length-1) wizBuildStartSummary();
+  } else {
+    if(dir===1&&!wizValidateEnd(ewStep)) return;
+    ewStep+=dir;
+    if(ewStep<0){closeWizard('end');return}
+    if(ewStep>=EW_LABELS.length){wizConfirmEndShift();return}
+    wizShowStep('ew',ewStep);
+    wizRenderDots('ew',EW_LABELS.length,ewStep);
+    document.getElementById('ew-back').style.visibility=ewStep===0?'hidden':'visible';
+    document.getElementById('ew-next').textContent=ewStep===EW_LABELS.length-1?'🔴 End Shift':'Continue →';
+    if(ewStep===3) wizRunGpsVerify();
+    if(ewStep===EW_LABELS.length-1) wizBuildEndSummary();
+  }
+}
+
+function wizValidateStart(step){
+  if(step===0){
+    const odo=parseInt(document.getElementById('wiz-start-odo').value);
+    if(!odo||isNaN(odo)||odo<0){document.getElementById('wiz-odo-err').style.display='block';return false}
+    document.getElementById('wiz-odo-err').style.display='none';
+    return true;
+  }
+  if(step===1){
+    const done=Object.values(checklist).filter(Boolean).length;
+    if(done<CHKLIST.length){document.getElementById('wiz-chk-warn').style.display='block';return false}
+    document.getElementById('wiz-chk-warn').style.display='none';
+    return true;
+  }
+  if(step===2){
+    const count=Object.keys(wizPhotos).filter(k=>wizPhotos[k]).length;
+    if(count<4){document.getElementById('wiz-photo-warn').style.display='block';return false}
+    document.getElementById('wiz-photo-warn').style.display='none';
+    return true;
+  }
+  if(step===3){
+    if(!wizStartVideoVerified){document.getElementById('wiz-svid-warn').style.display='block';return false}
+    document.getElementById('wiz-svid-warn').style.display='none';
+    return true;
+  }
+  return true;
+}
+
+function wizValidateEnd(step){
+  if(step===0){
+    if(!wizEndVideoVerified){document.getElementById('wiz-evid-warn').style.display='block';return false}
+    document.getElementById('wiz-evid-warn').style.display='none';
+    return true;
+  }
+  if(step===1){
+    const odo=parseInt(document.getElementById('wiz-end-odo').value);
+    if(!odo||isNaN(odo)||odo<0){document.getElementById('wiz-end-odo-err').style.display='block';return false}
+    document.getElementById('wiz-end-odo-err').style.display='none';
+    // Show distance
+    if(shift.startOdo){
+      const dist=odo-shift.startOdo;
+      document.getElementById('wiz-odo-dist').textContent=(dist>0?dist:0)+' km';
+      document.getElementById('wiz-odo-dist-box').style.display='block';
+    }
+    return true;
+  }
+  return true;
+}
+
+// Wizard checklist (re-uses shared checklist state)
+function renderWizChecklist(){
+  document.getElementById('wiz-checklist').innerHTML=CHKLIST.map((item,i)=>`
+    <div class="chk-item" onclick="wizToggleChk(${i})">
+      <div class="chk-box ${checklist[i]?'on':''}" id="wchkbox-${i}"><span class="chk-tick">✓</span></div>
+      <span style="font-size:12px;color:#1a2e22">${item}</span>
+    </div>`).join('');
+}
+function wizToggleChk(i){
+  checklist[i]=!checklist[i]; save();
+  document.getElementById('wchkbox-'+i).classList.toggle('on',checklist[i]);
+  const mainBox=document.getElementById('chkbox-'+i);
+  if(mainBox) mainBox.classList.toggle('on',checklist[i]);
+  updateChkProgress();
+  if(document.getElementById('wiz-chk-warn').style.display==='block'){
+    const done=Object.values(checklist).filter(Boolean).length;
+    if(done===CHKLIST.length) document.getElementById('wiz-chk-warn').style.display='none';
+  }
+}
+
+// Post-shift checklist (separate state)
+function renderWizEndChecklist(){
+  Object.keys(endChecklist).forEach(k=>delete endChecklist[k]);
+  document.getElementById('wiz-end-checklist').innerHTML=END_CHKLIST.map((item,i)=>`
+    <div class="chk-item" onclick="wizToggleEndChk(${i})">
+      <div class="chk-box" id="echkbox-${i}"><span class="chk-tick">✓</span></div>
+      <span style="font-size:12px;color:#1a2e22">${item}</span>
+    </div>`).join('');
+}
+function wizToggleEndChk(i){
+  endChecklist[i]=!endChecklist[i];
+  document.getElementById('echkbox-'+i).classList.toggle('on',endChecklist[i]);
+}
+
+// Wizard photo capture
+function wizCapturePhoto(id,label){
+  document.getElementById(id).classList.add('done');
+  wizPhotos[id]=true;
+  const count=Object.keys(wizPhotos).filter(k=>wizPhotos[k]).length;
+  document.getElementById('wiz-photo-progress').textContent=count+' / 6 photos captured';
+  if(count>=4) document.getElementById('wiz-photo-warn').style.display='none';
+  toast('✓ '+label+' captured');
+}
+
+// GPS verify step
+function wizRunGpsVerify(){
+  const statusEl=document.getElementById('wiz-gps-status');
+  if(!navigator.geolocation){
+    statusEl.innerHTML='<div style="font-size:32px;margin-bottom:7px">❓</div><div style="font-size:12px;color:#8fa898;font-weight:600">GPS not available on this device</div>';
+    wizGpsDone=true; wizGpsOk=false;
+    document.getElementById('wiz-gps-proceed').style.display='block';
+    return;
+  }
+  statusEl.innerHTML='<div style="font-size:32px;margin-bottom:7px">📡</div><div style="font-size:12px;color:#8fa898;font-weight:600">Checking location…</div>';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const dist=Math.round(haversineM(pos.coords.latitude,pos.coords.longitude,PARK_LAT,PARK_LNG));
+    wizGpsDone=true;
+    if(dist<=10){
+      wizGpsOk=true;
+      statusEl.innerHTML='<div style="font-size:32px;margin-bottom:7px">✅</div><div style="font-size:13px;color:#2d7a4f;font-weight:700">At Parking Bay</div><div style="font-size:10.5px;color:#8fa898;margin-top:5px">Within '+dist+'m of designated spot</div>';
+      statusEl.style.background='#e8f5ee';
+    } else {
+      wizGpsOk=false;
+      statusEl.innerHTML='<div style="font-size:32px;margin-bottom:7px">⚠️</div><div style="font-size:13px;color:#e67e22;font-weight:700">'+dist+'m from parking bay</div><div style="font-size:10.5px;color:#8fa898;margin-top:5px">Please park vehicle at designated bay if possible</div>';
+      statusEl.style.background='#fef3e2';
+    }
+    document.getElementById('wiz-gps-proceed').style.display='block';
+  },()=>{
+    wizGpsDone=true; wizGpsOk=false;
+    statusEl.innerHTML='<div style="font-size:32px;margin-bottom:7px">❓</div><div style="font-size:12px;color:#8fa898;font-weight:600">Could not verify location</div>';
+    document.getElementById('wiz-gps-proceed').style.display='block';
+  },{enableHighAccuracy:true,timeout:8000});
+}
+
+function wizBuildStartSummary(){
+  const odo=document.getElementById('wiz-start-odo').value;
+  const fuel=document.getElementById('wiz-fuel').value||'—';
+  const chkDone=Object.values(checklist).filter(Boolean).length;
+  const photoCnt=Object.keys(wizPhotos).filter(k=>wizPhotos[k]).length;
+  const parts=(shift.vehicle||'Mahindra Scorpio · MH04OLF001').split('·');
+  document.getElementById('wiz-start-summary').innerHTML=`
+    <div class="wsumm-row"><span class="wsumm-lbl">Driver</span><span class="wsumm-val">${shift.name||'Suresh Patel'}</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Vehicle</span><span class="wsumm-val">${parts[0].trim()}</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Plate</span><span class="wsumm-val">${(parts[1]||'').trim()}</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Start Odometer</span><span class="wsumm-val">${odo} km</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Fuel Level</span><span class="wsumm-val">${fuel}%</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Checklist</span><span class="wsumm-val" style="color:#2d7a4f">${chkDone}/${CHKLIST.length} items ✓</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Photos</span><span class="wsumm-val" style="color:#2d7a4f">${photoCnt} captured ✓</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Inspection Video</span><span class="wsumm-val" style="color:#2d7a4f">Recorded ✓</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Start Time</span><span class="wsumm-val">${timeStr()}</span></div>`;
+}
+
+function wizBuildEndSummary(){
+  const endOdo=parseInt(document.getElementById('wiz-end-odo').value)||0;
+  const dist=endOdo-(shift.startOdo||0);
+  const dur=fmt(Date.now()-shift.start);
+  const endChkDone=Object.values(endChecklist).filter(Boolean).length;
+  document.getElementById('wiz-end-summary').innerHTML=`
+    <div class="wsumm-row"><span class="wsumm-lbl">Driver</span><span class="wsumm-val">${shift.name||'Driver'}</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Vehicle</span><span class="wsumm-val">${(shift.vehicle||'').split('·')[0].trim()}</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Shift Duration</span><span class="wsumm-val">${dur}</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">End Odometer</span><span class="wsumm-val">${endOdo||'—'} km</span></div>
+    ${dist>0?`<div class="wsumm-row"><span class="wsumm-lbl">Distance Driven</span><span class="wsumm-val">${dist} km</span></div>`:''}
+    <div class="wsumm-row"><span class="wsumm-lbl">End Video</span><span class="wsumm-val" style="color:#2d7a4f">Recorded ✓</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Post Checks</span><span class="wsumm-val">${endChkDone}/${END_CHKLIST.length} items</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">Parking GPS</span><span class="wsumm-val" style="color:${wizGpsOk?'#2d7a4f':'#e67e22'}">${wizGpsOk?'Verified ✓':'Not verified'}</span></div>
+    <div class="wsumm-row"><span class="wsumm-lbl">End Time</span><span class="wsumm-val">${timeStr()}</span></div>`;
+}
+
+function wizConfirmStartShift(){
+  closeWizard('start');
+  const odo=parseInt(document.getElementById('wiz-start-odo').value);
+  const fuel=parseInt(document.getElementById('wiz-fuel').value)||68;
+  shift={active:true,start:Date.now(),name:shift.name||'Suresh Patel',vehicle:shift.vehicle||'Mahindra Scorpio · MH04OLF001',startOdo:odo,startFuel:fuel};
+  save();
+  document.getElementById('ss-icon').textContent='✓';
+  document.getElementById('ss-title').textContent='Shift Started';
+  document.getElementById('ss-sub').textContent=timeStr();
+  document.getElementById('shift-dot').className='sdot sdot-on';
+  document.getElementById('veh-odo').textContent=odo.toLocaleString();
+  document.getElementById('veh-fuel-pct').textContent=fuel;
+  document.getElementById('veh-fuel-bar').style.width=fuel+'%';
+  document.getElementById('wiz-shift-badge').textContent='Active';
+  document.getElementById('wiz-shift-badge').style.cssText='';
+  updateShiftTimer();
+  startShiftGPS();
+  const gpsBtn=document.getElementById('gps-toggle-btn');
+  gpsBtn.innerHTML='🔒 Tracking Active (Shift)';
+  gpsBtn.style.cssText='margin-top:8px;background:rgba(74,222,128,.15);color:#86efac;border:1.5px solid rgba(74,222,128,.3);width:100%;padding:11px;border-radius:8px;font-size:11px;font-weight:700;cursor:not-allowed';
+  toast('✓ Shift started — GPS tracking is ON');
+}
+
+function wizConfirmEndShift(){
+  closeWizard('end');
+  doEndShift();
+}
+
+// ── GPS LIVE TRACKING ─────────────────────────
+let gpsWatchId=null,gpsWatchdog=null;
+
+function toggleGPS(){
+  // Manual toggle is fully blocked during an active shift
+  if(shift.active) return;
+  gpsWatchId?stopGPS():startGPS();
+}
+
+function startGPS(){
+  if(!navigator.geolocation){toast('GPS not supported on this browser','e');return}
+  // Clear any existing watch before starting a new one
+  if(gpsWatchId!=null){navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null}
+  document.getElementById('gps-badge').textContent='⏳ Starting…';
+  document.getElementById('gps-badge').style.cssText='font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(253,186,116,.3);color:#fed7aa';
+  document.getElementById('gps-body').innerHTML='<span style="color:rgba(255,255,255,.5);font-size:11px">Acquiring GPS signal…</span>';
+  gpsWatchId=navigator.geolocation.watchPosition(pos=>{
+    const{latitude:lat,longitude:lng,accuracy,speed}=pos.coords;
+    const loc={lat,lng,accuracy:Math.round(accuracy),speed:speed!=null?Math.round(speed*3.6):0,ts:Date.now()};
+    localStorage.setItem('driver_live_loc',JSON.stringify(loc));
+    // Write to fleet-wide live tracking (keyed by plate number)
+    if(shift.active){try{const vk=(shift.vehicle||'').split('·')[1]?.trim()||'';if(vk){const tr=JSON.parse(localStorage.getItem('sg_live_tracking')||'{}');tr[vk]={...loc,driverName:shift.name||'Driver',vehicleName:((shift.vehicle||'').split('·')[0]).trim()};localStorage.setItem('sg_live_tracking',JSON.stringify(tr));}}catch(_){}}
+    renderGPSCard(loc);
+  },err=>{
+    if(shift.active){
+      // During shift: show warning and auto-retry in 10s — never give up
+      const msg=err.code===1?'⚠️ GPS permission denied — location required during shift':err.code===2?'⚠️ GPS signal lost — retrying…':'⚠️ GPS timeout — retrying…';
+      document.getElementById('gps-badge').textContent='⚠️ Retrying';
+      document.getElementById('gps-badge').style.cssText='font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(251,191,36,.2);color:#fcd34d';
+      document.getElementById('gps-body').innerHTML=`<span style="color:rgba(251,191,36,.8);font-size:11px">${msg}</span>`;
+      setTimeout(()=>{if(shift.active)startGPS()},10000);
+    } else {
+      const msg=err.code===1?'Location permission denied':err.code===2?'GPS signal unavailable':'Location request timed out';
+      toast(msg,'e');
+      stopGPS();
+    }
+  },{enableHighAccuracy:true,maximumAge:4000,timeout:15000});
+  if(!shift.active){
+    document.getElementById('gps-toggle-btn').innerHTML='🔴 Stop Tracking';
+    document.getElementById('gps-toggle-btn').style.background='rgba(239,68,68,.25)';
+  }
+}
+
+function stopGPS(force=false){
+  // Block manual stop during active shift — only doEndShift() passes force=true
+  if(shift.active&&!force) return;
+  if(gpsWatchId!=null){navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null}
+  if(gpsWatchdog!=null){clearInterval(gpsWatchdog);gpsWatchdog=null}
+  localStorage.removeItem('driver_live_loc');
+  // Remove from fleet-wide live tracking
+  try{const vk=(shift.vehicle||'').split('·')[1]?.trim()||'';if(vk){const tr=JSON.parse(localStorage.getItem('sg_live_tracking')||'{}');delete tr[vk];localStorage.setItem('sg_live_tracking',JSON.stringify(tr));}}catch(_){}
+  document.getElementById('gps-badge').textContent='Off';
+  document.getElementById('gps-badge').style.cssText='font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(239,68,68,.2);color:#fca5a5';
+  document.getElementById('gps-body').innerHTML='<span style="color:rgba(255,255,255,.5);font-size:11px">Location sharing is disabled</span>';
+  document.getElementById('gps-toggle-btn').innerHTML='📡 Enable Live Tracking';
+  document.getElementById('gps-toggle-btn').style.cssText='margin-top:8px;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.2)';
+  if(!shift.active) toast('📍 Location sharing stopped');
+}
+
+function startShiftGPS(){
+  startGPS();
+  // Watchdog: every 20s check if GPS is still alive during shift — restart if dead
+  if(gpsWatchdog) clearInterval(gpsWatchdog);
+  gpsWatchdog=setInterval(()=>{
+    if(!shift.active){clearInterval(gpsWatchdog);gpsWatchdog=null;return}
+    const live=localStorage.getItem('driver_live_loc');
+    if(!live){startGPS();return}
+    try{const loc=JSON.parse(live);if(Date.now()-loc.ts>30000) startGPS();}catch{startGPS()}
+  },20000);
+}
+function renderGPSCard(loc){
+  document.getElementById('gps-badge').textContent='🟢 Live';
+  document.getElementById('gps-badge').style.cssText='font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(74,222,128,.2);color:#86efac';
+  const t=new Date(loc.ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('gps-body').innerHTML=`
+    <div class="gps-stat-grid">
+      <div class="gps-stat"><div class="gps-stat-v">${loc.lat.toFixed(5)}</div><div class="gps-stat-l">Latitude</div></div>
+      <div class="gps-stat"><div class="gps-stat-v">${loc.lng.toFixed(5)}</div><div class="gps-stat-l">Longitude</div></div>
+      <div class="gps-stat"><div class="gps-stat-v">±${loc.accuracy}m</div><div class="gps-stat-l">Accuracy</div></div>
+      <div class="gps-stat"><div class="gps-stat-v">${loc.speed} km/h</div><div class="gps-stat-l">Speed</div></div>
+    </div>
+    <div style="color:rgba(255,255,255,.4);font-size:9.5px;text-align:right">Updated ${t}</div>
+    <a class="gps-map-link" href="https://www.google.com/maps?q=${loc.lat},${loc.lng}" target="_blank">📍 View on Google Maps →</a>
+  `;
+}
+
+// Init
+renderHome();
+renderExpensesList();
+renderChecklist();
+restorePhotos();
+renderActiveTrip();
+</script>
+</body>
+</html>

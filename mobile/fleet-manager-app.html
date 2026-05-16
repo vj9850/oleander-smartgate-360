@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fleet Manager – SmartGate 360</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#1a3d2b,#2d7a4f);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.device{background:#0d1f16;border-radius:56px;padding:13px;box-shadow:0 50px 100px rgba(0,0,0,.55),0 0 0 1px #2d7a4f40;width:390px;position:relative;flex-shrink:0}
+.notch{position:absolute;top:13px;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#0d1f16;border-radius:0 0 22px 22px;z-index:20;display:flex;align-items:center;justify-content:center;padding-top:6px}
+.notch::after{content:'';width:13px;height:13px;background:#111;border-radius:50%;border:2.5px solid #1a1a2e}
+.screen{background:#f4f7f5;border-radius:44px;overflow:hidden;height:820px;display:flex;flex-direction:column;position:relative}
+.sbar{background:#1a3d2b;padding:16px 22px 8px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.stime{color:#fff;font-size:15px;font-weight:700}
+.sicons{display:flex;gap:5px;align-items:center}
+.sicons svg{width:15px;height:15px}
+.hdr{background:#1a3d2b;padding:5px 14px 13px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hbtn{width:32px;height:32px;background:rgba(255,255,255,.12);border-radius:9px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.hbtn svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2.5}
+.htitle{flex:1;color:#fff;font-size:17px;font-weight:700}
+.hsub{color:rgba(255,255,255,.55);font-size:9px;margin-top:1px}
+.hbadge{position:relative}
+.reddot{position:absolute;top:2px;right:2px;width:9px;height:9px;background:#ef4444;border-radius:50%;border:1.5px solid #1a3d2b}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.content::-webkit-scrollbar{display:none}
+.pane{display:none;padding:12px}
+.pane.active{display:block}
+.bnav{background:#fff;border-top:1.5px solid #deeae2;display:flex;flex-shrink:0;padding:7px 0 10px}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;padding:2px 0;position:relative}
+.ni svg{width:20px;height:20px;fill:none;stroke:#b0c9bc;stroke-width:2;transition:stroke .15s}
+.ni span{font-size:9px;color:#b0c9bc;font-weight:600;transition:color .15s}
+.ni.on svg{stroke:#2d7a4f}.ni.on span{color:#2d7a4f}
+.nbadge{position:absolute;top:0;right:6px;background:#ef4444;color:#fff;font-size:8px;font-weight:800;min-width:15px;height:15px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.toast{position:absolute;bottom:80px;left:12px;right:12px;padding:11px 14px;border-radius:11px;font-size:11.5px;font-weight:700;color:#fff;text-align:center;z-index:998;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-s{background:#2d7a4f}.toast-e{background:#ef4444}.toast-w{background:#e67e22}
+/* Cards */
+.card{background:#fff;border-radius:13px;padding:12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.chead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ct{font-size:13px;font-weight:700;color:#1a2e22}
+/* Stats */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.sc{background:#fff;border-radius:12px;padding:11px 10px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.sv{font-size:26px;font-weight:800;line-height:1}
+.sl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#8fa898;margin-top:3px}
+/* Alert strip */
+.alert-strip{border-radius:11px;padding:10px 12px;margin-bottom:10px;display:flex;gap:9px;align-items:flex-start}
+.as-warn{background:#fef3e2;border:1.5px solid #fbbf24}
+.as-err{background:#fee2e2;border:1.5px solid #fca5a5}
+.as-info{background:#dbeafe;border:1.5px solid #93c5fd}
+/* Pills */
+.pills{display:flex;gap:6px;margin-bottom:11px;overflow-x:auto;padding-bottom:2px}
+.pills::-webkit-scrollbar{display:none}
+.pl{padding:5px 12px;border-radius:20px;font-size:10px;font-weight:700;border:none;cursor:pointer;flex-shrink:0;transition:all .13s;font-family:inherit}
+.pl-on{background:#2d7a4f;color:#fff}
+.pl-off{background:#f0f4f2;color:#5a7a65}
+/* Vehicle card */
+.vc{background:#fff;border-radius:13px;padding:12px;margin-bottom:9px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.vc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.vc-name{font-size:13px;font-weight:700;color:#1a2e22}
+.vc-reg{font-size:10px;color:#8fa898;margin-top:1px}
+.vc-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+.vc-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.fbar{height:5px;background:#e0ece5;border-radius:3px;flex:1;overflow:hidden;margin-left:6px}
+.ff{height:100%;border-radius:3px;transition:width .3s}
+.vc-actions{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+/* Driver card */
+.dc{background:#fff;border-radius:13px;padding:12px;margin-bottom:9px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.dc-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.dav{width:38px;height:38px;border-radius:11px;background:#e8f5ee;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#2d7a4f;flex-shrink:0}
+.dc-info{flex:1}
+.dc-name{font-size:13px;font-weight:700;color:#1a2e22}
+.dc-sub{font-size:9.5px;color:#8fa898;margin-top:1px}
+/* Expense card */
+.ec{background:#fff;border-radius:13px;padding:12px;margin-bottom:9px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;white-space:nowrap}
+.ba{background:#e8f5ee;color:#2d7a4f}
+.bi{background:#fef3e2;color:#d97706}
+.bm{background:#fdecea;color:#ef4444}
+.bp{background:#dbeafe;color:#2563eb}
+.bg{background:#f0f0f0;color:#6b7280}
+.bv{background:#f3e8ff;color:#7c3aed}
+.bn{background:#f0fdf4;color:#15803d;border:1px solid #86efac}
+/* Buttons */
+.btn{padding:6px 11px;border-radius:8px;font-size:10.5px;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;font-family:inherit}
+.btn:active{transform:scale(.97)}
+.btn-p{background:#2d7a4f;color:#fff}
+.btn-o{background:transparent;color:#2d7a4f;border:1.5px solid #2d7a4f}
+.btn-d{background:#fdecea;color:#ef4444}
+.btn-g{background:#f4f7f5;color:#5a7a65}
+.btn-b{background:#dbeafe;color:#2563eb}
+.btn-v{background:#f3e8ff;color:#7c3aed}
+.btn-w{width:100%;padding:11px;font-size:12px}
+.btn-sm{padding:5px 9px;font-size:10px}
+/* Info rows */
+.ir{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f4f2;font-size:11.5px}
+.ir:last-child{border-bottom:none}
+.il{color:#8fa898}.iv{color:#1a2e22;font-weight:600}
+/* Profile */
+.prh{background:linear-gradient(135deg,#1a3d2b,#2d7a4f);border-radius:16px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.pav{width:52px;height:52px;border-radius:15px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff}
+/* Form elements */
+.fgrp{margin-bottom:11px}
+.flbl{font-size:10px;font-weight:700;color:#5a7a65;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;display:block}
+.finp{width:100%;padding:9px 11px;border-radius:9px;border:1.5px solid #d4e6db;font-size:12.5px;color:#1a2e22;outline:none;font-family:inherit;background:#fff;transition:border .15s}
+.finp:focus{border-color:#2d7a4f}
+select.finp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238fa898' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ferr{font-size:10px;color:#ef4444;margin-top:3px;display:none}
+/* Modal */
+.modal{display:none;position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end}
+.modal.show{display:flex}
+.mbox{background:#fff;border-radius:20px 20px 0 0;padding:18px 15px 28px;width:100%;max-height:88%;overflow-y:auto;animation:slideUp .25s ease}
+.mtitle{font-size:15px;font-weight:800;color:#1a2e22;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.mbtns{display:flex;gap:8px;margin-top:13px}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(74,222,128,.3)}50%{box-shadow:0 0 0 7px rgba(74,222,128,.08)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+/* Shift badge colors */
+.shift-a{background:#e8f5ee;color:#2d7a4f}
+.shift-b{background:#dbeafe;color:#2563eb}
+.shift-c{background:#fef3e2;color:#d97706}
+.shift-d{background:#f3e8ff;color:#7c3aed}
+/* Map section */
+#fm-map-div{height:180px;width:100%;background:#e8f5ee;border-radius:10px;overflow:hidden;position:relative;margin-bottom:10px}
+#fm-track-div{height:310px;width:100%;background:#e8f5ee;border-radius:10px;overflow:hidden;position:relative;margin-bottom:10px}
+.trk-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #eef3f0}
+.trk-row:last-child{border-bottom:none}
+.trk-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.trk-live{animation:liveDot 1.4s infinite}
+@keyframes liveDot{0%,100%{opacity:1}50%{opacity:.3}}
+.map-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;color:#8fa898;font-size:11px;font-weight:700;background:#f4f7f5}
+/* Geo-fence status */
+.gf-strip{border-radius:11px;padding:9px 12px;margin-bottom:10px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:8px}
+.gf-ok{background:#dcfce7;color:#15803d}
+.gf-warn{background:#fee2e2;color:#dc2626;animation:blink 2s infinite}
+/* Fuel gauge mini */
+.fuel-mini{display:flex;align-items:center;gap:6px;padding:8px 10px;background:#f8fcfa;border-radius:9px;margin-bottom:6px;font-size:11px}
+/* Shift timeline */
+.shift-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f0f4f2;font-size:11.5px}
+.shift-row:last-child{border-bottom:none}
+.shift-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+/* Section label */
+.sec-lbl{font-size:9.5px;font-weight:700;color:#8fa898;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;margin-top:2px}
+/* FAB */
+.fab{position:absolute;bottom:72px;right:14px;width:44px;height:44px;background:#2d7a4f;border-radius:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(45,122,79,.4);z-index:50}
+.fab svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.5}
+/* GUI Confirm */
+#gc-modal{display:none;position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end;flex-direction:column;justify-content:flex-end}
+/* ── Mobile Auth Screen ── */
+.mob-auth{position:absolute;inset:0;z-index:200;background:linear-gradient(160deg,#0a2016,#1a3d2b,#2a6a42);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 22px;border-radius:44px}
+.auth-app-icon{font-size:52px;margin-bottom:8px;line-height:1}
+.auth-app-name{color:#fff;font-size:19px;font-weight:800;text-align:center}
+.auth-app-sub{color:rgba(255,255,255,.45);font-size:9.5px;text-align:center;margin-top:3px;margin-bottom:20px}
+.auth-uid-inp{width:100%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:11px;padding:10px 13px;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:14px;text-align:center;letter-spacing:.5px}
+.auth-uid-inp::placeholder{color:rgba(255,255,255,.3)}
+.auth-uid-inp:focus{border-color:rgba(74,222,128,.5);background:rgba(255,255,255,.15)}
+.auth-pin-row{display:flex;gap:14px;justify-content:center;margin-bottom:16px}
+.auth-pd{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.3);transition:all .12s}
+.auth-pd.on{background:#4ade80;border-color:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.2)}
+.auth-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:226px}
+.auth-k{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.12);color:#fff;font-size:18px;font-weight:700;border-radius:13px;padding:13px 0;cursor:pointer;transition:all .12s;font-family:inherit;user-select:none}
+.auth-k:active{background:rgba(74,222,128,.25);border-color:rgba(74,222,128,.4);transform:scale(.93)}
+.auth-k.k-del{font-size:15px}
+.auth-k.k-ok{background:rgba(74,222,128,.18);border-color:rgba(74,222,128,.3);color:#4ade80}
+.auth-k.k-ok:active{background:rgba(74,222,128,.38)}
+.auth-err{color:#fca5a5;font-size:10.5px;font-weight:700;text-align:center;min-height:15px;margin-top:8px}
+.auth-hint{color:rgba(255,255,255,.22);font-size:9.5px;text-align:center;margin-top:10px;line-height:1.6}
+@keyframes authShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+</style>
+</head>
+<body>
+<div class="device">
+  <div class="notch"></div>
+  <div class="screen">
+    <!-- ── AUTH SCREEN ── -->
+    <div class="mob-auth" id="mob-auth">
+      <div class="auth-app-icon">🚗</div>
+      <div class="auth-app-name">Fleet Manager</div>
+      <div class="auth-app-sub">Oleander Farms · SmartGate 360</div>
+      <input class="auth-uid-inp" id="auth-uid" placeholder="Employee ID (e.g. FM001)" autocomplete="off" autocapitalize="characters" />
+      <div class="auth-pin-row">
+        <div class="auth-pd" id="ap0"></div>
+        <div class="auth-pd" id="ap1"></div>
+        <div class="auth-pd" id="ap2"></div>
+        <div class="auth-pd" id="ap3"></div>
+      </div>
+      <div class="auth-pad">
+        <button class="auth-k" onclick="authKey('1')">1</button>
+        <button class="auth-k" onclick="authKey('2')">2</button>
+        <button class="auth-k" onclick="authKey('3')">3</button>
+        <button class="auth-k" onclick="authKey('4')">4</button>
+        <button class="auth-k" onclick="authKey('5')">5</button>
+        <button class="auth-k" onclick="authKey('6')">6</button>
+        <button class="auth-k" onclick="authKey('7')">7</button>
+        <button class="auth-k" onclick="authKey('8')">8</button>
+        <button class="auth-k" onclick="authKey('9')">9</button>
+        <button class="auth-k k-del" onclick="authDel()">⌫</button>
+        <button class="auth-k" onclick="authKey('0')">0</button>
+        <button class="auth-k k-ok" onclick="authGo()">✓</button>
+      </div>
+      <div class="auth-err" id="auth-err"></div>
+      <div class="auth-hint">Demo credentials<br>Employee ID: <strong style="color:rgba(255,255,255,.5)">FM001</strong> · PIN: <strong style="color:rgba(255,255,255,.5)">1234</strong></div>
+    </div>
+    <div class="sbar">
+      <span class="stime" id="stime">9:41</span>
+      <div class="sicons">
+        <svg viewBox="0 0 24 24" fill="#fff"><rect x="2" y="14" width="3" height="8"/><rect x="7" y="10" width="3" height="12"/><rect x="12" y="6" width="3" height="16"/><rect x="17" y="2" width="3" height="20" opacity=".3"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M20 11h2v4h-2"/><rect x="4" y="9" width="13" height="7" rx="1" fill="#fff"/></svg>
+      </div>
+    </div>
+    <div class="hdr">
+      <a href="../index.html" class="hbtn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
+      <div style="flex:1"><div class="htitle">Fleet Manager</div><div class="hsub">Oleander Farms · SmartGate 360</div></div>
+      <button class="hbtn hbadge" onclick="switchTab('expenses')">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <div class="reddot" id="notif-dot" style="display:none"></div>
+      </button>
+      <button class="hbtn" onclick="authLock()" title="Lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+    </div>
+
+    <div class="content">
+
+      <!-- ── HOME ── -->
+      <div class="pane active" id="pane-home">
+        <div class="sgrid" id="home-stats"></div>
+        <div id="gf-status"></div>
+        <div id="home-fuel-alerts"></div>
+        <div id="fm-map-div"><div class="map-load" id="map-loading"><span style="font-size:22px">📡</span><span>Live Fleet Map</span></div></div>
+        <div class="card" style="margin-bottom:10px">
+          <div class="chead"><span class="ct">Today's Shifts</span><span id="shift-badge" class="badge ba"></span></div>
+          <div id="shift-overview"></div>
+        </div>
+        <div class="card">
+          <div class="chead"><span class="ct">Active Vehicles</span></div>
+          <div id="active-veh-list"></div>
+        </div>
+      </div>
+
+      <!-- ── FLEET ── -->
+      <div class="pane" id="pane-fleet">
+        <div class="pills" id="fleet-pills">
+          <button class="pl pl-on" onclick="filterFleet(this,'all')">All</button>
+          <button class="pl pl-off" onclick="filterFleet(this,'owned')">Owned</button>
+          <button class="pl pl-off" onclick="filterFleet(this,'hired')">Hired</button>
+          <button class="pl pl-off" onclick="filterFleet(this,'In Use')">In Use</button>
+          <button class="pl pl-off" onclick="filterFleet(this,'Available')">Available</button>
+          <button class="pl pl-off" onclick="filterFleet(this,'Maintenance')">Maint.</button>
+        </div>
+        <div id="fleet-list"></div>
+      </div>
+
+      <!-- ── DRIVERS ── -->
+      <div class="pane" id="pane-drivers">
+        <div class="pills" id="drv-pills">
+          <button class="pl pl-on" onclick="filterDrivers(this,'all')">All</button>
+          <button class="pl pl-off" onclick="filterDrivers(this,'A')">☀️ Morning</button>
+          <button class="pl pl-off" onclick="filterDrivers(this,'B')">🌤 Day</button>
+          <button class="pl pl-off" onclick="filterDrivers(this,'C')">🌆 Evening</button>
+          <button class="pl pl-off" onclick="filterDrivers(this,'D')">🌙 Night</button>
+          <button class="pl pl-off" onclick="filterDrivers(this,'casual')">⭐ Casual</button>
+        </div>
+        <div id="driver-list"></div>
+      </div>
+
+      <!-- ── EXPENSES ── -->
+      <div class="pane" id="pane-expenses">
+        <div class="pills" id="exp-pills">
+          <button class="pl pl-on" onclick="filterExp(this,'submitted')">Submitted</button>
+          <button class="pl pl-off" onclick="filterExp(this,'approved_fm')">Approved</button>
+          <button class="pl pl-off" onclick="filterExp(this,'rejected_fm')">Rejected</button>
+        </div>
+        <div id="exp-list"></div>
+      </div>
+
+      <!-- ── ME ── -->
+      <div class="pane" id="pane-me">
+        <div class="prh">
+          <div class="pav">KS</div>
+          <div>
+            <div style="color:#fff;font-size:15px;font-weight:800">Kiran Singh</div>
+            <div style="color:rgba(255,255,255,.6);font-size:9.5px">Fleet Manager · Oleander Farms</div>
+            <div style="color:#7dcea0;font-size:10px;font-weight:600;margin-top:4px">🟢 On Duty</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="chead"><span class="ct">Geo-fence Settings</span></div>
+          <div class="fgrp">
+            <label class="flbl">Safe Zone Radius</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" id="gf-radius-slider" min="1" max="30" value="10" style="flex:1;accent-color:#2d7a4f" oninput="updateGFRadius(this.value)">
+              <span id="gf-radius-lbl" style="font-size:13px;font-weight:700;color:#2d7a4f;min-width:40px">10 km</span>
+            </div>
+          </div>
+          <div class="fgrp">
+            <label class="flbl">Alert Mode</label>
+            <select class="finp" id="gf-alert-mode" onchange="saveGFConfig()">
+              <option value="1">Alert on Zone Exit</option>
+              <option value="0">Silent (monitor only)</option>
+            </select>
+          </div>
+          <button class="btn btn-p btn-w" onclick="saveGFConfig();toast('✓ Geo-fence saved')">Save Settings</button>
+        </div>
+        <div class="card">
+          <div class="chead"><span class="ct">Today's Stats</span></div>
+          <div class="ir"><span class="il">Vehicles Managed</span><span class="iv" id="me-vehs">0</span></div>
+          <div class="ir"><span class="il">Drivers Active</span><span class="iv" id="me-drvs">0</span></div>
+          <div class="ir"><span class="il">Expenses Validated</span><span class="iv" id="me-exps">0</span></div>
+        </div>
+        <div class="card">
+          <div class="chead"><span class="ct">GPS Device Pool</span><span class="badge ba" id="gps-avail-badge"></span></div>
+          <div id="gps-devices-list"></div>
+        </div>
+        <button class="btn btn-d btn-w" style="margin-top:4px" onclick="guiConfirm('Sign Out','Are you sure you want to sign out?',()=>window.location='../index.html','danger')">Sign Out</button>
+      </div>
+
+      <!-- ── TRACK ── -->
+      <div class="pane" id="pane-track">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div><div style="font-size:13px;font-weight:700;color:#1a2e22">🗺️ Live Vehicle Tracking</div><div style="font-size:9.5px;color:#8fa898;margin-top:2px" id="track-live-count">–</div></div>
+          <button class="pl pl-off" style="font-size:9.5px;padding:4px 11px" onclick="refreshTrackMarkers()">↻ Refresh</button>
+        </div>
+        <div id="fm-track-div"><div class="map-load" id="track-map-loading"><span style="font-size:22px">📡</span><span>Loading map…</span></div></div>
+        <div class="card" style="padding:12px">
+          <div class="chead" style="margin-bottom:8px"><span class="ct">Vehicles</span></div>
+          <div id="track-veh-list"><div style="color:#8fa898;font-size:12px;text-align:center;padding:8px">Loading…</div></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- Bottom nav -->
+    <div class="bnav">
+      <button class="ni on" id="nav-home" onclick="switchTab('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
+      <button class="ni" id="nav-fleet" onclick="switchTab('fleet')"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span>Fleet</span></button>
+      <button class="ni" id="nav-drivers" onclick="switchTab('drivers')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span>Drivers</span></button>
+      <button class="ni" id="nav-expenses" onclick="switchTab('expenses')"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span>Expenses</span>
+        <span class="nbadge" id="exp-badge" style="display:none">0</span>
+      </button>
+      <button class="ni" id="nav-me" onclick="switchTab('me')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Me</span></button>
+      <button class="ni" id="nav-track" onclick="switchTab('track')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg><span>Track</span></button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- ── ASSIGN DRIVER MODAL ── -->
+    <div class="modal" id="assign-modal">
+      <div class="mbox">
+        <div class="mtitle"><span id="assign-title">Assign Driver</span><button class="btn btn-g btn-sm" onclick="closeModal('assign-modal')">✕</button></div>
+        <div style="background:#f8fcfa;border-radius:10px;padding:10px;margin-bottom:13px;font-size:12px;color:#5a7a65" id="assign-veh-info"></div>
+        <div class="fgrp">
+          <label class="flbl">Driver *</label>
+          <select class="finp" id="assign-drv-sel">
+            <option value="">— Select driver —</option>
+          </select>
+        </div>
+        <div class="fgrp">
+          <label class="flbl">Shift</label>
+          <select class="finp" id="assign-shift-sel">
+            <option value="A">Morning (07:00–16:00)</option>
+            <option value="B">Day (10:00–19:00)</option>
+            <option value="C">Evening (16:00–01:00)</option>
+            <option value="D">Night (22:00–07:00)</option>
+          </select>
+        </div>
+        <div class="fgrp">
+          <label class="flbl">Purpose / Trip Note</label>
+          <input class="finp" type="text" id="assign-purpose" placeholder="e.g. Airport transfer, Guest pickup">
+        </div>
+        <div class="mbtns">
+          <button class="btn btn-g" style="flex:1" onclick="closeModal('assign-modal')">Cancel</button>
+          <button class="btn btn-p" style="flex:2" onclick="confirmAssign()">Assign Driver</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RETURN MODAL ── -->
+    <div class="modal" id="return-modal">
+      <div class="mbox">
+        <div class="mtitle"><span id="return-title">Return Vehicle</span><button class="btn btn-g btn-sm" onclick="closeModal('return-modal')">✕</button></div>
+        <div style="background:#fef3e2;border-radius:10px;padding:10px;margin-bottom:13px;font-size:11.5px;color:#92400e">Vehicle will be marked <strong>Available</strong>. Driver will be released.</div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl">End Odometer (km)</label><input class="finp" type="number" id="ret-odo" placeholder="km"></div>
+          <div class="fgrp"><label class="flbl">Fuel Level (%)</label><input class="finp" type="number" id="ret-fuel" min="0" max="100" placeholder="%"></div>
+        </div>
+        <div class="fgrp"><label class="flbl">Parking Slot</label>
+          <select class="finp" id="ret-parking"></select>
+        </div>
+        <div class="fgrp"><label class="flbl">Remarks</label><input class="finp" type="text" id="ret-remarks" placeholder="Optional notes"></div>
+        <div class="mbtns">
+          <button class="btn btn-g" style="flex:1" onclick="closeModal('return-modal')">Cancel</button>
+          <button class="btn btn-d" style="flex:2" onclick="confirmReturn()">Confirm Return</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADD VEHICLE MODAL ── -->
+    <div class="modal" id="addveh-modal">
+      <div class="mbox">
+        <div class="mtitle"><span id="addveh-title">Add Vehicle</span><button class="btn btn-g btn-sm" onclick="closeModal('addveh-modal')">✕</button></div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl">Vehicle Name *</label><input class="finp" id="av-name" placeholder="e.g. Mahindra Scorpio"></div>
+          <div class="fgrp"><label class="flbl">Registration *</label><input class="finp" id="av-reg" placeholder="MH04OLF001" style="text-transform:uppercase"></div>
+        </div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl">Ownership *</label>
+            <select class="finp" id="av-type" onchange="toggleHiredFields()">
+              <option value="owned">Owned</option>
+              <option value="hired">Hired</option>
+            </select>
+          </div>
+          <div class="fgrp"><label class="flbl">Category</label>
+            <select class="finp" id="av-cat">
+              <option>SUV</option><option>Sedan</option><option>MPV</option><option>Mini-bus</option><option>Off-road</option><option>Truck</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl">Fuel Type</label>
+            <select class="finp" id="av-fuel"><option>Diesel</option><option>Petrol</option><option>CNG</option><option>Electric</option></select>
+          </div>
+          <div class="fgrp"><label class="flbl">Seats</label><input class="finp" type="number" id="av-seats" value="5" min="1" max="50"></div>
+        </div>
+        <div class="fgrp"><label class="flbl">GPS Type</label>
+          <select class="finp" id="av-gps" onchange="togglePortableGPS()">
+            <option value="integrated">Integrated (built-in)</option>
+            <option value="portable">Portable Device</option>
+            <option value="none">No GPS</option>
+          </select>
+        </div>
+        <div class="fgrp" id="av-gps-device-row" style="display:none">
+          <label class="flbl">Assign Portable GPS Device</label>
+          <select class="finp" id="av-gps-device"><option value="">— Unassigned —</option></select>
+        </div>
+        <div id="av-hired-fields" style="display:none">
+          <div class="frow">
+            <div class="fgrp"><label class="flbl">Hired From</label><input class="finp" id="av-hired-from" placeholder="Vendor name"></div>
+            <div class="fgrp"><label class="flbl">Daily Rate (₹)</label><input class="finp" type="number" id="av-hired-rate" placeholder="2500"></div>
+          </div>
+          <div class="frow">
+            <div class="fgrp"><label class="flbl">Start Date</label><input class="finp" type="date" id="av-hired-start"></div>
+            <div class="fgrp"><label class="flbl">End Date</label><input class="finp" type="date" id="av-hired-end"></div>
+          </div>
+        </div>
+        <div class="fgrp"><label class="flbl">Default Driver</label>
+          <select class="finp" id="av-default-driver"><option value="">— None —</option></select>
+        </div>
+        <div class="fgrp"><label class="flbl">Parking Slot</label>
+          <select class="finp" id="av-parking"></select>
+        </div>
+        <div class="mbtns">
+          <button class="btn btn-g" style="flex:1" onclick="closeModal('addveh-modal')">Cancel</button>
+          <button class="btn btn-p" style="flex:2" id="av-submit-btn" onclick="saveVehicle()">Save Vehicle</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CASUAL ACCESS MODAL ── -->
+    <div class="modal" id="casual-modal">
+      <div class="mbox">
+        <div class="mtitle"><span id="casual-title">Grant App Access</span><button class="btn btn-g btn-sm" onclick="closeModal('casual-modal')">✕</button></div>
+        <div style="background:#dbeafe;border-radius:10px;padding:10px;margin-bottom:13px;font-size:11.5px;color:#1e40af" id="casual-info"></div>
+        <div class="fgrp"><label class="flbl">Shift Assignment</label>
+          <select class="finp" id="casual-shift">
+            <option value="A">Morning (07:00–16:00)</option>
+            <option value="B">Day (10:00–19:00)</option>
+            <option value="C">Evening (16:00–01:00)</option>
+            <option value="D">Night (22:00–07:00)</option>
+          </select>
+        </div>
+        <div class="fgrp"><label class="flbl">Access Expires On</label><input class="finp" type="date" id="casual-expiry"></div>
+        <div class="fgrp"><label class="flbl">Assign Vehicle</label>
+          <select class="finp" id="casual-veh"><option value="">— None for now —</option></select>
+        </div>
+        <div class="mbtns">
+          <button class="btn btn-g" style="flex:1" onclick="closeModal('casual-modal')">Cancel</button>
+          <button class="btn btn-b" style="flex:2" onclick="confirmCasualAccess()">Grant Access</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EXPENSE DETAIL MODAL ── -->
+    <div class="modal" id="exp-modal">
+      <div class="mbox">
+        <div class="mtitle"><span id="exp-modal-title">Expense Details</span><button class="btn btn-g btn-sm" onclick="closeModal('exp-modal')">✕</button></div>
+        <div id="exp-modal-body"></div>
+        <div class="fgrp" id="exp-reject-row" style="display:none">
+          <label class="flbl">Rejection Reason *</label>
+          <select class="finp" id="exp-reject-reason">
+            <option value="">— Select reason —</option>
+            <option>Duplicate expense</option><option>Missing receipt</option>
+            <option>Exceeds policy limit</option><option>Not a business expense</option><option>Invalid documentation</option><option>Other</option>
+          </select>
+        </div>
+        <div class="mbtns" id="exp-modal-btns"></div>
+      </div>
+    </div>
+
+    <!-- ── ADD DRIVER MODAL ── -->
+    <div class="modal" id="adddrv-modal">
+      <div class="mbox">
+        <div class="mtitle"><span id="adddrv-title">Add Driver</span><button class="btn btn-g btn-sm" onclick="closeModal('adddrv-modal')">✕</button></div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl">Full Name *</label><input class="finp" id="ad-name" placeholder="e.g. Ramesh Patil"></div>
+          <div class="fgrp"><label class="flbl">Phone *</label><input class="finp" id="ad-phone" placeholder="9876543210" type="tel"></div>
+        </div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl">Driver Type *</label>
+            <select class="finp" id="ad-type" onchange="toggleCasualField()">
+              <option value="permanent">Permanent</option>
+              <option value="hired">Hired</option>
+              <option value="casual">Casual</option>
+            </select>
+          </div>
+          <div class="fgrp"><label class="flbl">Shift</label>
+            <select class="finp" id="ad-shift">
+              <option value="A">Morning (07:00–16:00)</option>
+              <option value="B">Day (10:00–19:00)</option>
+              <option value="C">Evening (16:00–01:00)</option>
+              <option value="D">Night (22:00–07:00)</option>
+            </select>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl">License No. *</label><input class="finp" id="ad-license" placeholder="MH04-20210078901"></div>
+          <div class="fgrp"><label class="flbl">License Expiry</label><input class="finp" type="date" id="ad-lic-exp"></div>
+        </div>
+        <div class="fgrp"><label class="flbl">Default Vehicle</label>
+          <select class="finp" id="ad-default-veh"><option value="">— None —</option></select>
+        </div>
+        <div class="fgrp" id="ad-spec-row" style="display:none">
+          <label class="flbl">Speciality</label>
+          <input class="finp" id="ad-speciality" placeholder="e.g. VIP transfers, Events, Night shifts">
+        </div>
+        <div class="mbtns">
+          <button class="btn btn-g" style="flex:1" onclick="closeModal('adddrv-modal')">Cancel</button>
+          <button class="btn btn-p" style="flex:2" onclick="saveDriver()">Save Driver</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUI Confirm Sheet -->
+    <div id="gc-modal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:299;align-items:flex-end;flex-direction:column;justify-content:flex-end">
+      <div style="background:#fff;border-radius:22px 22px 0 0;padding:20px 15px 26px;width:100%;animation:slideUp .25s ease">
+        <div style="width:34px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 16px"></div>
+        <div style="font-size:15px;font-weight:800;color:#1a2e22;margin-bottom:6px" id="gc-title">Confirm</div>
+        <div style="font-size:12px;color:#5a7a65;line-height:1.55;margin-bottom:17px" id="gc-msg"></div>
+        <button id="gc-yes" class="btn btn-d btn-w" style="margin-bottom:8px;padding:12px"></button>
+        <button class="btn btn-g btn-w" style="padding:12px" onclick="closeGC()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MOBILE AUTH ──────────────────────────────────────────────────────────
+const MOB_AUTH_KEY='mob_fm_auth';
+let _authPin='';
+(function(){if(sessionStorage.getItem(MOB_AUTH_KEY)==='ok')document.getElementById('mob-auth').style.display='none'})();
+function authLock(){const el=document.getElementById('mob-auth');el.style.display='flex';_authPin='';_authUpdDots();document.getElementById('auth-err').textContent='';document.getElementById('auth-uid').value=''}
+function authKey(d){if(_authPin.length>=4)return;_authPin+=d;_authUpdDots();if(_authPin.length===4)setTimeout(authGo,180)}
+function authDel(){_authPin=_authPin.slice(0,-1);_authUpdDots();document.getElementById('auth-err').textContent=''}
+function _authUpdDots(){for(let i=0;i<4;i++)document.getElementById('ap'+i).classList.toggle('on',i<_authPin.length)}
+function authGo(){
+  const uid=(document.getElementById('auth-uid').value||'').trim().toUpperCase();
+  if(['FM001','FM002','FLEET','KIRAN'].includes(uid)&&_authPin==='1234'){
+    sessionStorage.setItem(MOB_AUTH_KEY,'ok');
+    document.getElementById('mob-auth').style.display='none';
+  } else {
+    document.getElementById('auth-err').textContent='Invalid Employee ID or PIN';
+    _authPin='';_authUpdDots();
+    const el=document.getElementById('mob-auth');
+    el.style.animation='authShake .35s';setTimeout(()=>el.style.animation='',350);
+  }
+}
+// ── DATA SCHEMA ──────────────────────────────────────────────────────────
+const SHIFTS={
+  A:{id:'A',name:'Morning',start:'07:00',end:'16:00',color:'#2d7a4f',cls:'shift-a'},
+  B:{id:'B',name:'Day',start:'10:00',end:'19:00',color:'#2563eb',cls:'shift-b'},
+  C:{id:'C',name:'Evening',start:'16:00',end:'01:00',color:'#d97706',cls:'shift-c'},
+  D:{id:'D',name:'Night',start:'22:00',end:'07:00',color:'#7c3aed',cls:'shift-d'}
+};
+const GMAPS_KEY='AIzaSyBWxJ3u_LqPZfyOGGytIt3ys_3cyR5vxzU';
+const FARM={lat:18.9148367,lng:73.2966273};
+
+const DB={
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+};
+
+const VEH_DEF=[
+  {id:'V001',name:'Mahindra Scorpio',reg:'MH04OLF001',category:'SUV',seats:7,fuel:'Diesel',type:'owned',gpsType:'integrated',gpsDeviceId:null,status:'In Use',fuelPct:68,odo:24580,defaultDriverId:'D001',currentDriverId:'D001',parkingSlot:'P1',notes:'',hiredFrom:null,hiredTill:null,hiredRate:null,currentPurpose:'Airport transfer'},
+  {id:'V002',name:'Toyota Innova Crysta',reg:'MH04OLF002',category:'SUV',seats:7,fuel:'Diesel',type:'owned',gpsType:'integrated',gpsDeviceId:null,status:'In Use',fuelPct:42,odo:61230,defaultDriverId:'D002',currentDriverId:'D002',parkingSlot:'P2',notes:'',hiredFrom:null,hiredTill:null,hiredRate:null,currentPurpose:'Guest transfer'},
+  {id:'V003',name:'Maruti Ertiga',reg:'MH04OLF003',category:'MPV',seats:7,fuel:'Petrol',type:'owned',gpsType:'portable',gpsDeviceId:'GPS001',status:'Available',fuelPct:35,odo:18240,defaultDriverId:'D003',currentDriverId:null,parkingSlot:'P3',notes:'',hiredFrom:null,hiredTill:null,hiredRate:null,currentPurpose:''},
+  {id:'V004',name:'Tata Nexon EV',reg:'MH04OLF004',category:'SUV',seats:5,fuel:'Electric',type:'owned',gpsType:'integrated',gpsDeviceId:null,status:'Maintenance',fuelPct:60,odo:8920,defaultDriverId:'D004',currentDriverId:null,parkingSlot:'P4',notes:'Battery check',hiredFrom:null,hiredTill:null,hiredRate:null,currentPurpose:''},
+  {id:'V005',name:'Mahindra Thar',reg:'MH04OLF005',category:'Off-road',seats:4,fuel:'Diesel',type:'hired',gpsType:'portable',gpsDeviceId:'GPS002',status:'Available',fuelPct:80,odo:5620,defaultDriverId:'D005',currentDriverId:null,parkingSlot:'P5',notes:'',hiredFrom:'Khan Motors',hiredTill:'2026-04-30',hiredRate:2500,currentPurpose:''},
+  {id:'V006',name:'Force Traveller 14',reg:'MH04OLF006',category:'Mini-bus',seats:14,fuel:'Diesel',type:'hired',gpsType:'none',gpsDeviceId:null,status:'Available',fuelPct:55,odo:42100,defaultDriverId:'D006',currentDriverId:null,parkingSlot:'P5',notes:'Event use',hiredFrom:'Pune Travels',hiredTill:'2026-03-28',hiredRate:4500,currentPurpose:''},
+  {id:'V007',name:'Toyota Fortuner',reg:'MH12AB5432',category:'SUV',seats:7,fuel:'Diesel',type:'owned',gpsType:'integrated',gpsDeviceId:null,status:'In Use',fuelPct:90,odo:32400,defaultDriverId:'D007',currentDriverId:'D007',parkingSlot:'P1',notes:'VIP vehicle',hiredFrom:null,hiredTill:null,hiredRate:null,currentPurpose:'VIP guest escort'},
+];
+const DRV_DEF=[
+  {id:'D001',name:'Suresh Patel',phone:'9876543210',type:'permanent',status:'On Trip',shiftId:'A',defaultVehicleId:'V001',currentVehicleId:'V001',license:'MH04-20180012345',licenseExpiry:'2028-06-30',joinDate:'2019-04-01',appAccess:true,appAccessTill:null},
+  {id:'D002',name:'Ravi Kumar',phone:'9765432109',type:'permanent',status:'On Trip',shiftId:'A',defaultVehicleId:'V002',currentVehicleId:'V002',license:'MH04-20170008765',licenseExpiry:'2027-12-15',joinDate:'2018-11-15',appAccess:true,appAccessTill:null},
+  {id:'D003',name:'Amol Pawar',phone:'9654321098',type:'permanent',status:'Available',shiftId:'B',defaultVehicleId:'V003',currentVehicleId:null,license:'MH12-20190023456',licenseExpiry:'2029-03-20',joinDate:'2021-07-01',appAccess:true,appAccessTill:null},
+  {id:'D004',name:'Vijay Shinde',phone:'9543210987',type:'permanent',status:'Off Duty',shiftId:'C',defaultVehicleId:'V004',currentVehicleId:null,license:'MH04-20150034567',licenseExpiry:'2026-02-10',joinDate:'2020-01-15',appAccess:true,appAccessTill:null},
+  {id:'D005',name:'Deepak Jadhav',phone:'9432109876',type:'hired',status:'Available',shiftId:'A',defaultVehicleId:'V005',currentVehicleId:null,license:'MH04-20200045678',licenseExpiry:'2030-01-25',joinDate:'2024-09-01',appAccess:true,appAccessTill:null},
+  {id:'D006',name:'Santosh Yadav',phone:'9321098765',type:'hired',status:'Off Duty',shiftId:'D',defaultVehicleId:'V006',currentVehicleId:null,license:'UP32-20180056789',licenseExpiry:'2028-08-20',joinDate:'2025-01-10',appAccess:true,appAccessTill:null},
+  {id:'D007',name:'Nilesh More',phone:'9210987654',type:'permanent',status:'On Trip',shiftId:'B',defaultVehicleId:'V007',currentVehicleId:'V007',license:'MH04-20160067890',licenseExpiry:'2026-11-30',joinDate:'2022-05-20',appAccess:true,appAccessTill:null},
+  {id:'D008',name:'Prashant Kulkarni',phone:'9109876543',type:'casual',status:'Off Duty',shiftId:null,defaultVehicleId:null,currentVehicleId:null,license:'MH04-20210078901',licenseExpiry:'2031-04-15',joinDate:'2025-11-01',appAccess:false,appAccessTill:null,speciality:'VIP transfers'},
+  {id:'D009',name:'Rahul Gupta',phone:'9098765432',type:'casual',status:'Off Duty',shiftId:null,defaultVehicleId:null,currentVehicleId:null,license:'MH12-20190089012',licenseExpiry:'2029-07-20',joinDate:'2025-08-15',appAccess:false,appAccessTill:null,speciality:'Events · Night shifts'},
+];
+const GPS_DEF=[
+  {id:'GPS001',name:'Portable GPS #1',imei:'123456789012345',assignedTo:'V003',battery:78,status:'active'},
+  {id:'GPS002',name:'Portable GPS #2',imei:'987654321098765',assignedTo:'V005',battery:45,status:'active'},
+  {id:'GPS003',name:'Portable GPS #3',imei:'111222333444555',assignedTo:null,battery:100,status:'idle'},
+];
+const PARK_DEF=[
+  {id:'P1',name:'Bay A – Main Entrance',lat:18.9148367,lng:73.2966273,capacity:4},
+  {id:'P2',name:'Bay B – East Wing',lat:18.91510,lng:73.29690,capacity:4},
+  {id:'P3',name:'Staff Parking',lat:18.91430,lng:73.29600,capacity:6},
+  {id:'P4',name:'Service Bay',lat:18.91540,lng:73.29740,capacity:3},
+  {id:'P5',name:'Event Zone',lat:18.91400,lng:73.29780,capacity:10},
+];
+const GF_DEF={enabled:true,centerLat:18.9148367,centerLng:73.2966273,radiusKm:10,alertOnExit:true};
+const EXP_DEF=[
+  {id:'EX001',driverId:'D001',vehicleId:'V001',type:'Toll',amount:450,date:'2026-03-21',desc:'Toll – Mumbai-Pune expressway',receipt:true,status:'submitted',notes:''},
+  {id:'EX002',driverId:'D002',vehicleId:'V002',type:'Fuel',amount:3200,date:'2026-03-21',desc:'Diesel fill – 80L @ ₹40/L',receipt:true,status:'submitted',notes:''},
+  {id:'EX003',driverId:'D007',vehicleId:'V007',type:'Maintenance',amount:850,date:'2026-03-20',desc:'Tyre puncture repair',receipt:false,status:'submitted',notes:'Front left tyre'},
+  {id:'EX004',driverId:'D003',vehicleId:'V003',type:'Toll',amount:320,date:'2026-03-20',desc:'Toll – Karjat bypass',receipt:true,status:'approved_fm',notes:''},
+  {id:'EX005',driverId:'D005',vehicleId:'V005',type:'Fuel',amount:1800,date:'2026-03-19',desc:'Diesel fill – 45L',receipt:true,status:'approved_fm',notes:''},
+];
+
+// ── State ────────────────────────────────────────────────────────────────
+let vehicles=DB.get('sg_vehicles',VEH_DEF);
+let drivers=DB.get('sg_drivers',DRV_DEF);
+let gpsDevices=DB.get('sg_gps',GPS_DEF);
+let parkings=DB.get('sg_parkings',PARK_DEF);
+let geofence=DB.get('sg_geofence',GF_DEF);
+let expenses=DB.get('sg_expenses',EXP_DEF);
+let editingVehId=null,assigningVehId=null,returningVehId=null,currentExpId=null,currentCasualId=null;
+let fleetFilter='all',drvFilter='all',expFilter='submitted';
+let fmMap=null,fmMapReady=false,gfCircle=null;
+let fmTrackMap=null,trackInfoWin=null,trackRefreshTimer=null;
+const trackMarkers={}; // plate → google.maps.Marker
+
+function save(){DB.set('sg_vehicles',vehicles);DB.set('sg_drivers',drivers);DB.set('sg_gps',gpsDevices);DB.set('sg_geofence',geofence);DB.set('sg_expenses',expenses)}
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+function toast(msg,type='s'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast toast-'+type+' show';setTimeout(()=>t.classList.remove('show'),2800)}
+function switchTab(t){document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));document.getElementById('pane-'+t).classList.add('active');document.getElementById('nav-'+t).classList.add('on');if(t==='home')renderHome();if(t==='fleet')renderFleet();if(t==='drivers')renderDrivers();if(t==='expenses')renderExpenses();if(t==='me')renderMe();if(t==='track')renderTrack()}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function fmt(n){return'₹'+Number(n).toLocaleString('en-IN')}
+function fmtDate(d){if(!d)return'—';const[y,m,dd]=d.split('-');const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return`${dd} ${M[+m-1]} ${y}`}
+function today(){return new Date().toISOString().split('T')[0]}
+function driverById(id){return drivers.find(d=>d.id===id)}
+function vehicleById(id){return vehicles.find(v=>v.id===id)}
+function parkingById(id){return parkings.find(p=>p.id===id)}
+function gpsById(id){return gpsDevices.find(g=>g.id===id)}
+function isLicenseExpiringSoon(expiry){if(!expiry)return false;const d=new Date(expiry)-new Date();return d<90*24*3600*1000}
+function shiftBadge(id){const s=SHIFTS[id];if(!s)return'<span class="badge bg">No Shift</span>';return`<span class="badge ${s.cls}">${s.name} ${s.start}–${s.end}</span>`}
+function typeBadge(t){return{permanent:'<span class="badge ba">Permanent</span>',hired:'<span class="badge bp">Hired</span>',casual:'<span class="badge bv">Casual</span>'}[t]||''}
+function statusBadge(s){const m={Available:'<span class="badge ba">Available</span>','In Use':'<span class="badge bi">In Use</span>',Maintenance:'<span class="badge bm">Maintenance</span>','On Trip':'<span class="badge bi">On Trip</span>','Off Duty':'<span class="badge bg">Off Duty</span>'};return m[s]||`<span class="badge bg">${s}</span>`}
+function gpsBadge(v){const m={integrated:'<span class="badge ba">📡 GPS</span>',portable:'<span class="badge bp">📱 Portable</span>',none:'<span class="badge bg">⚠️ No GPS</span>'};return m[v.gpsType]||''}
+function vehTypeBadge(v){return v.type==='owned'?'<span class="badge bn">Owned</span>':'<span class="badge bv">Hired</span>'}
+function fuelColor(p){return p<=20?'#ef4444':p<=40?'#e67e22':'#2d7a4f'}
+function updateExpBadge(){const n=expenses.filter(e=>e.status==='submitted').length;const b=document.getElementById('exp-badge');const d=document.getElementById('notif-dot');if(n>0){b.style.display='flex';b.textContent=n;d.style.display='block'}else{b.style.display='none';d.style.display='none'}}
+
+// ── HOME ─────────────────────────────────────────────────────────────────
+function renderHome(){
+  const inUse=vehicles.filter(v=>v.status==='In Use').length;
+  const avail=vehicles.filter(v=>v.status==='Available').length;
+  const onTrip=drivers.filter(d=>d.status==='On Trip').length;
+  const pendingExp=expenses.filter(e=>e.status==='submitted').length;
+  document.getElementById('home-stats').innerHTML=`
+    <div class="sc"><div class="sv" style="color:#e67e22">${inUse}</div><div class="sl">Vehicles Out</div></div>
+    <div class="sc"><div class="sv" style="color:#2d7a4f">${avail}</div><div class="sl">Available</div></div>
+    <div class="sc"><div class="sv" style="color:#2563eb">${onTrip}</div><div class="sl">Drivers Active</div></div>
+    <div class="sc"><div class="sv" style="color:${pendingExp>0?'#ef4444':'#2d7a4f'}">${pendingExp}</div><div class="sl">Expenses Pending</div></div>`;
+  // Geo-fence status
+  const gfEl=document.getElementById('gf-status');
+  const outsideVehs=getOutsideZoneVehicles();
+  if(outsideVehs.length>0){
+    gfEl.innerHTML=`<div class="gf-strip gf-warn">🚨 ${outsideVehs.length} vehicle${outsideVehs.length!==1?'s':''} outside geo-fence! ${outsideVehs.map(v=>v.name.split(' ').slice(-1)[0]).join(', ')}</div>`;
+  } else {
+    gfEl.innerHTML=`<div class="gf-strip gf-ok">✅ All vehicles within ${geofence.radiusKm}km geo-fence zone</div>`;
+  }
+  // Fuel alerts
+  const lowFuel=vehicles.filter(v=>v.fuelPct<=25&&v.status!=='Maintenance');
+  document.getElementById('home-fuel-alerts').innerHTML=lowFuel.length?lowFuel.map(v=>`<div class="alert-strip as-warn" style="margin-bottom:8px"><span style="font-size:14px;flex-shrink:0">⛽</span><div style="font-size:11px"><strong>${v.name}</strong> — Fuel critical: ${v.fuelPct}%</div></div>`).join(''):'';
+  // Shift overview
+  const shiftHtml=Object.values(SHIFTS).map(s=>{
+    const onShift=drivers.filter(d=>d.shiftId===s.id&&d.status!=='Off Duty');
+    return`<div class="shift-row"><div class="shift-dot" style="background:${s.color}"></div><div style="flex:1"><span style="font-weight:700;font-size:11.5px;color:#1a2e22">${s.name}</span> <span style="font-size:10px;color:#8fa898">${s.start}–${s.end}</span></div><span style="font-size:11px;font-weight:700;color:${s.color}">${onShift.length} active</span></div>`;
+  }).join('');
+  document.getElementById('shift-overview').innerHTML=shiftHtml;
+  document.getElementById('shift-badge').textContent=drivers.filter(d=>d.status!=='Off Duty').length+' drivers on duty';
+  // Active vehicles
+  const activeList=vehicles.filter(v=>v.status==='In Use');
+  document.getElementById('active-veh-list').innerHTML=activeList.length?activeList.map(v=>{
+    const drv=driverById(v.currentDriverId);
+    return`<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #f0f4f2">
+      <span style="font-size:16px">🚗</span>
+      <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#1a2e22">${v.name}</div><div style="font-size:9.5px;color:#8fa898">${drv?drv.name:'—'} · ${v.currentPurpose||'—'}</div></div>
+      <div style="text-align:right"><div style="font-size:9.5px;font-weight:700;color:${fuelColor(v.fuelPct)}">${v.fuelPct}%⛽</div><div style="font-size:9px;color:#8fa898">${v.reg}</div></div>
+    </div>`;
+  }).join(''):'<div style="color:#8fa898;font-size:12px;text-align:center;padding:12px">No active vehicles</div>';
+  updateExpBadge();
+  // Load map
+  if(!fmMapReady) loadMap();
+}
+
+// ── FLEET ────────────────────────────────────────────────────────────────
+function filterFleet(el,f){fleetFilter=f;document.querySelectorAll('#fleet-pills .pl').forEach(p=>p.className='pl pl-off');el.className='pl pl-on';renderFleet()}
+function renderFleet(){
+  let list=vehicles;
+  if(fleetFilter==='owned') list=list.filter(v=>v.type==='owned');
+  else if(fleetFilter==='hired') list=list.filter(v=>v.type==='hired');
+  else if(fleetFilter!=='all') list=list.filter(v=>v.status===fleetFilter);
+  const outsideIds=new Set(getOutsideZoneVehicles().map(v=>v.id));
+  document.getElementById('fleet-list').innerHTML=list.length?list.map(v=>{
+    const drv=driverById(v.currentDriverId);
+    const defDrv=driverById(v.defaultDriverId);
+    const gps=v.gpsDeviceId?gpsById(v.gpsDeviceId):null;
+    const isOutside=outsideIds.has(v.id);
+    const hireExpiring=v.type==='hired'&&v.hiredTill&&(new Date(v.hiredTill)-new Date())<7*24*3600*1000;
+    return`<div class="vc" style="${isOutside?'border:2px solid #ef4444;':''}${hireExpiring?'border:2px solid #f59e0b;':''}">
+      <div class="vc-top">
+        <div><div class="vc-name">${v.name} ${isOutside?'🚨':''}</div><div class="vc-reg">${v.reg} · ${v.category} · ${v.seats} seats</div></div>
+        ${statusBadge(v.status)}
+      </div>
+      <div class="vc-badges">${vehTypeBadge(v)}${gpsBadge(v)}${v.type==='hired'?`<span class="badge bv">Until ${fmtDate(v.hiredTill)}</span>`:''}</div>
+      ${gps?`<div style="font-size:9.5px;color:#2563eb;margin-bottom:5px">📱 ${gps.name} · 🔋${gps.battery}%</div>`:''}
+      <div class="vc-row">
+        <span style="font-size:10px;color:#8fa898">Fuel</span>
+        <div class="fbar"><div class="ff" style="width:${v.fuelPct}%;background:${fuelColor(v.fuelPct)}"></div></div>
+        <span style="font-size:10px;font-weight:700;color:${fuelColor(v.fuelPct)};margin-left:6px">${v.fuelPct}%</span>
+      </div>
+      <div style="font-size:10px;color:#8fa898;margin-bottom:8px">Driver: <strong style="color:#1a2e22">${drv?drv.name:defDrv?defDrv.name+' (default)':'Unassigned'}</strong> · Odo: ${v.odo.toLocaleString()} km</div>
+      ${v.currentPurpose?`<div style="font-size:10px;color:#2d7a4f;margin-bottom:6px">📌 ${v.currentPurpose}</div>`:''}
+      ${hireExpiring?`<div style="font-size:10px;color:#d97706;margin-bottom:5px;font-weight:700">⚠️ Hire contract expiring soon!</div>`:''}
+      <div class="vc-actions">
+        ${v.status==='Available'?`<button class="btn btn-p btn-sm" onclick="openAssign('${v.id}')">Assign Driver</button>`:''}
+        ${v.status==='In Use'?`<button class="btn btn-b btn-sm" onclick="openAssign('${v.id}',true)">Swap Driver</button><button class="btn btn-d btn-sm" onclick="openReturn('${v.id}')">Return</button>`:''}
+        ${v.status==='Maintenance'?`<button class="btn btn-g btn-sm" onclick="markAvailable('${v.id}')">Mark Available</button>`:''}
+        <button class="btn btn-g btn-sm" onclick="editVehicle('${v.id}')">Edit</button>
+      </div>
+    </div>`;
+  }).join('')+'<div style="height:70px"></div>':'<div style="color:#8fa898;text-align:center;padding:20px">No vehicles found</div>';
+}
+
+// ── DRIVERS ──────────────────────────────────────────────────────────────
+function filterDrivers(el,f){drvFilter=f;document.querySelectorAll('#drv-pills .pl').forEach(p=>p.className='pl pl-off');el.className='pl pl-on';renderDrivers()}
+function renderDrivers(){
+  let list=drivers;
+  if(drvFilter==='casual') list=list.filter(d=>d.type==='casual');
+  else if(['A','B','C','D'].includes(drvFilter)) list=list.filter(d=>d.shiftId===drvFilter);
+  document.getElementById('driver-list').innerHTML=list.length?list.map(d=>{
+    const veh=vehicleById(d.currentVehicleId||d.defaultVehicleId);
+    const expiring=isLicenseExpiringSoon(d.licenseExpiry);
+    const accessExpired=d.appAccessTill&&new Date(d.appAccessTill)<new Date();
+    return`<div class="dc" style="${expiring?'border:1.5px solid #f59e0b;':''}">
+      <div class="dc-top">
+        <div class="dav">${d.name.split(' ').map(p=>p[0]).join('').slice(0,2)}</div>
+        <div class="dc-info">
+          <div class="dc-name">${d.name}</div>
+          <div class="dc-sub">📞 ${d.phone} · ${d.shiftId?`Shift ${d.shiftId}`:'No shift'}</div>
+        </div>
+        ${statusBadge(d.status)}
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px">
+        ${typeBadge(d.type)}
+        ${d.shiftId?shiftBadge(d.shiftId):''}
+        ${d.appAccess?'<span class="badge ba">📱 App Active</span>':'<span class="badge bg">📵 No App</span>'}
+        ${accessExpired?'<span class="badge bm">Access Expired</span>':''}
+      </div>
+      ${d.speciality?`<div style="font-size:10px;color:#7c3aed;margin-bottom:5px">⭐ ${d.speciality}</div>`:''}
+      ${veh?`<div style="font-size:10px;color:#8fa898;margin-bottom:6px">🚗 ${d.currentVehicleId?'Currently in: ':'Default: '}<strong style="color:#1a2e22">${veh.name} · ${veh.reg}</strong></div>`:''}
+      ${expiring?`<div style="font-size:10px;color:#d97706;font-weight:700;margin-bottom:5px">⚠️ License expiring: ${fmtDate(d.licenseExpiry)}</div>`:''}
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        ${!d.currentVehicleId?`<button class="btn btn-p btn-sm" onclick="quickAssignDriver('${d.id}')">Assign Vehicle</button>`:''}
+        ${d.type==='casual'&&!d.appAccess?`<button class="btn btn-b btn-sm" onclick="openCasualAccess('${d.id}')">Grant App Access</button>`:''}
+        ${d.type==='casual'&&d.appAccess?`<button class="btn btn-d btn-sm" onclick="revokeCasualAccess('${d.id}')">Revoke Access</button>`:''}
+        <button class="btn btn-g btn-sm" onclick="changeShift('${d.id}')">Change Shift</button>
+      </div>
+    </div>`;
+  }).join(''):'<div style="color:#8fa898;text-align:center;padding:20px">No drivers found</div>';
+}
+
+// ── EXPENSES ─────────────────────────────────────────────────────────────
+function filterExp(el,f){expFilter=f;document.querySelectorAll('#exp-pills .pl').forEach(p=>p.className='pl pl-off');el.className='pl pl-on';renderExpenses()}
+function renderExpenses(){
+  const list=expenses.filter(e=>e.status===expFilter);
+  updateExpBadge();
+  document.getElementById('exp-list').innerHTML=list.length?list.map(e=>{
+    const drv=driverById(e.driverId);
+    const veh=vehicleById(e.vehicleId);
+    return`<div class="ec">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px">
+        <div>
+          <div style="font-size:12.5px;font-weight:700;color:#1a2e22">${e.desc}</div>
+          <div style="font-size:10px;color:#8fa898;margin-top:2px">${drv?drv.name:'?'} · ${veh?veh.name+' ('+veh.reg+')':'?'}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:15px;font-weight:800;color:#2d7a4f">${fmt(e.amount)}</div>
+          <div style="font-size:9.5px;color:#8fa898">${fmtDate(e.date)}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
+        <span class="badge bg">${e.type}</span>
+        ${e.receipt?'<span class="badge ba">✓ Receipt</span>':'<span class="badge bm">✗ No Receipt</span>'}
+        ${e.notes?`<span class="badge bp">${e.notes}</span>`:''}
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-g btn-sm" onclick="viewExpense('${e.id}')">View</button>
+        ${expFilter==='submitted'?`<button class="btn btn-p btn-sm" onclick="approveExp('${e.id}')">✓ Approve</button><button class="btn btn-d btn-sm" onclick="openRejectExp('${e.id}')">✗ Reject</button>`:''}
+        ${expFilter==='approved_fm'?`<span style="font-size:10px;color:#2563eb;font-weight:700;margin-left:4px">→ Sent to Accountant</span>`:''}
+      </div>
+    </div>`;
+  }).join(''):`<div style="color:#8fa898;text-align:center;padding:24px">${expFilter==='submitted'?'🎉 No pending expenses!':'No expenses found'}</div>`;
+}
+function approveExp(id){
+  const idx=expenses.findIndex(e=>e.id===id);
+  expenses[idx]={...expenses[idx],status:'approved_fm',approvedBy:'Fleet Manager',approvedOn:today()};
+  save();renderExpenses();toast('✓ Expense approved → Sent to Accountant');
+}
+function openRejectExp(id){
+  currentExpId=id;
+  const e=expenses.find(x=>x.id===id);
+  const drv=driverById(e.driverId);
+  document.getElementById('exp-modal-title').textContent='Reject Expense';
+  document.getElementById('exp-modal-body').innerHTML=`<div style="background:#fee2e2;border-radius:10px;padding:11px;margin-bottom:13px;font-size:12px;color:#7f1d1d"><strong>${e.desc}</strong><br>${drv?drv.name:'?'} · ${fmt(e.amount)}</div>`;
+  document.getElementById('exp-reject-row').style.display='block';
+  document.getElementById('exp-reject-reason').value='';
+  document.getElementById('exp-modal-btns').innerHTML=`<button class="btn btn-g" style="flex:1" onclick="closeModal('exp-modal')">Cancel</button><button class="btn btn-d" style="flex:2" onclick="confirmRejectExp()">Reject</button>`;
+  openModal('exp-modal');
+}
+function confirmRejectExp(){
+  const reason=document.getElementById('exp-reject-reason').value;
+  if(!reason){toast('Select a reason','e');return}
+  const idx=expenses.findIndex(e=>e.id===currentExpId);
+  expenses[idx]={...expenses[idx],status:'rejected_fm',rejectedReason:reason,rejectedBy:'Fleet Manager',rejectedOn:today()};
+  save();closeModal('exp-modal');renderExpenses();toast('Expense rejected','e');
+}
+function viewExpense(id){
+  const e=expenses.find(x=>x.id===id);
+  const drv=driverById(e.driverId);
+  const veh=vehicleById(e.vehicleId);
+  document.getElementById('exp-modal-title').textContent='Expense Details';
+  document.getElementById('exp-reject-row').style.display='none';
+  document.getElementById('exp-modal-body').innerHTML=`
+    <div style="background:#f8fcfa;border-radius:10px;padding:12px;margin-bottom:13px">
+      ${[['Description',e.desc],['Amount',fmt(e.amount)],['Driver',drv?drv.name:'?'],['Vehicle',veh?veh.name+' ('+veh.reg+')':'?'],['Type',e.type],['Date',fmtDate(e.date)],['Receipt',e.receipt?'✅ Yes':'❌ No'],['Status',e.status.replace('_',' ')],['Notes',e.notes||'—']].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e8f5ee;font-size:12px"><span style="color:#8fa898">${l}</span><span style="font-weight:700;color:#1a2e22">${v}</span></div>`).join('')}
+    </div>`;
+  document.getElementById('exp-modal-btns').innerHTML=`<button class="btn btn-g btn-w" onclick="closeModal('exp-modal')">Close</button>`;
+  if(e.status==='submitted'){
+    document.getElementById('exp-modal-btns').innerHTML=`<button class="btn btn-g" style="flex:1" onclick="closeModal('exp-modal')">Close</button><button class="btn btn-p" style="flex:2" onclick="closeModal('exp-modal');approveExp('${id}')">Approve</button>`;
+  }
+  openModal('exp-modal');
+}
+
+// ── VEHICLE ASSIGNMENT ───────────────────────────────────────────────────
+function openAssign(vehId,isSwap=false){
+  assigningVehId=vehId;
+  const v=vehicleById(vehId);
+  document.getElementById('assign-title').textContent=isSwap?`Swap Driver – ${v.name}`:`Assign Driver – ${v.name}`;
+  document.getElementById('assign-veh-info').innerHTML=`<strong>${v.name}</strong> · ${v.reg} · ${v.fuel} · ${v.seats} seats`;
+  const avail=drivers.filter(d=>!d.currentVehicleId&&d.status!=='Off Duty'&&d.type!=='casual'||d.appAccess);
+  const sel=document.getElementById('assign-drv-sel');
+  sel.innerHTML='<option value="">— Select driver —</option>'+avail.map(d=>`<option value="${d.id}">${d.name} (${d.type}) – Shift ${d.shiftId||'?'}</option>`).join('');
+  if(v.defaultDriverId){const opt=sel.querySelector(`option[value="${v.defaultDriverId}"]`);if(opt)opt.textContent+=' ★ Default';}
+  document.getElementById('assign-purpose').value='';
+  openModal('assign-modal');
+}
+function confirmAssign(){
+  const drvId=document.getElementById('assign-drv-sel').value;
+  const shiftId=document.getElementById('assign-shift-sel').value;
+  const purpose=document.getElementById('assign-purpose').value;
+  if(!drvId){toast('Select a driver','e');return}
+  const vIdx=vehicles.findIndex(v=>v.id===assigningVehId);
+  const dIdx=drivers.findIndex(d=>d.id===drvId);
+  // Release old driver if swap
+  if(vehicles[vIdx].currentDriverId){
+    const oldDrvIdx=drivers.findIndex(d=>d.id===vehicles[vIdx].currentDriverId);
+    if(oldDrvIdx>=0){drivers[oldDrvIdx].status='Available';drivers[oldDrvIdx].currentVehicleId=null}
+  }
+  vehicles[vIdx].currentDriverId=drvId;vehicles[vIdx].status='In Use';vehicles[vIdx].currentPurpose=purpose;
+  drivers[dIdx].status='On Trip';drivers[dIdx].currentVehicleId=assigningVehId;drivers[dIdx].shiftId=shiftId;
+  save();closeModal('assign-modal');renderFleet();renderHome();
+  toast(`✓ ${drivers[dIdx].name} assigned to ${vehicles[vIdx].name}`);
+}
+function openReturn(vehId){
+  returningVehId=vehId;
+  const v=vehicleById(vehId);
+  document.getElementById('return-title').textContent=`Return – ${v.name}`;
+  document.getElementById('ret-odo').value=v.odo;
+  document.getElementById('ret-fuel').value=v.fuelPct;
+  const pSel=document.getElementById('ret-parking');
+  pSel.innerHTML=parkings.map(p=>`<option value="${p.id}" ${p.id===v.parkingSlot?'selected':''}>${p.name}</option>`).join('');
+  document.getElementById('ret-remarks').value='';
+  openModal('return-modal');
+}
+function confirmReturn(){
+  const odo=parseInt(document.getElementById('ret-odo').value);
+  const fuel=parseInt(document.getElementById('ret-fuel').value);
+  if(!odo||isNaN(odo)){toast('Enter odometer reading','e');return}
+  const v=vehicleById(returningVehId);
+  const vIdx=vehicles.findIndex(x=>x.id===returningVehId);
+  const dIdx=drivers.findIndex(d=>d.id===v.currentDriverId);
+  const dist=odo-v.odo;
+  vehicles[vIdx].status='Available';vehicles[vIdx].odo=odo;vehicles[vIdx].fuelPct=isNaN(fuel)?v.fuelPct:fuel;
+  vehicles[vIdx].currentDriverId=null;vehicles[vIdx].currentPurpose='';vehicles[vIdx].parkingSlot=document.getElementById('ret-parking').value;
+  if(dIdx>=0){drivers[dIdx].status='Available';drivers[dIdx].currentVehicleId=null}
+  save();closeModal('return-modal');renderFleet();renderHome();
+  toast(`✓ ${v.name} returned (${dist>0?'+'+dist+' km':dist+' km'})`);
+}
+function markAvailable(id){
+  const idx=vehicles.findIndex(v=>v.id===id);
+  vehicles[idx].status='Available';save();renderFleet();toast('Vehicle marked as Available');
+}
+
+// ── VEHICLE CRUD ─────────────────────────────────────────────────────────
+function openAddVehicle(){
+  editingVehId=null;
+  document.getElementById('addveh-title').textContent='Add Vehicle';
+  document.getElementById('av-submit-btn').textContent='Save Vehicle';
+  ['av-name','av-reg'].forEach(id=>document.getElementById(id).value='');
+  ['av-type','av-cat','av-fuel','av-gps'].forEach(id=>document.getElementById(id).selectedIndex=0);
+  document.getElementById('av-seats').value=5;
+  document.getElementById('av-hired-fields').style.display='none';
+  document.getElementById('av-gps-device-row').style.display='none';
+  populateGPSDeviceSel();
+  populateDriverSel('av-default-driver');
+  populateParkingSel('av-parking');
+  openModal('addveh-modal');
+}
+function editVehicle(id){
+  editingVehId=id;
+  const v=vehicleById(id);
+  document.getElementById('addveh-title').textContent='Edit Vehicle';
+  document.getElementById('av-submit-btn').textContent='Update Vehicle';
+  document.getElementById('av-name').value=v.name;
+  document.getElementById('av-reg').value=v.reg;
+  document.getElementById('av-type').value=v.type;
+  document.getElementById('av-cat').value=v.category;
+  document.getElementById('av-fuel').value=v.fuel;
+  document.getElementById('av-gps').value=v.gpsType;
+  document.getElementById('av-seats').value=v.seats;
+  toggleHiredFields();togglePortableGPS();
+  if(v.type==='hired'){
+    document.getElementById('av-hired-from').value=v.hiredFrom||'';
+    document.getElementById('av-hired-rate').value=v.hiredRate||'';
+    document.getElementById('av-hired-start').value='';
+    document.getElementById('av-hired-end').value=v.hiredTill||'';
+  }
+  populateGPSDeviceSel();
+  document.getElementById('av-gps-device').value=v.gpsDeviceId||'';
+  populateDriverSel('av-default-driver');
+  document.getElementById('av-default-driver').value=v.defaultDriverId||'';
+  populateParkingSel('av-parking');
+  document.getElementById('av-parking').value=v.parkingSlot||'';
+  openModal('addveh-modal');
+}
+function toggleHiredFields(){const h=document.getElementById('av-type').value==='hired';document.getElementById('av-hired-fields').style.display=h?'block':'none'}
+function togglePortableGPS(){const p=document.getElementById('av-gps').value==='portable';document.getElementById('av-gps-device-row').style.display=p?'block':'none'}
+function populateGPSDeviceSel(){
+  const free=gpsDevices.filter(g=>!g.assignedTo||g.assignedTo===editingVehId);
+  document.getElementById('av-gps-device').innerHTML='<option value="">— Unassigned —</option>'+free.map(g=>`<option value="${g.id}">${g.name} 🔋${g.battery}%</option>`).join('');
+}
+function populateDriverSel(selId){
+  document.getElementById(selId).innerHTML='<option value="">— None —</option>'+drivers.filter(d=>d.type!=='casual').map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+}
+function populateParkingSel(selId){document.getElementById(selId).innerHTML=parkings.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+function saveVehicle(){
+  const name=document.getElementById('av-name').value.trim();
+  const reg=document.getElementById('av-reg').value.trim().toUpperCase();
+  if(!name||!reg){toast('Name and registration required','e');return}
+  const type=document.getElementById('av-type').value;
+  const gpsType=document.getElementById('av-gps').value;
+  const gpsDeviceId=gpsType==='portable'?document.getElementById('av-gps-device').value||null:null;
+  // Update GPS device assignment
+  if(gpsDeviceId){const gi=gpsDevices.findIndex(g=>g.id===gpsDeviceId);if(gi>=0)gpsDevices[gi].assignedTo=editingVehId||'new'}
+  const veh={
+    id:editingVehId||'V'+String(vehicles.length+1).padStart(3,'0'),
+    name,reg,category:document.getElementById('av-cat').value,
+    seats:parseInt(document.getElementById('av-seats').value)||5,
+    fuel:document.getElementById('av-fuel').value,type,gpsType,gpsDeviceId,
+    status:'Available',fuelPct:100,odo:0,
+    defaultDriverId:document.getElementById('av-default-driver').value||null,
+    currentDriverId:null,parkingSlot:document.getElementById('av-parking').value,
+    notes:'',currentPurpose:'',
+    hiredFrom:type==='hired'?document.getElementById('av-hired-from').value:null,
+    hiredTill:type==='hired'?document.getElementById('av-hired-end').value:null,
+    hiredRate:type==='hired'?parseFloat(document.getElementById('av-hired-rate').value)||null:null,
+  };
+  if(editingVehId){
+    const idx=vehicles.findIndex(v=>v.id===editingVehId);
+    const ex=vehicles[idx];
+    // Preserve operational state on edit — only update spec/config fields
+    vehicles[idx]={...veh,status:ex.status,fuelPct:ex.fuelPct,odo:ex.odo,currentDriverId:ex.currentDriverId,currentPurpose:ex.currentPurpose};
+  } else vehicles.push(veh);
+  save();closeModal('addveh-modal');renderFleet();toast(editingVehId?'✓ Vehicle updated':'✓ Vehicle added');
+}
+
+// ── DRIVERS HELPERS ──────────────────────────────────────────────────────
+function quickAssignDriver(drvId){
+  const d=driverById(drvId);
+  const avail=vehicles.filter(v=>v.status==='Available');
+  if(!avail.length){toast('No available vehicles','w');return}
+  assigningVehId=avail[0].id;
+  openAssign(avail[0].id);
+  // Pre-select this driver
+  setTimeout(()=>{document.getElementById('assign-drv-sel').value=drvId},100);
+}
+function openCasualAccess(drvId){
+  currentCasualId=drvId;
+  const d=driverById(drvId);
+  document.getElementById('casual-title').textContent=`Grant Access – ${d.name}`;
+  document.getElementById('casual-info').innerHTML=`<strong>${d.name}</strong><br>📞 ${d.phone}${d.speciality?`<br>⭐ ${d.speciality}`:''}`;
+  document.getElementById('casual-expiry').value='';
+  const tomorrowDate=new Date();tomorrowDate.setDate(tomorrowDate.getDate()+1);
+  document.getElementById('casual-expiry').value=tomorrowDate.toISOString().split('T')[0];
+  const sel=document.getElementById('casual-veh');
+  sel.innerHTML='<option value="">— None for now —</option>'+vehicles.filter(v=>v.status==='Available').map(v=>`<option value="${v.id}">${v.name} · ${v.reg}</option>`).join('');
+  openModal('casual-modal');
+}
+function confirmCasualAccess(){
+  const expiry=document.getElementById('casual-expiry').value;
+  const shift=document.getElementById('casual-shift').value;
+  const vehId=document.getElementById('casual-veh').value;
+  if(!expiry){toast('Set access expiry date','e');return}
+  const dIdx=drivers.findIndex(d=>d.id===currentCasualId);
+  drivers[dIdx].appAccess=true;drivers[dIdx].appAccessTill=expiry;drivers[dIdx].shiftId=shift;drivers[dIdx].status='Available';
+  if(vehId){drivers[dIdx].currentVehicleId=vehId;const vIdx=vehicles.findIndex(v=>v.id===vehId);vehicles[vIdx].currentDriverId=currentCasualId;vehicles[vIdx].status='In Use'}
+  save();closeModal('casual-modal');renderDrivers();toast(`✓ App access granted till ${fmtDate(expiry)}`);
+}
+function revokeCasualAccess(drvId){
+  guiConfirm('Revoke Access','This will remove app access for this casual driver. Continue?',()=>{
+    const idx=drivers.findIndex(d=>d.id===drvId);
+    drivers[idx].appAccess=false;drivers[idx].appAccessTill=null;drivers[idx].shiftId=null;
+    save();renderDrivers();toast('App access revoked','w');
+  },'danger');
+}
+function changeShift(drvId){
+  const d=driverById(drvId);
+  const cur=d.shiftId||'A';
+  const next={A:'B',B:'C',C:'D',D:'A'}[cur];
+  const idx=drivers.findIndex(x=>x.id===drvId);
+  drivers[idx].shiftId=next;save();renderDrivers();
+  toast(`${d.name} → ${SHIFTS[next].name} shift (${SHIFTS[next].start}–${SHIFTS[next].end})`);
+}
+
+// ── ADD DRIVER ───────────────────────────────────────────────────────────
+function openAddDriver(){
+  document.getElementById('adddrv-title').textContent='Add Driver';
+  ['ad-name','ad-phone','ad-license','ad-speciality'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ad-type').value='permanent';
+  document.getElementById('ad-shift').value='A';
+  document.getElementById('ad-lic-exp').value='';
+  document.getElementById('ad-spec-row').style.display='none';
+  document.getElementById('ad-default-veh').innerHTML='<option value="">— None —</option>'+vehicles.map(v=>`<option value="${v.id}">${v.name} · ${v.reg}</option>`).join('');
+  openModal('adddrv-modal');
+}
+function toggleCasualField(){
+  document.getElementById('ad-spec-row').style.display=document.getElementById('ad-type').value==='casual'?'block':'none';
+}
+function saveDriver(){
+  const name=document.getElementById('ad-name').value.trim();
+  const phone=document.getElementById('ad-phone').value.trim();
+  const license=document.getElementById('ad-license').value.trim();
+  if(!name||!phone||!license){toast('Name, phone & license required','e');return}
+  const type=document.getElementById('ad-type').value;
+  const drv={
+    id:'D'+String(Date.now()).slice(-4),
+    name,phone,type,
+    status:'Off Duty',
+    shiftId:document.getElementById('ad-shift').value||null,
+    defaultVehicleId:document.getElementById('ad-default-veh').value||null,
+    currentVehicleId:null,
+    license,
+    licenseExpiry:document.getElementById('ad-lic-exp').value||null,
+    joinDate:today(),
+    appAccess:type!=='casual',
+    appAccessTill:null,
+    speciality:type==='casual'?document.getElementById('ad-speciality').value.trim()||undefined:undefined
+  };
+  drivers.push(drv);
+  save();closeModal('adddrv-modal');renderDrivers();
+  toast('✓ Driver added: '+name);
+}
+
+// ── ME ───────────────────────────────────────────────────────────────────
+function renderMe(){
+  document.getElementById('me-vehs').textContent=vehicles.length;
+  document.getElementById('me-drvs').textContent=drivers.filter(d=>d.status!=='Off Duty').length;
+  document.getElementById('me-exps').textContent=expenses.filter(e=>e.status==='approved_fm').length;
+  document.getElementById('gf-radius-slider').value=geofence.radiusKm;
+  document.getElementById('gf-radius-lbl').textContent=geofence.radiusKm+' km';
+  // GPS devices badge
+  const freeGPS=gpsDevices.filter(g=>!g.assignedTo).length;
+  document.getElementById('gps-avail-badge').textContent=freeGPS+' available';
+  // GPS devices list
+  document.getElementById('gps-devices-list').innerHTML=gpsDevices.map(g=>{
+    const assignedVeh=vehicles.find(v=>v.id===g.assignedTo);
+    const batColor=g.battery>50?'#2d7a4f':g.battery>20?'#d97706':'#ef4444';
+    return`<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #f0f4f2">
+      <span style="font-size:16px">${g.status==='active'?'📡':'📴'}</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:700;color:#1a2e22">${g.name}</div>
+        <div style="font-size:9.5px;color:#8fa898">IMEI: ${g.imei.slice(-6)}… · ${assignedVeh?'→ '+assignedVeh.name:'Unassigned'}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11.5px;font-weight:800;color:${batColor}">🔋${g.battery}%</div>
+        <div style="font-size:9px;color:#8fa898">${g.status}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function updateGFRadius(val){document.getElementById('gf-radius-lbl').textContent=val+' km';geofence.radiusKm=parseInt(val);if(gfCircle)gfCircle.setRadius(val*1000)}
+function saveGFConfig(){geofence.alertOnExit=document.getElementById('gf-alert-mode').value==='1';save()}
+
+// ── GEO-FENCE ────────────────────────────────────────────────────────────
+function haversineKm(lat1,lng1,lat2,lng2){
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+// Simulated GPS positions for demo vehicles (in production: real GPS device / driver app feed)
+const SIM_VEH_POS={
+  V001:{lat:18.9448,lng:73.3266},  // ~18km out — will trigger fence alert
+  V002:{lat:18.9198,lng:73.2996},  // ~2.8km — inside
+  V007:{lat:18.9048,lng:73.2876},  // ~1.2km — inside
+};
+function getOutsideZoneVehicles(){
+  return vehicles.filter(v=>{
+    if(v.status!=='In Use') return false;
+    const pos=SIM_VEH_POS[v.id]||{lat:FARM.lat+0.002,lng:FARM.lng+0.002};
+    return geofence.enabled && haversineKm(geofence.centerLat,geofence.centerLng,pos.lat,pos.lng)>geofence.radiusKm;
+  });
+}
+
+// ── GOOGLE MAPS ──────────────────────────────────────────────────────────
+function loadMap(){
+  if(fmMapReady)return;
+  const s=document.createElement('script');
+  s.src=`https://maps.googleapis.com/maps/api/js?key=${GMAPS_KEY}&callback=initFMMap&loading=async`;
+  s.async=true;s.defer=true;
+  s.onerror=()=>{document.getElementById('map-loading').innerHTML='<span style="font-size:20px">⚠️</span><span>Map unavailable</span>'};
+  document.head.appendChild(s);
+}
+function initFMMap(){
+  fmMapReady=true;
+  document.getElementById('map-loading').style.display='none';
+  fmMap=new google.maps.Map(document.getElementById('fm-map-div'),{
+    center:FARM,zoom:13,disableDefaultUI:true,zoomControl:true,
+    styles:[{featureType:'poi',stylers:[{visibility:'off'}]}]
+  });
+  new google.maps.Marker({position:FARM,map:fmMap,title:'Oleander Farms',label:{text:'🏡',fontSize:'18px'}});
+  // Geo-fence circle
+  gfCircle=new google.maps.Circle({map:fmMap,center:FARM,radius:geofence.radiusKm*1000,strokeColor:'#2d7a4f',strokeOpacity:.6,strokeWeight:2,fillColor:'#2d7a4f',fillOpacity:.07});
+  // Vehicle markers
+  const offsets=[{dlat:.006,dlng:.008},{dlat:-.009,dlng:.004},{dlat:.012,dlng:-.006},{dlat:.003,dlng:.016}];
+  vehicles.filter(v=>v.status==='In Use').forEach((v,i)=>{
+    const off=offsets[i%offsets.length];
+    new google.maps.Marker({position:{lat:FARM.lat+off.dlat,lng:FARM.lng+off.dlng},map:fmMap,title:v.name,label:{text:'🚗',fontSize:'16px'}});
+  });
+  // Check driver live location
+  const live=localStorage.getItem('driver_live_loc');
+  if(live){try{const loc=JSON.parse(live);if(Date.now()-loc.ts<120000)new google.maps.Marker({position:{lat:loc.lat,lng:loc.lng},map:fmMap,title:'Live Driver',label:{text:'📍',fontSize:'20px'},zIndex:999})}catch(e){}}
+  // Also init track map
+  initTrackMap();
+}
+
+// ── LIVE TRACKING TAB ────────────────────────────────────────────────────
+function renderTrack(){
+  if(!fmMapReady) loadMap();       // loadMap triggers initFMMap → initTrackMap
+  else if(!fmTrackMap) initTrackMap();
+  else { refreshTrackMarkers(); renderTrackList(); }
+  startTrackRefresh();
+}
+
+function initTrackMap(){
+  const div=document.getElementById('fm-track-div');
+  if(!div||fmTrackMap) return;
+  document.getElementById('track-map-loading').style.display='none';
+  fmTrackMap=new google.maps.Map(div,{
+    center:FARM,zoom:14,disableDefaultUI:true,zoomControl:true,
+    styles:[{featureType:'poi',stylers:[{visibility:'off'}]}]
+  });
+  trackInfoWin=new google.maps.InfoWindow({maxWidth:260});
+  new google.maps.Marker({position:FARM,map:fmTrackMap,title:'Oleander Farms',label:{text:'🌿',fontSize:'16px'}});
+  new google.maps.Circle({map:fmTrackMap,center:FARM,radius:geofence.radiusKm*1000,strokeColor:'#2d7a4f',strokeOpacity:.6,strokeWeight:2,fillColor:'#2d7a4f',fillOpacity:.07});
+  refreshTrackMarkers();
+  renderTrackList();
+}
+
+function refreshTrackMarkers(){
+  if(!fmTrackMap) return;
+  let liveData={};
+  try{liveData=JSON.parse(localStorage.getItem('sg_live_tracking')||'{}');}catch(_){}
+  const now=Date.now();
+  let liveCount=0;
+
+  // Place / update markers for vehicles with live GPS
+  vehicles.forEach(v=>{
+    const loc=liveData[v.reg];
+    const isLive=!!(loc&&now-loc.ts<60000);
+    const pos=isLive?{lat:loc.lat,lng:loc.lng}:(SIM_VEH_POS[v.id]||null);
+    if(!pos) return;
+    if(isLive) liveCount++;
+    if(trackMarkers[v.reg]){
+      trackMarkers[v.reg].setPosition(pos);
+      if(isLive) trackMarkers[v.reg].setTitle(v.name+' – '+(loc.driverName||'')+(loc.speed>0?' · '+loc.speed+' km/h':''));
+    } else {
+      const m=new google.maps.Marker({
+        position:pos,map:fmTrackMap,
+        title:v.name+(isLive&&loc.driverName?' – '+loc.driverName:''),
+        label:{text:isLive?'🚗':'🔵',fontSize:'16px'},
+        zIndex:isLive?10:3
+      });
+      m.addListener('click',()=>{
+        const l2=JSON.parse(localStorage.getItem('sg_live_tracking')||'{}')[v.reg];
+        const isL2=!!(l2&&Date.now()-l2.ts<60000);
+        const drv=drivers.find(d=>d.currentVehicleId===v.id);
+        const body=isL2
+          ?`<div style="font-family:system-ui,sans-serif;padding:2px"><b style="font-size:13px">${v.name}</b><div style="font-size:10px;color:#666;margin:3px 0">${v.reg} · ${v.category}</div><div style="margin-top:5px;font-size:11px"><span style="color:#16a34a;font-weight:700">🟢 Live GPS</span> &nbsp;${l2.speed??0} km/h · ±${l2.accuracy??'?'}m</div><div style="font-size:11px;margin-top:3px">👤 ${l2.driverName||drv?.name||'—'}</div><div style="font-size:10px;color:#888;margin-top:2px">Updated ${Math.round((Date.now()-l2.ts)/1000)}s ago</div></div>`
+          :`<div style="font-family:system-ui,sans-serif;padding:2px"><b style="font-size:13px">${v.name}</b><div style="font-size:10px;color:#666;margin:3px 0">${v.reg}</div><div style="font-size:11px;color:#888;margin-top:4px">⚪ Simulated position</div><div style="font-size:11px;margin-top:3px">👤 ${drv?.name||'—'}</div></div>`;
+        trackInfoWin.setContent(body);
+        trackInfoWin.open({anchor:m,map:fmTrackMap});
+      });
+      trackMarkers[v.reg]=m;
+    }
+  });
+
+  const lbl=liveCount>0?`🟢 ${liveCount} vehicle${liveCount>1?'s':''} with live GPS`:'⚪ No live GPS — showing simulated positions';
+  document.getElementById('track-live-count').textContent=lbl;
+  renderTrackList();
+}
+
+function renderTrackList(){
+  let liveData={};
+  try{liveData=JSON.parse(localStorage.getItem('sg_live_tracking')||'{}');}catch(_){}
+  const now=Date.now();
+  const html=vehicles.map(v=>{
+    const loc=liveData[v.reg];
+    const isLive=!!(loc&&now-loc.ts<60000);
+    const drv=drivers.find(d=>d.currentVehicleId===v.id);
+    const dotCls=isLive?'trk-dot trk-live':'trk-dot';
+    const dotCol=isLive?'#22c55e':v.status==='In Use'?'#e67e22':'#94a3b8';
+    const badge=isLive?`<span style="font-size:8.5px;font-weight:700;background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:8px">${loc.speed??0} km/h</span>`
+      :`<span style="font-size:8.5px;font-weight:700;background:#f1f5f9;color:#94a3b8;padding:1px 6px;border-radius:8px">Simulated</span>`;
+    const sub=isLive?`${loc.driverName||drv?.name||'—'} · ±${loc.accuracy??'?'}m · ${Math.round((now-loc.ts)/1000)}s ago`:(drv?.name||'—');
+    return `<div class="trk-row"><div class="${dotCls}" style="background:${dotCol}"></div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:#1a2e22;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.name}</div><div style="font-size:9.5px;color:#8fa898;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div></div>${badge}</div>`;
+  }).join('');
+  document.getElementById('track-veh-list').innerHTML=html||'<div style="color:#8fa898;font-size:12px;text-align:center;padding:8px">No vehicles found</div>';
+}
+
+function startTrackRefresh(){
+  if(trackRefreshTimer) return;
+  trackRefreshTimer=setInterval(()=>{
+    if(document.getElementById('pane-track').classList.contains('active')) refreshTrackMarkers();
+  },5000);
+}
+
+// ── GUI CONFIRM ──────────────────────────────────────────────────────────
+function guiConfirm(title,msg,onYes,type='danger'){
+  const m=document.getElementById('gc-modal');
+  document.getElementById('gc-title').textContent=title;
+  document.getElementById('gc-msg').textContent=msg;
+  const y=document.getElementById('gc-yes');
+  y.textContent=title;y.className='btn btn-w '+(type==='danger'?'btn-d':type==='warn'?'btn-g':'btn-p');
+  y.style.cssText='margin-bottom:8px;padding:12px;font-size:13px';
+  y.onclick=()=>{closeGC();onYes()};
+  m.style.display='flex';
+}
+function closeGC(){document.getElementById('gc-modal').style.display='none'}
+document.getElementById('gc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('gc-modal'))closeGC()});
+
+// ── MODAL BACKDROP ───────────────────────────────────────────────────────
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+
+// ── TIME ─────────────────────────────────────────────────────────────────
+function updateTime(){document.getElementById('stime').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false}).replace(/^0/,'')}
+setInterval(updateTime,60000);updateTime();
+
+// ── INIT ─────────────────────────────────────────────────────────────────
+renderHome();
+
+// FAB for adding vehicle (Fleet tab)
+document.getElementById('pane-fleet').insertAdjacentHTML('beforeend',`<button class="fab" onclick="openAddVehicle()" title="Add Vehicle"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`);
+// FAB for adding driver (Drivers tab)
+document.getElementById('pane-drivers').insertAdjacentHTML('beforeend',`<button class="fab" onclick="openAddDriver()" title="Add Driver"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></button>`);
+
+window.addEventListener('beforeunload',()=>{if(trackRefreshTimer)clearInterval(trackRefreshTimer)});
+</script>
+</body>
+</html>

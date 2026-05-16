@@ -1,0 +1,7 @@
+[
+  { "id": "P1", "parkingId": "P1", "name": "Bay A – Main Entrance",  "zone": "Main",   "lat": 18.9148367, "lng": 73.2966273, "capacity": 4, "notes": "Primary vehicle bay near main gate", "status": "Active" },
+  { "id": "P2", "parkingId": "P2", "name": "Bay B – East Wing",      "zone": "East",   "lat": 18.91510,   "lng": 73.29690,   "capacity": 4, "notes": "Adjacent to east wing cottages",   "status": "Active" },
+  { "id": "P3", "parkingId": "P3", "name": "Staff Parking",          "zone": "Staff",  "lat": 18.91430,   "lng": 73.29600,   "capacity": 6, "notes": "Reserved for staff vehicles",      "status": "Active" },
+  { "id": "P4", "parkingId": "P4", "name": "Service Bay",            "zone": "Service","lat": 18.91540,   "lng": 73.29740,   "capacity": 3, "notes": "Maintenance and service vehicles", "status": "Active" },
+  { "id": "P5", "parkingId": "P5", "name": "Event Zone",             "zone": "Events", "lat": 18.91400,   "lng": 73.29780,   "capacity": 10,"notes": "Overflow and event parking",       "status": "Active" }
+]

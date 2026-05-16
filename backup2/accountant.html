@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accountant Panel – SmartGate 360</title>
+  <link rel="icon" type="image/webp" href="assets/icons/logo.webp" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+  <script>(function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('index.html'); })();</script>
+  <style>
+    /* ── Accountant Panel custom styles ── */
+
+    /* Stats row */
+    .acct-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .acct-stat {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      box-shadow: var(--shadow);
+      border-left: 4px solid transparent;
+    }
+    .acct-stat.pending  { border-left-color: #e67e22; }
+    .acct-stat.settled  { border-left-color: #2d7a4f; }
+    .acct-stat.rejected { border-left-color: #e74c3c; }
+    .acct-stat.all      { border-left-color: #3045c8; }
+    .acct-stat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .acct-stat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .acct-stat-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .acct-stat-icon.orange { background: #fef3e2; color: #e67e22; }
+    .acct-stat-icon.green  { background: #e8f5ee; color: #2d7a4f; }
+    .acct-stat-icon.red    { background: #fdecea; color: #e74c3c; }
+    .acct-stat-icon.blue   { background: #e8eeff; color: #3045c8; }
+    .acct-stat-count {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .acct-stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      font-weight: 600;
+    }
+    .acct-stat-amount {
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+    .acct-stat.pending  .acct-stat-amount { color: #e67e22; }
+    .acct-stat.settled  .acct-stat-amount { color: #2d7a4f; }
+    .acct-stat.rejected .acct-stat-amount { color: #e74c3c; }
+    .acct-stat.all      .acct-stat-amount { color: #3045c8; }
+
+    /* Filter pills */
+    .filter-pills-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-pill {
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--primary-light);
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      transition: all 0.14s;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-pill:hover { background: #d4eedd; border-color: var(--accent); }
+    .filter-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .filter-pill .pill-badge {
+      background: rgba(255,255,255,0.25);
+      color: inherit;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+      min-width: 20px;
+      text-align: center;
+    }
+    .filter-pill:not(.active) .pill-badge {
+      background: rgba(45,122,79,0.12);
+      color: var(--primary);
+    }
+
+    /* Search bar in filter bar */
+    .acct-search-wrap {
+      flex: 1;
+      min-width: 200px;
+      max-width: 320px;
+      position: relative;
+    }
+    .acct-search-wrap svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      stroke: var(--text-muted);
+      fill: none;
+      stroke-width: 2;
+      pointer-events: none;
+    }
+    .acct-search-wrap input {
+      width: 100%;
+      height: 36px;
+      padding: 0 12px 0 34px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: var(--card-bg);
+      color: var(--text-primary);
+      transition: border-color 0.15s;
+    }
+    .acct-search-wrap input:focus { border-color: var(--primary); }
+
+    /* Bulk actions bar */
+    .bulk-actions-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: #fef3e2;
+      border: 1.5px solid #fde68a;
+      border-radius: var(--radius-sm);
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .bulk-actions-bar span {
+      font-size: 13px;
+      font-weight: 600;
+      color: #92400e;
+      flex: 1;
+    }
+
+    /* Expense status badges */
+    .badge-submitted    { background: #f1f5f9; color: #475569; }
+    .badge-approved-fm  { background: #fef3e2; color: #b45309; }
+    .badge-settled      { background: #e8f5ee; color: #2d7a4f; }
+    .badge-rejected-acct{ background: #fdecea; color: #dc2626; }
+
+    /* Expense type badges */
+    .exp-type-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .etype-fuel        { background: #dcfce7; color: #166534; }
+    .etype-toll        { background: #dbeafe; color: #1e40af; }
+    .etype-parking     { background: #ffedd5; color: #92400e; }
+    .etype-maintenance { background: #ede9fe; color: #5b21b6; }
+    .etype-service     { background: #ede9fe; color: #5b21b6; }
+    .etype-repair      { background: #fee2e2; color: #991b1b; }
+    .etype-insurance   { background: #ccfbf1; color: #134e4a; }
+    .etype-cleaning    { background: #e0f2fe; color: #075985; }
+    .etype-other       { background: #f1f5f9; color: #475569; }
+
+    /* Receipt badge */
+    .receipt-yes { background: #e8f5ee; color: #2d7a4f; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; }
+    .receipt-no  { background: #f1f5f9; color: #94a3b8; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; }
+
+    /* Page tabs (Reports / Budget) */
+    .acct-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+    }
+    .acct-tab {
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: inherit;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.14s, border-color 0.14s;
+    }
+    .acct-tab:hover { color: var(--primary); }
+    .acct-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* Section panel (Expenses / Reports / Budget) */
+    .acct-panel { display: none; }
+    .acct-panel.active { display: block; }
+
+    /* Modal overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+      animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn {
+      from { transform: translateY(24px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .modal h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    .modal-summary {
+      background: var(--primary-light);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      font-size: 13px;
+    }
+    .modal-summary .ms-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      padding: 3px 0;
+    }
+    .modal-summary .ms-label { color: var(--text-secondary); font-weight: 600; }
+    .modal-summary .ms-value { font-weight: 700; color: var(--text-primary); text-align: right; }
+    .modal-summary .ms-value.amount { color: var(--primary); font-size: 15px; }
+
+    /* Budget tracker */
+    .budget-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .budget-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .budget-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .budget-card-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .budget-card-input {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .budget-card-input span { font-size: 12px; color: var(--text-muted); }
+    .budget-card-input input {
+      width: 90px;
+      height: 30px;
+      padding: 0 8px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: inherit;
+      text-align: right;
+      outline: none;
+    }
+    .budget-card-input input:focus { border-color: var(--primary); }
+    .budget-progress-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    .budget-progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+    .budget-progress-fill.ok      { background: var(--primary); }
+    .budget-progress-fill.warning { background: #e67e22; }
+    .budget-progress-fill.over    { background: #e74c3c; }
+    .budget-amounts {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .budget-amounts .over-label { color: #e74c3c; font-weight: 700; }
+
+    /* Reports tables */
+    .report-section { margin-bottom: 28px; }
+    .report-section h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      .acct-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .acct-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .acct-stat-count { font-size: 20px; }
+      .filter-pills-bar { flex-direction: column; align-items: flex-start; }
+      .acct-search-wrap { max-width: 100%; width: 100%; }
+      .bulk-actions-bar { flex-direction: column; align-items: flex-start; }
+      .modal { padding: 18px 14px; }
+    }
+    @media (max-width: 400px) {
+      .acct-stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Finance / <span>Accountant Panel</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Accountant Panel</div>
+          <div class="page-subtitle">Review, settle and track fleet expense reimbursements</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" onclick="exportCSV()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="acct-stats" id="acct-stats"></div>
+
+      <!-- PAGE TABS -->
+      <div class="acct-tabs">
+        <button class="acct-tab active" data-panel="expenses">Expenses</button>
+        <button class="acct-tab" data-panel="reports">Reports</button>
+        <button class="acct-tab" data-panel="budget">Budget Tracker</button>
+      </div>
+
+      <!-- ═══ EXPENSES PANEL ═══ -->
+      <div class="acct-panel active" id="panel-expenses">
+
+        <!-- Filter pills + Search -->
+        <div class="filter-pills-bar">
+          <div class="filter-pills" id="filter-pills"></div>
+          <div class="acct-search-wrap">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="acct-search" placeholder="Search description, driver, vehicle, type…" />
+          </div>
+        </div>
+
+        <!-- Bulk actions (pending tab only) -->
+        <div class="bulk-actions-bar" id="bulk-bar" style="display:none;">
+          <span id="bulk-label">Pending settlement actions</span>
+          <button class="btn btn-primary btn-sm" onclick="settleAllPending()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><polyline points="20 6 9 17 4 12"/></svg>
+            Settle All Pending
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="exportCSV()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+
+        <!-- Expense Table -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2 id="table-heading">All Expenses</h2>
+            <span id="table-count" style="font-size:12px;color:var(--text-muted);"></span>
+          </div>
+          <div class="table-wrapper">
+            <table id="acct-table">
+              <thead>
+                <tr>
+                  <th>Expense ID</th>
+                  <th>Description</th>
+                  <th class="tbl-hide-mobile">Driver</th>
+                  <th class="tbl-hide-mobile">Vehicle</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th class="tbl-hide-tablet">Date</th>
+                  <th class="tbl-hide-tablet">Receipt</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="acct-body">
+                <tr><td colspan="10" class="table-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /panel-expenses -->
+
+      <!-- ═══ REPORTS PANEL ═══ -->
+      <div class="acct-panel" id="panel-reports">
+        <div class="section-card">
+          <div class="section-header"><h2>Expense Reports</h2></div>
+          <div style="padding:0 0 20px;">
+
+            <!-- Category Breakdown -->
+            <div class="report-section">
+              <h3>Category Breakdown</h3>
+              <div class="table-wrapper">
+                <table id="rpt-category-table">
+                  <thead>
+                    <tr>
+                      <th>Expense Type</th>
+                      <th>Count</th>
+                      <th>Total Amount</th>
+                      <th>Settled</th>
+                      <th>Settled %</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rpt-category-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Monthly Summary -->
+            <div class="report-section">
+              <h3>Monthly Summary (Last 3 Months)</h3>
+              <div class="table-wrapper">
+                <table id="rpt-monthly-table">
+                  <thead>
+                    <tr>
+                      <th>Month</th>
+                      <th>Total Expenses</th>
+                      <th>Total Amount</th>
+                      <th>Settled</th>
+                      <th>Pending</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rpt-monthly-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Top Submitters -->
+            <div class="report-section">
+              <h3>Top Submitters</h3>
+              <div class="table-wrapper">
+                <table id="rpt-submitters-table">
+                  <thead>
+                    <tr>
+                      <th>Driver</th>
+                      <th>Total Claims</th>
+                      <th>Total Amount</th>
+                      <th>Settled Amount</th>
+                      <th>Pending</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rpt-submitters-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div><!-- /panel-reports -->
+
+      <!-- ═══ BUDGET TRACKER PANEL ═══ -->
+      <div class="acct-panel" id="panel-budget">
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Monthly Budget Tracker</h2>
+            <span style="font-size:12px;color:var(--text-muted);" id="budget-month-label"></span>
+          </div>
+          <div style="padding:0 0 8px;">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;padding:0 4px;">
+              Set monthly budget limits per expense category. Progress bars show actual spending vs budget for the current month.
+            </div>
+            <div class="budget-grid" id="budget-grid"></div>
+          </div>
+        </div>
+      </div><!-- /panel-budget -->
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<!-- ═══ SETTLE MODAL ═══ -->
+<div class="modal-overlay" id="settle-modal" onclick="handleModalBackdropClick(event,'settle-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>Settle Expense</h3>
+    <div class="modal-summary" id="settle-summary"></div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Payment Method *</label>
+        <select class="form-select" id="settle-method">
+          <option value="">Select…</option>
+          <option value="Cash">Cash</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Cheque">Cheque</option>
+          <option value="UPI">UPI</option>
+          <option value="NEFT">NEFT</option>
+          <option value="RTGS">RTGS</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reference No. *</label>
+        <input type="text" class="form-input" id="settle-ref" placeholder="TXN / Cheque / UPI ref" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Settlement Amount (₹) *</label>
+        <input type="number" class="form-input" id="settle-amount" min="0" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Settlement Date *</label>
+        <input type="date" class="form-input" id="settle-date" />
+      </div>
+      <div class="form-group full-width">
+        <label class="form-label">Remarks</label>
+        <textarea class="form-input" id="settle-remarks" rows="2" placeholder="Optional remarks…" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('settle-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmSettle()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Settlement
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ REJECT MODAL ═══ -->
+<div class="modal-overlay" id="reject-modal" onclick="handleModalBackdropClick(event,'reject-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>Reject Expense</h3>
+    <div class="modal-summary" id="reject-summary"></div>
+
+    <div class="form-grid">
+      <div class="form-group full-width">
+        <label class="form-label">Rejection Reason *</label>
+        <select class="form-select" id="reject-reason">
+          <option value="">Select reason…</option>
+          <option value="Duplicate expense">Duplicate expense</option>
+          <option value="Missing receipt">Missing receipt</option>
+          <option value="Exceeds policy limit">Exceeds policy limit</option>
+          <option value="Not a business expense">Not a business expense</option>
+          <option value="Invalid documentation">Invalid documentation</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group full-width">
+        <label class="form-label">Notes</label>
+        <textarea class="form-input" id="reject-notes" rows="3" placeholder="Additional notes for the driver / fleet manager…" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('reject-modal')">Cancel</button>
+      <button class="btn btn-sm" style="background:#fdecea;color:#dc2626;border:1.5px solid #fca5a5;font-weight:700;border-radius:9px;padding:8px 16px;font-size:13px;cursor:pointer;" onclick="confirmReject()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;flex-shrink:0;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Confirm Reject
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ VIEW MODAL ═══ -->
+<div class="modal-overlay" id="view-modal" onclick="handleModalBackdropClick(event,'view-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>Expense Details</h3>
+    <div id="view-content" style="font-size:13px;"></div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeModal('view-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+'use strict';
+
+/* ─── CONSTANTS ──────────────────────────────────────── */
+
+const LS_EXPENSES = 'sg_expenses';
+const LS_DRIVERS  = 'sg_drivers';
+const LS_VEHICLES = 'sg_vehicles';
+const LS_BUDGET   = 'sg_acct_budget';
+
+const EXPENSE_TYPES = ['Fuel','Toll','Parking','Maintenance','Service','Repair','Insurance','Cleaning','Other'];
+
+const DRV_SEED = {
+  D001:'Suresh Patel', D002:'Ravi Kumar',  D003:'Amol Pawar',
+  D004:'Vijay Shinde', D005:'Deepak Jadhav', D006:'Santosh Yadav',
+  D007:'Nilesh More',  D008:'Prashant Kulkarni', D009:'Rahul Gupta'
+};
+
+const VEH_SEED = {
+  V001:'Mahindra Scorpio · MH04OLF001',
+  V002:'Toyota Innova · MH04OLF002',
+  V003:'Maruti Ertiga · MH04OLF003',
+  V004:'Tata Nexon EV · MH04OLF004',
+  V005:'Mahindra Thar · MH04OLF005',
+  V006:'Force Traveller · MH04OLF006',
+  V007:'Toyota Fortuner · MH12AB5432'
+};
+
+const EXPENSE_SEED = [
+  {id:'EX001',driverId:'D001',vehicleId:'V001',type:'Toll',amount:450,date:'2026-03-21',desc:'Toll – Mumbai-Pune expressway',receipt:true,status:'submitted',notes:''},
+  {id:'EX002',driverId:'D002',vehicleId:'V002',type:'Fuel',amount:3200,date:'2026-03-21',desc:'Diesel fill – 80L @ ₹40/L',receipt:true,status:'submitted',notes:''},
+  {id:'EX003',driverId:'D007',vehicleId:'V007',type:'Maintenance',amount:850,date:'2026-03-20',desc:'Tyre puncture repair',receipt:false,status:'submitted',notes:'Front left tyre'},
+  {id:'EX004',driverId:'D003',vehicleId:'V003',type:'Toll',amount:320,date:'2026-03-20',desc:'Toll – Karjat bypass',receipt:true,status:'approved_fm',approvedBy:'Fleet Manager',approvedOn:'2026-03-20',notes:''},
+  {id:'EX005',driverId:'D005',vehicleId:'V005',type:'Fuel',amount:1800,date:'2026-03-19',desc:'Diesel fill – 45L',receipt:true,status:'approved_fm',approvedBy:'Fleet Manager',approvedOn:'2026-03-19',notes:''},
+  {id:'EX006',driverId:'D001',vehicleId:'V001',type:'Toll',amount:280,date:'2026-03-18',desc:'Toll – Khopoli',receipt:true,status:'settled',settledBy:'Accountant',settledOn:'2026-03-19',paymentMethod:'Bank Transfer',paymentRef:'TXN202603190012',settledAmount:280,notes:''},
+  {id:'EX007',driverId:'D002',vehicleId:'V002',type:'Cleaning',amount:500,date:'2026-03-17',desc:'Interior detailing – full',receipt:true,status:'settled',settledBy:'Accountant',settledOn:'2026-03-18',paymentMethod:'Cash',paymentRef:'CASH-0318',settledAmount:500,notes:''},
+  {id:'EX008',driverId:'D004',vehicleId:'V004',type:'Fuel',amount:2100,date:'2026-03-16',desc:'Electric charge + petrol backup',receipt:false,status:'rejected_acct',rejectedReason_acct:'Missing receipt',rejectedBy_acct:'Accountant',rejectedOn_acct:'2026-03-17',notes:''}
+];
+
+/* ─── STATE ──────────────────────────────────────────── */
+
+let expenses   = [];
+let activeTab  = 'pending';  // pending | settled | rejected | all
+let searchQ    = '';
+let settleTarget = null;   // expense being settled
+let rejectTarget = null;   // expense being rejected
+
+/* ─── INIT ───────────────────────────────────────────── */
+
+(function init() {
+  renderAppSidebar('accountant');
+  requireAuth('index.html');
+  initAuthUI('index.html');
+  initMobileMenu();
+  renderTopbarDate();
+
+  seedData();
+  expenses = loadExpenses();
+
+  renderStats();
+  renderPills();
+  renderTable();
+  renderReports();
+  renderBudget();
+
+  document.getElementById('acct-search').addEventListener('input', e => {
+    searchQ = e.target.value.toLowerCase().trim();
+    renderTable();
+  });
+
+  document.querySelectorAll('.acct-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.acct-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.acct-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+      if (tab.dataset.panel === 'reports') renderReports();
+      if (tab.dataset.panel === 'budget')  renderBudget();
+    });
+  });
+})();
+
+/* ─── DATA HELPERS ───────────────────────────────────── */
+
+function seedData() {
+  if (!localStorage.getItem(LS_EXPENSES)) {
+    localStorage.setItem(LS_EXPENSES, JSON.stringify(EXPENSE_SEED));
+  }
+}
+
+function loadExpenses() {
+  try { return JSON.parse(localStorage.getItem(LS_EXPENSES)) || []; }
+  catch { return []; }
+}
+
+function save() {
+  localStorage.setItem(LS_EXPENSES, JSON.stringify(expenses));
+}
+
+function driverName(id) {
+  const stored = loadDrivers();
+  if (stored[id]) return stored[id];
+  return DRV_SEED[id] || id;
+}
+
+function vehicleName(id) {
+  const stored = loadVehicles();
+  if (stored[id]) return stored[id];
+  return VEH_SEED[id] || id;
+}
+
+function loadDrivers() {
+  try {
+    const raw = localStorage.getItem(LS_DRIVERS);
+    if (!raw) return {};
+    const arr = JSON.parse(raw);
+    if (Array.isArray(arr)) {
+      const map = {};
+      arr.forEach(d => { map[d.id] = d.name || (d.firstName + ' ' + d.lastName); });
+      return map;
+    }
+    return arr;
+  } catch { return {}; }
+}
+
+function loadVehicles() {
+  try {
+    const raw = localStorage.getItem(LS_VEHICLES);
+    if (!raw) return {};
+    const arr = JSON.parse(raw);
+    if (Array.isArray(arr)) {
+      const map = {};
+      arr.forEach(v => { map[v.id] = (v.name || v.vehicleName || v.id) + (v.vehicleNumber ? ' · ' + v.vehicleNumber : ''); });
+      return map;
+    }
+    return arr;
+  } catch { return {}; }
+}
+
+function getSession() {
+  try { return JSON.parse(sessionStorage.getItem('sg360_session')) || {}; } catch { return {}; }
+}
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/* ─── FILTER HELPERS ─────────────────────────────────── */
+
+function getByTab(tab) {
+  switch (tab) {
+    case 'pending':  return expenses.filter(e => e.status === 'approved_fm');
+    case 'settled':  return expenses.filter(e => e.status === 'settled');
+    case 'rejected': return expenses.filter(e => e.status === 'rejected_acct');
+    default:         return [...expenses];
+  }
+}
+
+function applySearch(list) {
+  if (!searchQ) return list;
+  return list.filter(e => {
+    const dn = driverName(e.driverId || '').toLowerCase();
+    const vn = vehicleName(e.vehicleId || '').toLowerCase();
+    return [e.desc, dn, vn, e.type, e.id].join(' ').toLowerCase().includes(searchQ);
+  });
+}
+
+/* ─── STATS ROW ──────────────────────────────────────── */
+
+function renderStats() {
+  const pending  = expenses.filter(e => e.status === 'approved_fm');
+  const settled  = expenses.filter(e => e.status === 'settled');
+  const rejected = expenses.filter(e => e.status === 'rejected_acct');
+  const total    = expenses.reduce((s,e) => s + (e.amount||0), 0);
+
+  const pTotal = pending.reduce((s,e) => s + (e.amount||0), 0);
+  const sTotal = settled.reduce((s,e) => s + (e.settledAmount||e.amount||0), 0);
+
+  document.getElementById('acct-stats').innerHTML = `
+    <div class="acct-stat pending">
+      <div class="acct-stat-top">
+        <div class="acct-stat-icon orange">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="acct-stat-count">${pending.length}</div>
+      </div>
+      <div class="acct-stat-label">Pending Settlement</div>
+      <div class="acct-stat-amount">${formatCurrency(pTotal)}</div>
+    </div>
+    <div class="acct-stat settled">
+      <div class="acct-stat-top">
+        <div class="acct-stat-icon green">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="acct-stat-count">${settled.length}</div>
+      </div>
+      <div class="acct-stat-label">Settled</div>
+      <div class="acct-stat-amount">${formatCurrency(sTotal)}</div>
+    </div>
+    <div class="acct-stat rejected">
+      <div class="acct-stat-top">
+        <div class="acct-stat-icon red">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+        <div class="acct-stat-count">${rejected.length}</div>
+      </div>
+      <div class="acct-stat-label">Rejected</div>
+      <div class="acct-stat-amount">${formatCurrency(rejected.reduce((s,e)=>s+(e.amount||0),0))}</div>
+    </div>
+    <div class="acct-stat all">
+      <div class="acct-stat-top">
+        <div class="acct-stat-icon blue">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="acct-stat-count">${expenses.length}</div>
+      </div>
+      <div class="acct-stat-label">All Expenses</div>
+      <div class="acct-stat-amount">${formatCurrency(total)}</div>
+    </div>
+  `;
+}
+
+/* ─── FILTER PILLS ───────────────────────────────────── */
+
+function renderPills() {
+  const counts = {
+    pending:  expenses.filter(e => e.status === 'approved_fm').length,
+    settled:  expenses.filter(e => e.status === 'settled').length,
+    rejected: expenses.filter(e => e.status === 'rejected_acct').length,
+    all:      expenses.length
+  };
+  const tabs = [
+    { key:'pending',  label:'Pending Settlement' },
+    { key:'settled',  label:'Settled' },
+    { key:'rejected', label:'Rejected' },
+    { key:'all',      label:'All Expenses' }
+  ];
+  document.getElementById('filter-pills').innerHTML = tabs.map(t => `
+    <button class="filter-pill${activeTab === t.key ? ' active' : ''}" onclick="setTab('${t.key}')">
+      ${t.label}
+      <span class="pill-badge">${counts[t.key]}</span>
+    </button>`).join('');
+
+  // Bulk bar
+  const bulkBar = document.getElementById('bulk-bar');
+  const pendingList = expenses.filter(e => e.status === 'approved_fm');
+  if (activeTab === 'pending' && pendingList.length > 0) {
+    bulkBar.style.display = 'flex';
+    document.getElementById('bulk-label').textContent =
+      `${pendingList.length} expense${pendingList.length !== 1 ? 's' : ''} awaiting settlement — ${formatCurrency(pendingList.reduce((s,e)=>s+(e.amount||0),0))} total`;
+  } else {
+    bulkBar.style.display = 'none';
+  }
+}
+
+function setTab(tab) {
+  activeTab = tab;
+  renderPills();
+  renderTable();
+}
+
+/* ─── TABLE ──────────────────────────────────────────── */
+
+function renderTable() {
+  const raw      = getByTab(activeTab);
+  const filtered = applySearch(raw);
+  const sorted   = [...filtered].sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  const headings = {
+    pending:  'Pending Settlement',
+    settled:  'Settled Expenses',
+    rejected: 'Rejected Expenses',
+    all:      'All Expenses'
+  };
+  document.getElementById('table-heading').textContent = headings[activeTab];
+  document.getElementById('table-count').textContent =
+    `${sorted.length} record${sorted.length !== 1 ? 's' : ''}`;
+
+  const body = document.getElementById('acct-body');
+  if (!sorted.length) {
+    body.innerHTML = `<tr><td colspan="10" class="table-empty">No records found.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = sorted.map(e => {
+    const dn = driverName(e.driverId || '');
+    const vn = vehicleName(e.vehicleId || '');
+    return `
+    <tr>
+      <td data-label="Expense ID">
+        <strong style="font-family:monospace;font-size:12px;color:var(--primary);">${e.id}</strong>
+      </td>
+      <td data-label="Description" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;">
+        ${e.desc || '—'}
+      </td>
+      <td data-label="Driver" class="tbl-hide-mobile" style="font-size:12px;">${dn}</td>
+      <td data-label="Vehicle" class="tbl-hide-mobile" style="font-size:12px;">${vn}</td>
+      <td data-label="Type">${expTypeBadge(e.type)}</td>
+      <td data-label="Amount" style="font-weight:700;color:var(--primary);white-space:nowrap;">${formatCurrency(e.amount)}</td>
+      <td data-label="Date" class="tbl-hide-tablet" style="font-size:12px;white-space:nowrap;">${formatDate(e.date)}</td>
+      <td data-label="Receipt" class="tbl-hide-tablet">
+        ${e.receipt
+          ? '<span class="receipt-yes">✓ Yes</span>'
+          : '<span class="receipt-no">✗ No</span>'}
+      </td>
+      <td data-label="Status">${expStatusBadge(e.status)}</td>
+      <td data-label="Actions">
+        <div class="actions-cell">
+          ${rowActions(e)}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function rowActions(e) {
+  if (e.status === 'approved_fm') {
+    return `
+      <button class="btn btn-sm btn-primary" style="font-size:11px;padding:4px 10px;" onclick="openSettle('${e.id}')">Settle</button>
+      <button class="btn btn-sm" style="font-size:11px;padding:4px 10px;background:#fdecea;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;cursor:pointer;font-weight:700;" onclick="openReject('${e.id}')">Reject</button>`;
+  }
+  if (e.status === 'settled') {
+    return `<button class="btn btn-sm btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="openView('${e.id}')">View</button>`;
+  }
+  if (e.status === 'rejected_acct') {
+    return `<button class="btn btn-sm btn-outline" style="font-size:11px;padding:4px 10px;" onclick="reinstateExpense('${e.id}')">Reinstate</button>`;
+  }
+  return '';
+}
+
+/* ─── BADGE HELPERS ──────────────────────────────────── */
+
+function expTypeBadge(type) {
+  const cls = {
+    'Fuel':'etype-fuel','Toll':'etype-toll','Parking':'etype-parking',
+    'Maintenance':'etype-maintenance','Service':'etype-service','Repair':'etype-repair',
+    'Insurance':'etype-insurance','Cleaning':'etype-cleaning','Other':'etype-other'
+  }[type] || 'etype-other';
+  return `<span class="exp-type-badge ${cls}">${type || '—'}</span>`;
+}
+
+function expStatusBadge(status) {
+  const map = {
+    'submitted':    ['badge-submitted',    'Submitted'],
+    'approved_fm':  ['badge-approved-fm',  'Pending Settlement'],
+    'settled':      ['badge-settled',      'Settled'],
+    'rejected_acct':['badge-rejected-acct','Rejected']
+  };
+  const [cls, label] = map[status] || ['badge-submitted', status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+/* ─── SETTLE MODAL ───────────────────────────────────── */
+
+function openSettle(id) {
+  settleTarget = expenses.find(e => e.id === id);
+  if (!settleTarget) return;
+
+  document.getElementById('settle-summary').innerHTML = buildSummaryHTML(settleTarget);
+  document.getElementById('settle-method').value   = '';
+  document.getElementById('settle-ref').value      = '';
+  document.getElementById('settle-amount').value   = settleTarget.amount || '';
+  document.getElementById('settle-date').value     = todayISO();
+  document.getElementById('settle-remarks').value  = '';
+
+  openModal('settle-modal');
+}
+
+function confirmSettle() {
+  const method  = document.getElementById('settle-method').value.trim();
+  const ref     = document.getElementById('settle-ref').value.trim();
+  const amount  = parseFloat(document.getElementById('settle-amount').value);
+  const date    = document.getElementById('settle-date').value;
+  const remarks = document.getElementById('settle-remarks').value.trim();
+
+  if (!method)         { showToast('Please select a payment method.', 'error'); return; }
+  if (!ref)            { showToast('Reference number is required.', 'error'); return; }
+  if (!amount || amount <= 0) { showToast('Enter a valid settlement amount.', 'error'); return; }
+  if (!date)           { showToast('Settlement date is required.', 'error'); return; }
+
+  const session = getSession();
+  const idx = expenses.findIndex(e => e.id === settleTarget.id);
+  if (idx === -1) return;
+
+  expenses[idx].status         = 'settled';
+  expenses[idx].settledBy      = session.username || 'Accountant';
+  expenses[idx].settledOn      = date;
+  expenses[idx].paymentMethod  = method;
+  expenses[idx].paymentRef     = ref;
+  expenses[idx].settledAmount  = amount;
+  if (remarks) expenses[idx].notes = remarks;
+
+  save();
+  settleTarget = null;
+  closeModal('settle-modal');
+  renderStats();
+  renderPills();
+  renderTable();
+  showToast(`Expense ${expenses[idx].id} settled successfully!`, 'success');
+}
+
+/* ─── REJECT MODAL ───────────────────────────────────── */
+
+function openReject(id) {
+  rejectTarget = expenses.find(e => e.id === id);
+  if (!rejectTarget) return;
+
+  document.getElementById('reject-summary').innerHTML = buildSummaryHTML(rejectTarget);
+  document.getElementById('reject-reason').value = '';
+  document.getElementById('reject-notes').value  = '';
+
+  openModal('reject-modal');
+}
+
+function confirmReject() {
+  const reason = document.getElementById('reject-reason').value.trim();
+  const notes  = document.getElementById('reject-notes').value.trim();
+
+  if (!reason) { showToast('Please select a rejection reason.', 'error'); return; }
+
+  const session = getSession();
+  const idx = expenses.findIndex(e => e.id === rejectTarget.id);
+  if (idx === -1) return;
+
+  expenses[idx].status              = 'rejected_acct';
+  expenses[idx].rejectedReason_acct = reason;
+  expenses[idx].rejectedBy_acct     = session.username || 'Accountant';
+  expenses[idx].rejectedOn_acct     = todayISO();
+  if (notes) expenses[idx].notes    = notes;
+
+  save();
+  rejectTarget = null;
+  closeModal('reject-modal');
+  renderStats();
+  renderPills();
+  renderTable();
+  showToast(`Expense rejected: ${reason}`, 'warning');
+}
+
+/* ─── VIEW MODAL ─────────────────────────────────────── */
+
+function openView(id) {
+  const e = expenses.find(x => x.id === id);
+  if (!e) return;
+
+  const dn = driverName(e.driverId || '');
+  const vn = vehicleName(e.vehicleId || '');
+
+  let html = buildSummaryHTML(e);
+  if (e.status === 'settled') {
+    html += `
+      <div style="margin-top:12px;padding:12px 14px;background:#e8f5ee;border-radius:6px;font-size:13px;">
+        <div style="font-weight:800;color:#2d7a4f;margin-bottom:8px;">Settlement Details</div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#5a7a65;font-weight:600;">Settled By</span><span style="font-weight:700;">${e.settledBy || '—'}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#5a7a65;font-weight:600;">Settled On</span><span style="font-weight:700;">${formatDate(e.settledOn)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#5a7a65;font-weight:600;">Payment Method</span><span style="font-weight:700;">${e.paymentMethod || '—'}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#5a7a65;font-weight:600;">Reference</span><span style="font-weight:700;font-family:monospace;">${e.paymentRef || '—'}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#5a7a65;font-weight:600;">Settled Amount</span><span style="font-weight:800;color:#2d7a4f;">${formatCurrency(e.settledAmount)}</span></div>
+      </div>`;
+  }
+
+  document.getElementById('view-content').innerHTML = html;
+  openModal('view-modal');
+}
+
+/* ─── SUMMARY HTML BUILDER ───────────────────────────── */
+
+function buildSummaryHTML(e) {
+  const dn = driverName(e.driverId || '');
+  const vn = vehicleName(e.vehicleId || '');
+  return `
+    <div class="modal-summary">
+      <div class="ms-row"><span class="ms-label">Expense ID</span><span class="ms-value" style="font-family:monospace;">${e.id}</span></div>
+      <div class="ms-row"><span class="ms-label">Description</span><span class="ms-value">${e.desc || '—'}</span></div>
+      <div class="ms-row"><span class="ms-label">Driver</span><span class="ms-value">${dn}</span></div>
+      <div class="ms-row"><span class="ms-label">Vehicle</span><span class="ms-value">${vn}</span></div>
+      <div class="ms-row"><span class="ms-label">Type</span><span class="ms-value">${e.type || '—'}</span></div>
+      <div class="ms-row"><span class="ms-label">Date</span><span class="ms-value">${formatDate(e.date)}</span></div>
+      <div class="ms-row"><span class="ms-label">Receipt</span><span class="ms-value">${e.receipt ? '✓ Attached' : '✗ Missing'}</span></div>
+      <div class="ms-row"><span class="ms-label">Amount</span><span class="ms-value amount">${formatCurrency(e.amount)}</span></div>
+    </div>`;
+}
+
+/* ─── REINSTATE ──────────────────────────────────────── */
+
+function reinstateExpense(id) {
+  const idx = expenses.findIndex(e => e.id === id);
+  if (idx === -1) return;
+  if (!confirm(`Reinstate expense ${id}? It will move back to "Pending Settlement".`)) return;
+
+  expenses[idx].status = 'approved_fm';
+  delete expenses[idx].rejectedReason_acct;
+  delete expenses[idx].rejectedBy_acct;
+  delete expenses[idx].rejectedOn_acct;
+
+  save();
+  renderStats();
+  renderPills();
+  renderTable();
+  showToast(`Expense ${id} reinstated — now pending settlement.`, 'info');
+}
+
+/* ─── BULK SETTLE ────────────────────────────────────── */
+
+function settleAllPending() {
+  const pending = expenses.filter(e => e.status === 'approved_fm');
+  if (!pending.length) { showToast('No pending expenses to settle.', 'warning'); return; }
+
+  const method = prompt(
+    `Settle all ${pending.length} pending expenses (${formatCurrency(pending.reduce((s,e)=>s+(e.amount||0),0))}).\n\nEnter payment method (Cash / Bank Transfer / Cheque / UPI / NEFT / RTGS):`,
+    'Bank Transfer'
+  );
+  if (!method) return;
+
+  const allowed = ['Cash','Bank Transfer','Cheque','UPI','NEFT','RTGS'];
+  if (!allowed.includes(method.trim())) {
+    showToast(`Invalid payment method. Use: ${allowed.join(', ')}`, 'error');
+    return;
+  }
+  if (!confirm(`Settle ALL ${pending.length} pending expenses using ${method}?`)) return;
+
+  const session = getSession();
+  const today   = todayISO();
+
+  pending.forEach(exp => {
+    const idx = expenses.findIndex(e => e.id === exp.id);
+    if (idx === -1) return;
+    expenses[idx].status        = 'settled';
+    expenses[idx].settledBy     = session.username || 'Accountant';
+    expenses[idx].settledOn     = today;
+    expenses[idx].paymentMethod = method.trim();
+    expenses[idx].paymentRef    = 'BULK-' + today.replace(/-/g,'');
+    expenses[idx].settledAmount = exp.amount;
+  });
+
+  save();
+  renderStats();
+  renderPills();
+  renderTable();
+  showToast(`${pending.length} expense${pending.length !== 1 ? 's' : ''} settled via ${method}.`, 'success');
+}
+
+/* ─── EXPORT CSV ─────────────────────────────────────── */
+
+function exportCSV() {
+  const list = applySearch(getByTab(activeTab));
+  const sorted = [...list].sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  const headers = [
+    'Expense ID','Description','Driver','Vehicle','Type','Amount',
+    'Date','Receipt','Status','Approved By','Approved On',
+    'Settled By','Settled On','Payment Method','Payment Ref','Settled Amount',
+    'Rejected Reason','Rejected By','Rejected On','Notes'
+  ];
+
+  const rows = sorted.map(e => [
+    e.id,
+    `"${(e.desc||'').replace(/"/g,'""')}"`,
+    `"${driverName(e.driverId||'')}"`,
+    `"${vehicleName(e.vehicleId||'')}"`,
+    e.type||'',
+    e.amount||0,
+    e.date||'',
+    e.receipt ? 'Yes' : 'No',
+    e.status||'',
+    e.approvedBy||'',
+    e.approvedOn||'',
+    e.settledBy||'',
+    e.settledOn||'',
+    e.paymentMethod||'',
+    e.paymentRef||'',
+    e.settledAmount||'',
+    e.rejectedReason_acct||'',
+    e.rejectedBy_acct||'',
+    e.rejectedOn_acct||'',
+    `"${(e.notes||'').replace(/"/g,'""')}"`
+  ].join(','));
+
+  const csv  = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `expenses-${activeTab}-${todayISO()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV downloaded.', 'success');
+}
+
+/* ─── REPORTS ────────────────────────────────────────── */
+
+function renderReports() {
+  renderCategoryReport();
+  renderMonthlyReport();
+  renderSubmittersReport();
+}
+
+function renderCategoryReport() {
+  const catMap = {};
+  expenses.forEach(e => {
+    const t = e.type || 'Other';
+    if (!catMap[t]) catMap[t] = { count:0, total:0, settled:0 };
+    catMap[t].count++;
+    catMap[t].total += e.amount || 0;
+    if (e.status === 'settled') catMap[t].settled += e.settledAmount || e.amount || 0;
+  });
+
+  const rows = Object.entries(catMap)
+    .sort((a,b) => b[1].total - a[1].total);
+
+  const body = document.getElementById('rpt-category-body');
+  if (!rows.length) { body.innerHTML = '<tr><td colspan="5" class="table-empty">No data.</td></tr>'; return; }
+
+  body.innerHTML = rows.map(([type, d]) => {
+    const pct = d.total > 0 ? Math.round((d.settled / d.total) * 100) : 0;
+    return `
+      <tr>
+        <td>${expTypeBadge(type)}</td>
+        <td style="font-weight:700;">${d.count}</td>
+        <td style="font-weight:700;color:var(--primary);">${formatCurrency(d.total)}</td>
+        <td style="color:#2d7a4f;">${formatCurrency(d.settled)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:${pct}%;background:${pct>=80?'#2d7a4f':pct>=50?'#e67e22':'#e74c3c'};border-radius:3px;"></div>
+            </div>
+            <span style="font-size:11px;font-weight:700;color:var(--text-secondary);width:30px;text-align:right;">${pct}%</span>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function renderMonthlyReport() {
+  const now = new Date();
+  const months = [];
+  for (let i = 2; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) });
+  }
+
+  const body = document.getElementById('rpt-monthly-body');
+  body.innerHTML = months.map(m => {
+    const list = expenses.filter(e => {
+      const d = new Date(e.date);
+      return d.getFullYear() === m.year && d.getMonth() === m.month;
+    });
+    const total   = list.reduce((s,e) => s+(e.amount||0), 0);
+    const settled = list.filter(e => e.status === 'settled').length;
+    const pending = list.filter(e => e.status === 'approved_fm').length;
+    return `
+      <tr>
+        <td style="font-weight:700;">${m.label}</td>
+        <td>${list.length}</td>
+        <td style="font-weight:700;color:var(--primary);">${formatCurrency(total)}</td>
+        <td style="color:#2d7a4f;font-weight:600;">${settled}</td>
+        <td style="color:#e67e22;font-weight:600;">${pending}</td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="5" class="table-empty">No data.</td></tr>';
+}
+
+function renderSubmittersReport() {
+  const drvMap = {};
+  expenses.forEach(e => {
+    const id = e.driverId || 'unknown';
+    if (!drvMap[id]) drvMap[id] = { name: driverName(id), count:0, total:0, settled:0, pending:0 };
+    drvMap[id].count++;
+    drvMap[id].total += e.amount || 0;
+    if (e.status === 'settled') drvMap[id].settled += e.settledAmount || e.amount || 0;
+    if (e.status === 'approved_fm') drvMap[id].pending += e.amount || 0;
+  });
+
+  const rows = Object.values(drvMap).sort((a,b) => b.total - a.total);
+
+  const body = document.getElementById('rpt-submitters-body');
+  if (!rows.length) { body.innerHTML = '<tr><td colspan="5" class="table-empty">No data.</td></tr>'; return; }
+
+  body.innerHTML = rows.map(d => `
+    <tr>
+      <td style="font-weight:700;">${d.name}</td>
+      <td>${d.count}</td>
+      <td style="font-weight:700;color:var(--primary);">${formatCurrency(d.total)}</td>
+      <td style="color:#2d7a4f;">${formatCurrency(d.settled)}</td>
+      <td style="color:#e67e22;">${formatCurrency(d.pending)}</td>
+    </tr>`).join('');
+}
+
+/* ─── BUDGET TRACKER ─────────────────────────────────── */
+
+function renderBudget() {
+  const now    = new Date();
+  const label  = now.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+  document.getElementById('budget-month-label').textContent = label;
+
+  const budget = loadBudget();
+
+  // Actual this month per category
+  const actuals = {};
+  expenses.forEach(e => {
+    const d = new Date(e.date);
+    if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      const t = e.type || 'Other';
+      actuals[t] = (actuals[t] || 0) + (e.amount || 0);
+    }
+  });
+
+  const grid = document.getElementById('budget-grid');
+  grid.innerHTML = EXPENSE_TYPES.map(type => {
+    const actual = actuals[type] || 0;
+    const limit  = budget[type] || 0;
+    const pct    = limit > 0 ? Math.min((actual / limit) * 100, 100) : 0;
+    const over   = limit > 0 && actual > limit;
+    const fillCls = over ? 'over' : pct >= 75 ? 'warning' : 'ok';
+
+    return `
+      <div class="budget-card${over ? ' budget-card-over' : ''}">
+        <div class="budget-card-header">
+          <span class="budget-card-title">${type}</span>
+          <div class="budget-card-input">
+            <span>Budget ₹</span>
+            <input type="number" min="0" step="100"
+              value="${limit || ''}"
+              placeholder="0"
+              onchange="saveBudgetItem('${type}', this.value)" />
+          </div>
+        </div>
+        <div class="budget-progress-bar">
+          <div class="budget-progress-fill ${fillCls}" style="width:${pct}%;"></div>
+        </div>
+        <div class="budget-amounts">
+          <span>Actual: <strong style="color:${over?'#e74c3c':'var(--text-primary)'};">${formatCurrency(actual)}</strong></span>
+          ${over
+            ? `<span class="over-label">Over by ${formatCurrency(actual - limit)}</span>`
+            : `<span>${limit > 0 ? Math.round(pct) + '% used' : 'No limit set'}</span>`}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function loadBudget() {
+  try { return JSON.parse(localStorage.getItem(LS_BUDGET)) || {}; } catch { return {}; }
+}
+
+function saveBudgetItem(type, value) {
+  const budget = loadBudget();
+  const num = parseFloat(value);
+  if (!isNaN(num) && num >= 0) {
+    budget[type] = num;
+  } else {
+    delete budget[type];
+  }
+  localStorage.setItem(LS_BUDGET, JSON.stringify(budget));
+  renderBudget();
+  showToast(`Budget for ${type} updated.`, 'success');
+}
+
+/* ─── MODAL BACKDROP CLICK ───────────────────────────── */
+
+function handleModalBackdropClick(event, modalId) {
+  if (event.target.id === modalId) {
+    closeModal(modalId);
+  }
+}
+</script>
+</body>
+</html>

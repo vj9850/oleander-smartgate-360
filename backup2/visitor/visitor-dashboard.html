@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visitor Overview – SmartGate 360</title>
+  <link rel="icon" href="../assets/icons/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <script>
+    (function(){ const s = sessionStorage.getItem('sg360_session'); if (!s) window.location.replace('../index.html'); })();
+  </script>
+</head>
+<body>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title">SmartGate 360</div>
+          <div class="topbar-breadcrumb">Visitor Module / <span>Overview</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date"></div>
+        <div class="topbar-user">
+          <div class="user-avatar" id="user-avatar">–</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">–</div>
+            <div class="user-role" id="user-role">–</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Visitor Overview</div>
+          <div class="page-subtitle">Real-time visitor activity, gate pass status &amp; security alerts</div>
+        </div>
+        <a href="visitor-form.html" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Register Visitor
+        </a>
+      </div>
+
+      <!-- Security Alerts -->
+      <div id="security-alerts" style="display:none;"></div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid" id="vis-stats"></div>
+
+      <!-- Two columns: Recent visitors + Type breakdown -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start;" id="dash-cols">
+
+        <!-- Recent Visitors Table -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Recent Visitors</h2>
+            <div class="section-actions">
+              <a href="visitor-list.html" class="btn btn-sm btn-ghost">View All</a>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="recent-table">
+              <thead>
+                <tr>
+                  <th>Pass ID</th>
+                  <th>Visitor</th>
+                  <th>Type</th>
+                  <th>Gate</th>
+                  <th>Location</th>
+                  <th>Entry</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recent-body">
+                <tr><td colspan="8" class="table-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Visitor Type Breakdown -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Visitor Types</h2>
+          </div>
+          <ul class="type-breakdown-list" id="type-breakdown"></ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/visitor.js"></script>
+<script>
+(async function () {
+  initVPage('visitor-overview');
+  await seedIfEmpty(KEYS.visitors, '../visitor/visitor-data.json');
+  VM.refreshOverstay();
+
+  renderAlerts();
+  renderStats();
+  renderRecentTable();
+  renderTypeBreakdown();
+
+  function renderAlerts() {
+    const alerts = VM.getAlerts();
+    const el = document.getElementById('security-alerts');
+    if (!alerts.length) { el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    el.style.flexDirection = 'column';
+    el.style.gap = '8px';
+    el.style.marginBottom = '20px';
+    el.innerHTML = alerts.map(a => `
+      <div class="security-alert-item ${a.severity === 'danger' ? 'danger' : 'warning'}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>${a.msg} <a class="alert-link" href="visitor-details.html?id=${a.v.id}">View →</a></span>
+      </div>`).join('');
+  }
+
+  function renderStats() {
+    const all      = VM.getAll();
+    const today    = VM.getTodayList();
+    const active   = VM.getActiveList();
+    const pending  = VM.getPending();
+    const blk      = VM.getBlacklisted();
+    document.getElementById('vis-stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <div class="stat-body"><div class="stat-value">${today.length}</div><div class="stat-label">Today's Visitors</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
+        <div class="stat-body"><div class="stat-value">${active.length}</div><div class="stat-label">Inside Property</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon teal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="stat-body"><div class="stat-value">${all.length}</div><div class="stat-label">Active Gate Passes</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-body"><div class="stat-value">${pending.length}</div><div class="stat-label">Pending Check-Out</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        </div>
+        <div class="stat-body"><div class="stat-value">${blk.length}</div><div class="stat-label">Blacklisted</div></div>
+      </div>
+    `;
+  }
+
+  function renderRecentTable() {
+    const all = VM.getAll();
+    const recent = [...all]
+      .sort((a, b) => new Date(b.entryTime) - new Date(a.entryTime))
+      .slice(0, 10);
+
+    const body = document.getElementById('recent-body');
+    if (!recent.length) {
+      body.innerHTML = '<tr class="no-data-row"><td colspan="8">No visitors yet.</td></tr>';
+      return;
+    }
+    body.innerHTML = recent.map(v => `
+      <tr>
+        <td><span style="font-family:monospace;font-weight:700;color:var(--primary);font-size:12px;">${v.passId}</span></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            ${visAvatar(v.name, v.visitorType, v.photo, 28)}
+            <span style="font-weight:600;">${v.name}</span>
+          </div>
+        </td>
+        <td>${visBadge(v.visitorType)}</td>
+        <td>${gBadge(v.gate)}</td>
+        <td style="font-size:12px;color:var(--text-secondary);">${v.location}</td>
+        <td style="font-size:12px;white-space:nowrap;">${formatTime(v.entryTime)}</td>
+        <td>${visStatus(v.status)}</td>
+        <td>
+          <div class="actions-cell">
+            <a class="btn btn-sm btn-ghost" href="visitor-details.html?id=${v.id}">View</a>
+            ${(v.status === 'Active' || v.status === 'Overstayed') ? `<button class="btn btn-sm btn-outline" onclick="doCheckout('${v.id}')">Check-Out</button>` : ''}
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function renderTypeBreakdown() {
+    const all = VM.getAll();
+    const types = ['Guest', 'Vendor', 'Staff', 'Delivery', 'Event Guest'];
+    const colors = {
+      'Guest': '#3d6ef5', 'Vendor': '#e67e22', 'Staff': '#2d7a4f',
+      'Delivery': '#00897b', 'Event Guest': '#8e44ad'
+    };
+    document.getElementById('type-breakdown').innerHTML = types.map(t => {
+      const cnt = all.filter(v => v.visitorType === t).length;
+      return `
+        <li>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="width:10px;height:10px;border-radius:50%;background:${colors[t]};display:inline-block;flex-shrink:0;"></span>
+            ${visBadge(t)}
+          </div>
+          <span class="tbl-count">${cnt}</span>
+        </li>`;
+    }).join('');
+  }
+
+  window.doCheckout = function(id) {
+    if (VM.checkOut(id)) {
+      showToast('Visitor checked out successfully', 'success');
+      VM.refreshOverstay();
+      renderAlerts();
+      renderStats();
+      renderRecentTable();
+    } else {
+      showToast('Could not check out visitor', 'error');
+    }
+  };
+})();
+</script>
+</body>
+</html>

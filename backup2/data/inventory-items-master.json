@@ -1,0 +1,22 @@
+[
+  {"id":"ITM-A1B2C","itemId":"ITM-001","name":"Bath Towels","category":"Housekeeping","unit":"pcs","minStock":100,"description":"Premium white cotton bath towels for guest rooms","status":"Active"},
+  {"id":"ITM-B2C3D","itemId":"ITM-002","name":"Bed Sheets (King)","category":"Housekeeping","unit":"pcs","minStock":60,"description":"King size cotton bedsheets with 400 thread count","status":"Active"},
+  {"id":"ITM-C3D4E","itemId":"ITM-003","name":"Pillow Covers","category":"Housekeeping","unit":"pcs","minStock":120,"description":"White cotton pillow covers for standard pillows","status":"Active"},
+  {"id":"ITM-D4E5F","itemId":"ITM-004","name":"Floor Cleaner","category":"Housekeeping","unit":"litre","minStock":50,"description":"Multi-surface pH neutral floor cleaning solution","status":"Active"},
+  {"id":"ITM-E5F6G","itemId":"ITM-005","name":"Toilet Paper Rolls","category":"Housekeeping","unit":"box","minStock":80,"description":"2-ply premium toilet paper (box of 12 rolls)","status":"Active"},
+  {"id":"ITM-F6G7H","itemId":"ITM-006","name":"Laundry Detergent","category":"Housekeeping","unit":"kg","minStock":30,"description":"Industrial grade fabric detergent for linen","status":"Active"},
+  {"id":"ITM-G7H8I","itemId":"ITM-007","name":"Air Freshener Spray","category":"Housekeeping","unit":"pcs","minStock":40,"description":"Floral scented aerosol room freshener","status":"Active"},
+  {"id":"ITM-H8I9J","itemId":"ITM-008","name":"Duvet Covers","category":"Housekeeping","unit":"pcs","minStock":40,"description":"White cotton duvet covers for king and twin beds","status":"Active"},
+  {"id":"ITM-I9J0K","itemId":"ITM-009","name":"Shampoo Sachets","category":"Room Service","unit":"box","minStock":200,"description":"25ml individual shampoo sachets for guest rooms","status":"Active"},
+  {"id":"ITM-J0K1L","itemId":"ITM-010","name":"Soap Bars","category":"Room Service","unit":"pcs","minStock":300,"description":"Herbal bath soap bars 50g each","status":"Active"},
+  {"id":"ITM-K1L2M","itemId":"ITM-011","name":"Mineral Water Bottles","category":"Room Service","unit":"pcs","minStock":500,"description":"500ml sealed mineral water bottles","status":"Active"},
+  {"id":"ITM-L2M3N","itemId":"ITM-012","name":"Body Lotion","category":"Room Service","unit":"pcs","minStock":150,"description":"Moisturising body lotion 50ml – hotel amenity","status":"Active"},
+  {"id":"ITM-M3N4O","itemId":"ITM-013","name":"Massage Oil (Lavender)","category":"Spa & Wellness","unit":"litre","minStock":10,"description":"Pure lavender essential massage oil","status":"Active"},
+  {"id":"ITM-N4O5P","itemId":"ITM-014","name":"Herbal Bath Salts","category":"Spa & Wellness","unit":"kg","minStock":15,"description":"Himalayan pink salt and herb bath soak","status":"Active"},
+  {"id":"ITM-O5P6Q","itemId":"ITM-015","name":"Face Mask Packs","category":"Spa & Wellness","unit":"pcs","minStock":50,"description":"Single use clay face mask sachets","status":"Active"},
+  {"id":"ITM-P6Q7R","itemId":"ITM-016","name":"Olive Oil (Cooking)","category":"Restaurant","unit":"litre","minStock":20,"description":"Extra virgin olive oil for kitchen use","status":"Active"},
+  {"id":"ITM-Q7R8S","itemId":"ITM-017","name":"Coffee Beans","category":"Restaurant","unit":"kg","minStock":10,"description":"Arabica roasted coffee beans for espresso","status":"Active"},
+  {"id":"ITM-R8S9T","itemId":"ITM-018","name":"LED Bulbs (9W)","category":"Maintenance","unit":"pcs","minStock":50,"description":"9W warm-white LED bulbs for room lighting","status":"Active"},
+  {"id":"ITM-S9T0U","itemId":"ITM-019","name":"PVC Pipes (1 inch)","category":"Maintenance","unit":"pcs","minStock":30,"description":"1-inch PVC pipes for plumbing repairs","status":"Active"},
+  {"id":"ITM-T0U1V","itemId":"ITM-020","name":"Fairy Lights (10m)","category":"Events","unit":"pcs","minStock":20,"description":"Warm white 10m fairy lights for event decor","status":"Active"}
+]
